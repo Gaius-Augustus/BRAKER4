@@ -1,0 +1,278 @@
+/*
+ * BRAKER4 pipeline overview
+ * Publication-ready flowchart (landscape).
+ * High-level view: main phases only, one GeneMark box, one AUGUSTUS box.
+ *
+ * Render:
+ *   dot -Tsvg pipeline_overview.dot -o pipeline_overview.svg
+ *   dot -Tpdf pipeline_overview.dot -o pipeline_overview.pdf
+ *   dot -Tpng -Gdpi=300 pipeline_overview.dot -o pipeline_overview.png
+ */
+
+digraph BRAKER4 {
+    rankdir   = TB;
+    compound  = true;
+    splines   = spline;
+    bgcolor   = "white";
+    nodesep   = 0.25;
+    ranksep   = 0.55;
+    fontname  = "Helvetica";
+    pad       = "0.4";
+    newrank   = true;
+    ordering  = out;
+
+    /* ---------- global styles ---------- */
+    node [
+        fontname = "Helvetica",
+        fontsize = 16,
+        shape    = box,
+        style    = "filled,rounded",
+        color    = "#333333",
+        penwidth = 1.5,
+        margin   = "0.25,0.15"
+    ];
+    edge [
+        fontname  = "Helvetica",
+        fontsize  = 14,
+        color     = "#555555",
+        penwidth  = 1.4,
+        arrowsize = 1.0
+    ];
+
+    /* =====================================================
+     *  INPUTS  (vertical stack on the left)
+     * ===================================================== */
+    subgraph cluster_inputs {
+        label     = "INPUTS";
+        labelloc  = "t";
+        fontsize  = 18;
+        fontname  = "Helvetica-Bold";
+        color     = "#888888";
+        style     = "rounded";
+        bgcolor   = "#fafafa";
+        margin    = 14;
+
+        node [shape = parallelogram, fillcolor = "#fdd9b4",
+              margin = "0.10,0.06", height = 0.4, fixedsize = false];
+
+        in_rnaseq   [label = "Short-read\nRNA-Seq",
+                     style = "filled,dashed"];
+        in_genome   [label = "Genome\nFASTA", group = "spine"];
+        in_isoseq   [label = "IsoSeq\nlong reads",
+                     style = "filled,dashed"];
+        in_proteins [label = "Protein\nFASTA",
+                     style = "filled,dashed"];
+
+        { rank = same; in_rnaseq; in_genome; in_isoseq; in_proteins; }
+    }
+
+    /* =====================================================
+     *  PREPROCESSING  (optional)
+     * ===================================================== */
+    subgraph cluster_pre {
+        label     = "PREPROCESSING";
+        labelloc  = "t";
+        fontsize  = 18;
+        fontname  = "Helvetica-Bold";
+        color     = "#888888";
+        style     = "rounded";
+        bgcolor   = "#fafafa";
+        margin    = 14;
+
+        node [fillcolor = "#d9ead3"];
+
+        pp_mask  [label = "Repeat masking\n(RepeatModeler2 +\nRepeatMasker + TRF)",
+                  style = "filled,rounded,dashed",
+                  group = "spine"];
+        pp_align [label = "Read alignment\nHISAT2 (short reads)\nminimap2 (IsoSeq)",
+                  style = "filled,rounded,dashed"];
+
+        { rank = same; pp_align; pp_mask; }
+    }
+
+    /* =====================================================
+     *  EVIDENCE HINTS
+     * ===================================================== */
+    hints [
+        label    = "Evidence hints\n\nRNA-Seq  ·  Proteins (ProtHint)\nIsoSeq  ·  BUSCO",
+        fillcolor = "#c9daf8",
+        shape     = box,
+        style     = "filled,rounded",
+        group     = "spine"
+    ];
+
+    /* =====================================================
+     *  GENEMARK  (single box)
+     * ===================================================== */
+    genemark [
+        label    = "GeneMark\n(ES / ET / EP+ / ETP)\n\nmode selected automatically\nfrom provided evidence",
+        fillcolor = "#ead1dc",
+        style     = "filled,rounded",
+        penwidth  = 1.6,
+        group     = "spine"
+    ];
+
+    /* =====================================================
+     *  AUGUSTUS  (single box)
+     * ===================================================== */
+    augustus [
+        label    = "AUGUSTUS\ntraining + prediction\n\n(etraining · optimize ·\nhint-guided prediction)",
+        fillcolor = "#fff2cc",
+        style     = "filled,rounded",
+        penwidth  = 1.6,
+        group     = "spine"
+    ];
+
+    /* =====================================================
+     *  MERGE  (TSEBRA) + postprocess
+     * ===================================================== */
+    tsebra [
+        label    = "TSEBRA merge\n(AUGUSTUS + GeneMark)\n+ filter · rename · GFF3",
+        fillcolor = "#d0e0e3",
+        style     = "filled,rounded",
+        penwidth  = 1.6,
+        group     = "spine"
+    ];
+
+    utr [
+        label    = "UTR annotation\nStringTie +\nstringtie2utr",
+        fillcolor = "#d0e0e3",
+        style     = "filled,rounded,dashed"
+    ];
+
+    /* =====================================================
+     *  NON-CODING RNA  (optional, single box)
+     * ===================================================== */
+    ncrna [
+        label    = "ncRNA annotation  (optional)\n\nbarrnap · tRNAscan-SE\nInfernal + Rfam · FEELnc",
+        fillcolor = "#e6d5f0",
+        style     = "filled,rounded,dashed",
+        penwidth  = 1.4
+    ];
+
+    /* =====================================================
+     *  FUNCTIONAL ANNOTATION  (optional, GPU-only)
+     * ===================================================== */
+    fantasia [
+        label    = "Functional annotation  (optional)\n\nFANTASIA-Lite\nProtT5 embeddings → GO terms\nGFF3 Ontology_term decoration\n(GPU only)",
+        fillcolor = "#a2c4c9",
+        style     = "filled,rounded,dashed",
+        penwidth  = 1.4
+    ];
+
+    /* =====================================================
+     *  QUALITY CONTROL
+     * ===================================================== */
+    qc [
+        label    = "Quality control\n\nBUSCO + compleasm\nOMArk (optional)\ngffcompare (optional)\ngene-support analysis",
+        fillcolor = "#cfbae1",
+        style     = "filled,rounded",
+        penwidth  = 1.4
+    ];
+
+    /* =====================================================
+     *  OUTPUTS  (vertical stack on the right)
+     * ===================================================== */
+    subgraph cluster_outputs {
+        label     = "OUTPUTS";
+        labelloc  = "t";
+        fontsize  = 18;
+        fontname  = "Helvetica-Bold";
+        color     = "#888888";
+        style     = "rounded";
+        bgcolor   = "#fafafa";
+        margin    = 14;
+
+        node [shape = note, fillcolor = "#f4cccc"];
+
+        out_utr      [label = "braker_utr.gtf",
+                      style = "filled,dashed"];
+        out_genes    [label = "braker.gtf · braker.gff3\nbraker.aa · braker.codingseq",
+                      group = "spine"];
+        out_ncrna    [label = "braker_with_ncRNA.gff3",
+                      style = "filled,dashed"];
+        out_fantasia [label = "braker.go.gff3\nfantasia_go_terms.tsv",
+                      style = "filled,dashed"];
+        out_report   [label = "HTML report\n+ citations.bib\n+ software_versions.tsv"];
+
+        { rank = same; out_utr; out_genes; out_ncrna; out_fantasia; out_report; }
+    }
+
+    /* =====================================================
+     *  EDGES
+     * ===================================================== */
+
+    /* Inputs → Preprocessing */
+    in_genome -> pp_mask   [style = "dashed", label = "if unmasked"];
+    in_rnaseq -> pp_align  [style = "dashed"];
+    in_isoseq -> pp_align  [style = "dashed"];
+
+    /* Inputs / Preprocessing → Hints  (spine edge has high weight) */
+    in_genome  -> hints [weight = 20];
+    pp_mask    -> hints [style = "dashed"];
+    pp_align   -> hints [style = "dashed"];
+    in_proteins -> hints [style = "dashed"];
+
+    /* Hints → GeneMark  (spine) */
+    hints -> genemark [weight = 20];
+
+    /* Hints → AUGUSTUS prediction (also uses hints) */
+    hints -> augustus [style = "dashed", label = "hints"];
+
+    /* GeneMark → AUGUSTUS  (spine) */
+    genemark -> augustus [label = "training\ngenes", weight = 20];
+
+    /* GeneMark + AUGUSTUS → TSEBRA  (spine) */
+    augustus -> tsebra [weight = 20];
+    genemark -> tsebra [style = "dashed"];
+
+    /* TSEBRA → UTR (optional) */
+    tsebra -> utr [style = "dashed"];
+
+    /* Pipeline → QC */
+    tsebra -> qc;
+
+    /* Pipeline → ncRNA (optional) */
+    tsebra -> ncrna [style = "dashed"];
+
+    /* Pipeline → FANTASIA functional annotation (optional, GPU) */
+    tsebra -> fantasia [style = "dashed"];
+
+    /* Outputs  (spine edge tsebra → out_genes has high weight) */
+    tsebra   -> out_genes    [weight = 20];
+    utr      -> out_utr      [style = "dashed"];
+    ncrna    -> out_ncrna    [style = "dashed"];
+    fantasia -> out_fantasia [style = "dashed"];
+    qc       -> out_report;
+
+    /* =====================================================
+     *  LEGEND  (anchored at the bottom of the figure)
+     * ===================================================== */
+    subgraph cluster_legend {
+        label    = "LEGEND";
+        labelloc = "t";
+        fontsize = 18;
+        fontname = "Helvetica-Bold";
+        color    = "#888888";
+        style    = "rounded";
+        bgcolor  = "#ffffff";
+        margin   = 14;
+
+        node [shape = box, style = "filled,rounded", fontsize = 15, fillcolor = "#ffffff"];
+
+        leg_req [label = "required step"];
+        leg_opt [label = "optional step\n(user enables)",
+                 style = "filled,rounded,dashed"];
+        leg_in  [label = "input",  shape = parallelogram, fillcolor = "#fdd9b4"];
+        leg_out [label = "output", shape = note,          fillcolor = "#f4cccc"];
+
+        { rank = same; leg_req; leg_opt; leg_in; leg_out; }
+    }
+
+    /* Pin legend below outputs row via an invisible edge */
+    out_genes    -> leg_req [style = invis, minlen = 2];
+    out_utr      -> leg_opt [style = invis, minlen = 2];
+    out_ncrna    -> leg_in  [style = invis, minlen = 2];
+    out_fantasia -> leg_in  [style = invis, minlen = 2];
+    out_report   -> leg_out [style = invis, minlen = 2];
+}
