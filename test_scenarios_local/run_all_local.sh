@@ -8,9 +8,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIPELINE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Download test data first
+# Download test data first (local-only: skip HPC-only datasets like
+# Ostreococcus, Viridiplantae, OMAmer LUCA.h5, and Rfam).
 echo "Downloading test data if needed..."
-source "$PIPELINE_DIR/test_data/download_test_data.sh"
+source "$PIPELINE_DIR/test_data/download_test_data.sh" --local-only
 echo ""
 
 SCENARIOS=(

@@ -1,48 +1,81 @@
 #!/bin/bash
-# Download all test data files needed for the BRAKER4 Snakemake pipeline.
+# Download test data files needed for the BRAKER4 Snakemake pipeline.
 #
-# Usage: bash test_data/download_test_data.sh
+# Usage:
+#   bash test_data/download_test_data.sh             # download everything
+#   bash test_data/download_test_data.sh --local-only # only local-scenario data
 #
-# Downloads:
+# The --local-only flag (or BRAKER4_LOCAL_ONLY=1 when sourcing) skips HPC-only
+# datasets: the O. tauri genome, Viridiplantae proteins, OMAmer LUCA.h5 and
+# Rfam. It still downloads RNAseq.bam, extracts paired FASTQ reads, and creates
+# the isoseq_lib2.bam symlink -- everything the test_scenarios_local/ suite
+# needs on top of the files already shipped in the repo.
+#
+# Downloads (full mode):
 #   - O. tauri genome (~12.6 MB) for HPC test scenarios (08-11)
 #   - Viridiplantae proteins for HPC protein scenarios (09, 11)
 #   - RNAseq.bam (164 MB) for local A. thaliana scenarios (03, 04)
 #   - Extracts FASTQ files from BAM for local FASTQ scenario (03)
+#   - OMAmer LUCA.h5 (~15 GB) for HPC scenario 08
+#   - Rfam covariance models (~30 MB) for run_ncrna=1
 
 set -euo pipefail
 
 TESTDATA_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+LOCAL_ONLY="${BRAKER4_LOCAL_ONLY:-0}"
+for arg in "$@"; do
+    case "$arg" in
+        --local-only) LOCAL_ONLY=1 ;;
+        -h|--help)
+            sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+            return 0 2>/dev/null || exit 0
+            ;;
+        *)
+            echo "Unknown argument: $arg" >&2
+            return 1 2>/dev/null || exit 1
+            ;;
+    esac
+done
+
+if [ "$LOCAL_ONLY" = "1" ]; then
+    echo "Running in --local-only mode: skipping HPC-only datasets."
+fi
+
 # ============================================================================
 # Ostreococcus tauri genome (~12.6 MB, for HPC test scenarios 08-11)
 # ============================================================================
-OT_GENOME="$TESTDATA_DIR/Ostreococcus_tauri.fa"
-OT_GENOME_URL="https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/214/015/GCF_000214015.3_version_140606/GCF_000214015.3_version_140606_genomic.fna.gz"
+if [ "$LOCAL_ONLY" != "1" ]; then
+    OT_GENOME="$TESTDATA_DIR/Ostreococcus_tauri.fa"
+    OT_GENOME_URL="https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/214/015/GCF_000214015.3_version_140606/GCF_000214015.3_version_140606_genomic.fna.gz"
 
-if [ ! -f "$OT_GENOME" ]; then
-    echo "Downloading O. tauri genome (GCF_000214015.3 from NCBI)..."
-    echo "  URL: $OT_GENOME_URL"
-    wget -q "$OT_GENOME_URL" -O "$OT_GENOME.gz"
-    gunzip "$OT_GENOME.gz"
-    echo "  Downloaded: $OT_GENOME ($(du -h "$OT_GENOME" | cut -f1))"
-else
-    echo "O. tauri genome already exists: $OT_GENOME"
+    if [ ! -f "$OT_GENOME" ]; then
+        echo "Downloading O. tauri genome (GCF_000214015.3 from NCBI)..."
+        echo "  URL: $OT_GENOME_URL"
+        wget -q "$OT_GENOME_URL" -O "$OT_GENOME.gz"
+        gunzip "$OT_GENOME.gz"
+        echo "  Downloaded: $OT_GENOME ($(du -h "$OT_GENOME" | cut -f1))"
+    else
+        echo "O. tauri genome already exists: $OT_GENOME"
+    fi
 fi
 
 # ============================================================================
 # Viridiplantae proteins (for HPC scenarios with protein evidence)
 # ============================================================================
-FULL_PROTEINS="$TESTDATA_DIR/Viridiplantae.fa"
-FULL_PROTEINS_URL="https://bioinf.uni-greifswald.de/bioinf/partitioned_odb12/Viridiplantae.fa.gz"
+if [ "$LOCAL_ONLY" != "1" ]; then
+    FULL_PROTEINS="$TESTDATA_DIR/Viridiplantae.fa"
+    FULL_PROTEINS_URL="https://bioinf.uni-greifswald.de/bioinf/partitioned_odb12/Viridiplantae.fa.gz"
 
-if [ ! -f "$FULL_PROTEINS" ]; then
-    echo "Downloading Viridiplantae protein set (ODB12)..."
-    echo "  URL: $FULL_PROTEINS_URL"
-    wget -q "$FULL_PROTEINS_URL" -O "$FULL_PROTEINS.gz"
-    gunzip "$FULL_PROTEINS.gz"
-    echo "  Downloaded: $FULL_PROTEINS ($(du -h "$FULL_PROTEINS" | cut -f1))"
-else
-    echo "Viridiplantae proteins already exist: $FULL_PROTEINS"
+    if [ ! -f "$FULL_PROTEINS" ]; then
+        echo "Downloading Viridiplantae protein set (ODB12)..."
+        echo "  URL: $FULL_PROTEINS_URL"
+        wget -q "$FULL_PROTEINS_URL" -O "$FULL_PROTEINS.gz"
+        gunzip "$FULL_PROTEINS.gz"
+        echo "  Downloaded: $FULL_PROTEINS ($(du -h "$FULL_PROTEINS" | cut -f1))"
+    else
+        echo "Viridiplantae proteins already exist: $FULL_PROTEINS"
+    fi
 fi
 
 # ============================================================================
@@ -79,45 +112,49 @@ fi
 # ============================================================================
 # OMAmer database for OMArk (large, ~15 GB; only needed by scenario 08)
 # ============================================================================
-OMAMER_DB="$TESTDATA_DIR/LUCA.h5"
+if [ "$LOCAL_ONLY" != "1" ]; then
+    OMAMER_DB="$TESTDATA_DIR/LUCA.h5"
 
-if [ ! -f "$OMAMER_DB" ]; then
-    echo "Downloading OMAmer LUCA.h5 database (~15 GB)..."
-    echo "  URL: https://omabrowser.org/All/LUCA.h5"
-    wget -q "https://omabrowser.org/All/LUCA.h5" -O "$OMAMER_DB"
-    echo "  Downloaded: $OMAMER_DB ($(du -h "$OMAMER_DB" | cut -f1))"
-else
-    echo "OMAmer database already exists: $OMAMER_DB"
+    if [ ! -f "$OMAMER_DB" ]; then
+        echo "Downloading OMAmer LUCA.h5 database (~15 GB)..."
+        echo "  URL: https://omabrowser.org/All/LUCA.h5"
+        wget -q "https://omabrowser.org/All/LUCA.h5" -O "$OMAMER_DB"
+        echo "  Downloaded: $OMAMER_DB ($(du -h "$OMAMER_DB" | cut -f1))"
+    else
+        echo "OMAmer database already exists: $OMAMER_DB"
+    fi
 fi
 
 # ============================================================================
 # Rfam database for Infernal ncRNA annotation (run_ncrna=1)
 # ============================================================================
-RFAM_DIR="$(cd "$TESTDATA_DIR/.." && pwd)/shared_data/rfam"
-RFAM_CM="$RFAM_DIR/Rfam.cm"
-RFAM_CLANIN="$RFAM_DIR/Rfam.clanin"
-
-if [ ! -f "$RFAM_CM" ]; then
-    mkdir -p "$RFAM_DIR"
+if [ "$LOCAL_ONLY" != "1" ]; then
+    RFAM_DIR="$(cd "$TESTDATA_DIR/.." && pwd)/shared_data/rfam"
+    RFAM_CM="$RFAM_DIR/Rfam.cm"
+    RFAM_CLANIN="$RFAM_DIR/Rfam.clanin"
 
     if [ ! -f "$RFAM_CM" ]; then
-        echo "Downloading Rfam covariance models (~30 MB)..."
-        wget -q "https://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.cm.gz" -O "$RFAM_CM.gz"
-        gunzip "$RFAM_CM.gz"
-        echo "  Downloaded: $RFAM_CM ($(du -h "$RFAM_CM" | cut -f1))"
-    fi
+        mkdir -p "$RFAM_DIR"
 
-    if [ ! -f "$RFAM_CLANIN" ]; then
-        echo "Downloading Rfam clan info..."
-        wget -q "https://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.clanin" -O "$RFAM_CLANIN"
-        echo "  Downloaded: $RFAM_CLANIN"
-    fi
+        if [ ! -f "$RFAM_CM" ]; then
+            echo "Downloading Rfam covariance models (~30 MB)..."
+            wget -q "https://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.cm.gz" -O "$RFAM_CM.gz"
+            gunzip "$RFAM_CM.gz"
+            echo "  Downloaded: $RFAM_CM ($(du -h "$RFAM_CM" | cut -f1))"
+        fi
 
-    # Note: cmpress indexing is handled by the Snakemake Infernal rule
-    # (inside the container where cmpress is available)
-    echo "  Rfam database downloaded. cmpress will run inside the Infernal container at pipeline time."
-else
-    echo "Rfam database already exists: $RFAM_DIR/"
+        if [ ! -f "$RFAM_CLANIN" ]; then
+            echo "Downloading Rfam clan info..."
+            wget -q "https://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.clanin" -O "$RFAM_CLANIN"
+            echo "  Downloaded: $RFAM_CLANIN"
+        fi
+
+        # Note: cmpress indexing is handled by the Snakemake Infernal rule
+        # (inside the container where cmpress is available)
+        echo "  Rfam database downloaded. cmpress will run inside the Infernal container at pipeline time."
+    else
+        echo "Rfam database already exists: $RFAM_DIR/"
+    fi
 fi
 
 # ============================================================================
