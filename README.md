@@ -1,5 +1,15 @@
 <p align="center"><img src="img/logo.jpeg" width="280" height="280" alt="BRAKER4 logo"></p>
 
+<p align="center">
+  <a href="https://github.com/Gaius-Augustus/BRAKER4/releases"><img src="https://img.shields.io/github/v/release/Gaius-Augustus/BRAKER4?include_prereleases&sort=semver" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Gaius-Augustus/BRAKER4" alt="License"></a>
+  <img src="https://img.shields.io/badge/snakemake-%E2%89%A58.0-brightgreen" alt="Snakemake &ge; 8.0">
+  <img src="https://img.shields.io/badge/container-singularity-orange" alt="Singularity">
+  <a href="https://github.com/Gaius-Augustus/BRAKER4/commits/main"><img src="https://img.shields.io/github/last-commit/Gaius-Augustus/BRAKER4" alt="Last commit"></a>
+  <a href="https://github.com/Gaius-Augustus/BRAKER4/issues"><img src="https://img.shields.io/github/issues/Gaius-Augustus/BRAKER4" alt="Open issues"></a>
+  <a href="https://github.com/Gaius-Augustus/BRAKER4/stargazers"><img src="https://img.shields.io/github/stars/Gaius-Augustus/BRAKER4?style=flat" alt="Stars"></a>
+</p>
+
 # BRAKER4 - an improved BRAKER pipeline rewritten in Snakemake with native Singularity support
 
 Authors: Henning Krall and Katharina J. Hoff
