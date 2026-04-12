@@ -461,9 +461,9 @@ include: "rules/postprocessing/best_by_compleasm.smk"
 if HAS_ETP:
     include: "rules/postprocessing/extract_hc_training_genes.smk"
 
-# Swap BRAKER CDS termini with GeneMark's where intron chains agree (~90%
-# accuracy improvement on matched transcripts, benchmarked on A. thaliana).
-include: "rules/postprocessing/genemark_termini_swap.smk"
+# Rescue multi-exon genes where both AUGUSTUS and GeneMark agree on the CDS
+# intron chain but TSEBRA dropped them (all introns must be hint-supported).
+include: "rules/postprocessing/both_agree_rescue.smk"
 
 include: "rules/postprocessing/filter_stop_codons.smk"
 include: "rules/postprocessing/normalize_cds.smk"

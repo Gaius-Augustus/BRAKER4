@@ -28,7 +28,7 @@ rule filter_internal_stop_codons:
         filter_log: Log file with filtering statistics
     """
     input:
-        braker_merged_gtf = "output/{sample}/braker.termini_swapped.gtf",
+        braker_merged_gtf = "output/{sample}/braker.rescued.gtf",
         genome = lambda w: os.path.join(get_braker_dir(w), "genome.fa")
     output:
         braker_gtf = "output/{sample}/braker.filtered.gtf",
