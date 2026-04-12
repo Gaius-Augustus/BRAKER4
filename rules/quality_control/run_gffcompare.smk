@@ -85,6 +85,9 @@ rule run_gffcompare:
         r"""
         set -euo pipefail
         gffcompare \
+            --strict-match \
+            -e 3 \
+            -T \
             -r {input.ref_cds} \
             -o {params.outprefix} \
             {input.pred_cds} \
