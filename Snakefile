@@ -26,7 +26,8 @@ import os
 # The path can be overridden via the BRAKER4_CONFIG environment variable so
 # multiple test scenarios can share a single config.ini.
 config_ini_path = os.environ.get('BRAKER4_CONFIG', 'config.ini')
-config_parser = configparser.ConfigParser()
+# Allow trailing # / ; comments on value lines (ConfigParser default is None).
+config_parser = configparser.ConfigParser(inline_comment_prefixes=('#', ';'))
 if not os.path.isfile(config_ini_path):
     raise FileNotFoundError(
         f"config.ini not found at '{config_ini_path}'. "
