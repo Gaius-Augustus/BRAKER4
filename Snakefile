@@ -148,6 +148,10 @@ config['run_omark'] = config_parser.getboolean(
     'PARAMS', 'run_omark', fallback=False
 )
 
+config['omamer_db'] = config_parser.get(
+    'OMARK', 'omamer_db', fallback=False
+)
+
 config['no_cleanup'] = config_parser.getboolean(
     'PARAMS', 'no_cleanup', fallback=False
 )
