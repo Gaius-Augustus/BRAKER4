@@ -4,10 +4,15 @@ minimap2 alignment of IsoSeq long reads to genome.
 Supports multiple IsoSeq FASTQ/FASTA files (colon-separated in samples.csv).
 Each file is aligned independently, then merged downstream if needed.
 
+When use_minisplice=1, splice site scores from minisplice are passed to
+minimap2 via --spsc to improve junction detection (requires minimap2 >= 2.29).
+
 Split into two rules per file:
 1. minimap2_isoseq_align: Align with minimap2 -> SAM (minimap2 container)
 2. sort_isoseq_sam: Convert SAM -> sorted BAM + index (braker3 container)
 """
+
+USE_MINISPLICE = config.get('use_minisplice', False)
 
 
 def get_isoseq_fastq_by_id(wildcards):
@@ -20,17 +25,29 @@ def get_isoseq_fastq_by_id(wildcards):
     raise ValueError(f"No IsoSeq FASTQ found for id {wildcards.isoseq_fastq_id} in sample {wildcards.sample}")
 
 
+def _minimap2_inputs(wildcards):
+    """Return minimap2 inputs, optionally including minisplice scores."""
+    inputs = {
+        "genome": get_masked_genome(wildcards.sample),
+        "isoseq_reads": get_isoseq_fastq_by_id(wildcards),
+    }
+    if USE_MINISPLICE:
+        inputs["splice_scores"] = f"output/{wildcards.sample}/minisplice/splice_scores.tsv"
+    return inputs
+
+
 rule minimap2_isoseq_align:
     """Align IsoSeq reads with minimap2, output SAM."""
     input:
-        genome=lambda wildcards: get_masked_genome(wildcards.sample),
-        isoseq_reads=get_isoseq_fastq_by_id
+        unpack(_minimap2_inputs)
     output:
         sam=temp("output/{sample}/minimap2_aligned/{isoseq_fastq_id}.sam")
     log:
         "logs/{sample}/minimap2/{isoseq_fastq_id}_align.log"
     benchmark:
         "benchmarks/{sample}/minimap2/{isoseq_fastq_id}_align.txt"
+    params:
+        spsc_flag=lambda wildcards, input: f"--spsc={input.splice_scores}" if hasattr(input, 'splice_scores') else "",
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -44,9 +61,13 @@ rule minimap2_isoseq_align:
         mkdir -p $(dirname {log})
 
         echo "Aligning IsoSeq reads {wildcards.isoseq_fastq_id} with minimap2 splice:hq preset..." > {log}
+        if [ -n "{params.spsc_flag}" ]; then
+            echo "Using minisplice splice scores: {params.spsc_flag}" >> {log}
+        fi
 
         minimap2 -ax splice:hq -uf \
             -t {threads} \
+            {params.spsc_flag} \
             {input.genome} \
             {input.isoseq_reads} \
             > {output.sam} \

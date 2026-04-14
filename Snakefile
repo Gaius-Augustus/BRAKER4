@@ -8,11 +8,11 @@ Dynamic workflow supporting all BRAKER modes:
 - IsoSeq: PacBio long-read + Proteins
 
 Authors: Henning Krall, Katharina J. Hoff
-Version: 0.2.0-beta
+Version: 0.3.0-beta
 """
 
 __author__ = "Henning Krall,Katharina J. Hoff"
-__version__ = "0.2.0-beta"
+__version__ = "0.3.0-beta"
 
 import pandas as pd
 import configparser
@@ -65,6 +65,7 @@ _env_overrides = {
     'BRAKER4_ALLOW_HINTED_SPLICESITES':       ('PARAMS', 'allow_hinted_splicesites'),
     'BRAKER4_RUN_NCRNA':                      ('PARAMS', 'run_ncrna'),
     'BRAKER4_RUN_BEST_BY_COMPLEASM':          ('PARAMS', 'run_best_by_compleasm'),
+    'BRAKER4_USE_MINISPLICE':                 ('PARAMS', 'use_minisplice'),
     'BRAKER4_USE_VARUS':                      ('PARAMS', 'use_varus'),
     'BRAKER4_SKIP_SINGLE_EXON_DOWNSAMPLING':  ('PARAMS', 'skip_single_exon_downsampling'),
     'BRAKER4_DOWNSAMPLING_LAMBDA':            ('PARAMS', 'downsampling_lambda'),
@@ -207,6 +208,10 @@ config['run_ncrna'] = config_parser.getboolean(
 
 config['run_best_by_compleasm'] = config_parser.getboolean(
     'PARAMS', 'run_best_by_compleasm', fallback=True
+)
+
+config['use_minisplice'] = config_parser.getboolean(
+    'PARAMS', 'use_minisplice', fallback=False
 )
 
 # FANTASIA-Lite functional annotation (optional, GPU-only).
@@ -381,6 +386,10 @@ if GLOBAL_DATA_TYPES['has_sra'] or GLOBAL_DATA_TYPES['has_fastq']:
 # Include minimap2 alignment rules (for unaligned IsoSeq FASTA/FASTQ)
 if GLOBAL_DATA_TYPES['has_isoseq_fastq']:
     include: "rules/preprocessing/minimap2_isoseq_align.smk"
+    # Optional minisplice splice-site scoring (improves minimap2 junction detection)
+    if config.get('use_minisplice', False):
+        print("  ✓ minisplice splice-site scoring for IsoSeq alignment")
+        include: "rules/preprocessing/run_minisplice.smk"
 
 # Include VARUS auto-download rules
 if GLOBAL_DATA_TYPES['has_varus']:
@@ -390,8 +399,8 @@ if GLOBAL_DATA_TYPES['has_varus']:
 if GLOBAL_DATA_TYPES['has_bam']:
     include: "rules/genemark/check_bam_sorted.smk"
 
-# Include IsoSeq BAM sorting/indexing rules (for pre-aligned IsoSeq BAM)
-if GLOBAL_DATA_TYPES['has_isoseq_bam']:
+# Include IsoSeq BAM sorting/merging rules (for pre-aligned BAM or minimap2 output)
+if GLOBAL_DATA_TYPES['has_isoseq_bam'] or GLOBAL_DATA_TYPES['has_isoseq_fastq']:
     include: "rules/preprocessing/check_isoseq_bam.smk"
 
 # Include RNA-Seq hints and GeneMark-ET rules (for short-read RNA-Seq evidence)

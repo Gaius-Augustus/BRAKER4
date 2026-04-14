@@ -426,6 +426,7 @@ augustus_chunksize = 3000000        # genome chunk size (bp) for parallel AUGUST
 augustus_overlap = 500000           # overlap (bp) between adjacent AUGUSTUS chunks
 run_ncrna = 0                       # set to 1 to annotate ncRNAs (tRNA, snoRNA, miRNA, lncRNA)
 run_best_by_compleasm = 1           # rescue dropped BUSCO genes after TSEBRA merge (set to 0 to disable)
+use_minisplice = 0                  # set to 1 to score splice sites with minisplice before minimap2 (IsoSeq only)
 no_cleanup = 0                      # set to 1 to keep all intermediate files (debugging only)
 
 [fantasia]
@@ -768,6 +769,27 @@ All four predictors' results are merged into a single final GFF3 annotation (`br
 When `run_ncrna = 0` (the default), no ncRNA annotation is performed and only the protein-coding `braker.gff3` is produced.
 
 **Requirements:** The Rfam database (~30 MB) must be downloaded once. Run `bash test_data/download_test_data.sh` to fetch it automatically. The database is stored in `shared_data/rfam/` and is shared across all samples; the Snakemake `infernal` rule indexes it with `cmpress` inside the Infernal container on first use.
+
+### use_minisplice
+
+Off by default (`0`). Set to `1` to run [minisplice](https://github.com/lh3/minisplice) splice-site scoring before minimap2 alignment of IsoSeq reads.
+
+minisplice scores every canonical GT/AG splice site in the genome using a small convolutional neural network (7,026 parameters) trained on vertebrate and insect genomes (Li, arXiv:2506.12986). The scores are passed to minimap2 via `--spsc`, which improves junction detection. According to the minisplice paper, the overall junction error rate for high-quality long reads drops from ~1.4% to ~1.0%; the benefit is larger for noisier data (older Nanopore, cross-species alignments, high-diversity regions).
+
+This option only takes effect when the sample has unaligned IsoSeq reads in the `isoseq_fastq` column. Pre-aligned BAMs (`isoseq_bam`) are not re-aligned and are unaffected. Requires minimap2 >= 2.29 (bundled in the default `minimap-minisplice` container).
+
+**Benchmark on *A. thaliana* (IsoSeq + proteins, brassicales_odb12):**
+
+| Metric | Sensitivity (no minisplice) | Sensitivity (minisplice) | Precision (no minisplice) | Precision (minisplice) |
+|---|---|---|---|---|
+| Base level | 91.1 | *TBD* | 92.0 | *TBD* |
+| Exon level | 82.1 | *TBD* | 94.5 | *TBD* |
+| Intron level | 87.0 | *TBD* | 98.4 | *TBD* |
+| Intron chain | 56.1 | *TBD* | 88.6 | *TBD* |
+| Transcript | 59.7 | *TBD* | 77.5 | *TBD* |
+| Locus | 83.6 | *TBD* | 82.7 | *TBD* |
+
+*TBD values will be filled in once the minisplice benchmark run completes.*
 
 ### run_best_by_compleasm
 
