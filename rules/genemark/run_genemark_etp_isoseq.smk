@@ -139,6 +139,7 @@ YAMLEOF
         # run_genemark_etp.smk for the full explanation. Also note that
         # get_etp_hints.py uses >> (append) for output, so the file
         # must be truncated first to make the rule re-runnable.
+        ln -s $OUTDIR_ABS/proteins_isoseq.fa $OUTDIR_ABS/proteins.fa
         rm -f {output.etp_hints}
         if get_etp_hints.py \
             --genemark_scripts /opt/ETP/bin \
