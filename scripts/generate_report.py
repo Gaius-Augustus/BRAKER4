@@ -245,11 +245,26 @@ def generate_methods_text(workdir, mode):
 
     # --- Repeat masking ---
     if os.path.exists(os.path.join(d, "preprocessing", "genome.fa.masked")):
-        parts.append(
-            "The genome assembly was soft-masked for repeats using RepeatModeler2 "
-            "(Flynn et al., 2020) and RepeatMasker (Smit et al., 2013). "
-            "Tandem repeats were additionally masked using Tandem Repeats Finder (Benson, 1999)."
-        )
+        # Detect which masking tool was used from software_versions.tsv
+        _versions_path = os.path.join(d, "software_versions.tsv")
+        _used_red = False
+        if os.path.exists(_versions_path):
+            with open(_versions_path) as _vf:
+                for _line in _vf:
+                    if _line.strip().startswith("Red"):
+                        _used_red = True
+                        break
+        if _used_red:
+            parts.append(
+                "The genome assembly was soft-masked for repeats using Red "
+                "(Girgis, 2015), a neural-network-based repeat detector."
+            )
+        else:
+            parts.append(
+                "The genome assembly was soft-masked for repeats using RepeatModeler2 "
+                "(Flynn et al., 2020) and RepeatMasker (Smit et al., 2013). "
+                "Tandem repeats were additionally masked using Tandem Repeats Finder (Benson, 1999)."
+            )
 
     # --- Alignment (must come before hint extraction) ---
     # Use software_versions.tsv as primary detection (survives cleanup)
