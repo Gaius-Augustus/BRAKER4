@@ -796,18 +796,18 @@ minisplice scores every canonical GT/AG splice site in the genome using a small 
 
 This option only takes effect when the sample has unaligned IsoSeq reads in the `isoseq_fastq` column. Pre-aligned BAMs (`isoseq_bam`) are not re-aligned and are unaffected. Requires minimap2 >= 2.29 (bundled in the default `minimap-minisplice` container).
 
-**Benchmark on *A. thaliana* (IsoSeq + proteins, brassicales_odb12):**
+**Benchmark on *A. thaliana* (IsoSeq + proteins, brassicales_odb12, gffcompare CDS-level):**
 
-| Metric | Sensitivity (no minisplice) | Sensitivity (minisplice) | Precision (no minisplice) | Precision (minisplice) |
-|---|---|---|---|---|
-| Base level | 91.1 | *TBD* | 92.0 | *TBD* |
-| Exon level | 82.1 | *TBD* | 94.5 | *TBD* |
-| Intron level | 87.0 | *TBD* | 98.4 | *TBD* |
-| Intron chain | 56.1 | *TBD* | 88.6 | *TBD* |
-| Transcript | 59.7 | *TBD* | 77.5 | *TBD* |
-| Locus | 83.6 | *TBD* | 82.7 | *TBD* |
+| Metric | Sn (default) | Sn (minisplice) | Pr (default) | Pr (minisplice) | F1 (default) | F1 (minisplice) |
+|---|---|---|---|---|---|---|
+| Base level | 91.1 | 90.8 | 92.0 | 92.2 | 91.5 | 91.5 |
+| Exon level | 82.1 | 81.7 | 94.5 | 94.7 | 87.9 | 87.8 |
+| Intron level | 87.0 | 86.5 | 98.4 | 98.5 | 92.4 | 92.1 |
+| Intron chain | 56.1 | 55.7 | 88.6 | 89.1 | 68.7 | 68.5 |
+| Transcript | 59.7 | 59.3 | 77.5 | 78.1 | 67.4 | 67.4 |
+| Locus | 83.6 | 83.3 | 82.7 | 83.1 | 83.1 | 83.2 |
 
-*TBD values will be filled in once the minisplice benchmark run completes.*
+On high-quality PacBio IsoSeq data, minisplice slightly increases precision at the cost of a small sensitivity drop; F1 scores are essentially unchanged. The benefit is expected to be larger for noisier long-read data (older Nanopore, cross-species alignments).
 
 ### run_best_by_compleasm
 
