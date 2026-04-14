@@ -27,7 +27,6 @@ def _get_collect_inputs(wildcards):
 
     if not config.get('skip_busco', False):
         inputs["busco_summary"] = f"output/{sample}/busco/busco_summary.txt"
-        inputs["busco_figure"] = f"output/{sample}/busco/busco_figure.png"
 
     types = detect_data_types(sample)
     has_transcripts = any([types[k] for k in ['has_bam', 'has_fastq', 'has_sra', 'has_varus', 'has_isoseq']])
@@ -143,9 +142,6 @@ rule collect_results:
         # BUSCO
         if [ -f "$OUTDIR/busco/busco_summary.txt" ]; then
             cp "$OUTDIR/busco/busco_summary.txt" "$RESULTS/quality_control/"
-        fi
-        if [ -f "$OUTDIR/busco/busco_figure.png" ]; then
-            cp "$OUTDIR/busco/busco_figure.png"  "$RESULTS/quality_control/"
         fi
         # Copy full BUSCO output directories (genome + proteins short summaries).
         # Skipped entirely when BUSCO didn't run (skip_busco = 1) — otherwise the

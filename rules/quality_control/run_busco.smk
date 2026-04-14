@@ -189,13 +189,18 @@ rule busco_proteins:
 
 
 rule busco_summary:
-    """Generate combined BUSCO summary text and comparison plot."""
+    """Generate combined BUSCO summary text.
+
+    The BUSCO v6 container no longer ships `generate_plot.py` / R / ggplot2,
+    so we do not generate BUSCO's own figure here. The pipeline's
+    `completeness_plot.py` (invoked from collect_results) produces the
+    combined BUSCO+compleasm figure that the HTML report consumes.
+    """
     input:
         genome_done="output/{sample}/busco/genome/.done",
         proteins_done="output/{sample}/busco/proteins/.done"
     output:
-        summary="output/{sample}/busco/busco_summary.txt",
-        plot="output/{sample}/busco/busco_figure.png"
+        summary="output/{sample}/busco/busco_summary.txt"
     log:
         "logs/{sample}/busco/busco_summary.log"
     benchmark:
@@ -234,27 +239,4 @@ rule busco_summary:
         else
             echo "Results not found" >> {output.summary}
         fi
-
-        # Generate comparison plot
-        PLOT_DIR=$(mktemp -d)
-        cp "$GENOME_SUMMARY" "$PLOT_DIR/" 2>/dev/null || true
-        cp "$PROTEINS_SUMMARY" "$PLOT_DIR/" 2>/dev/null || true
-
-        generate_plot.py -wd "$PLOT_DIR" > {log} 2>&1 || true
-
-        if [ -f "$PLOT_DIR/busco_figure.png" ]; then
-            cp "$PLOT_DIR/busco_figure.png" {output.plot}
-        elif [ -f "$PLOT_DIR/busco_figure.R" ]; then
-            Rscript "$PLOT_DIR/busco_figure.R" >> {log} 2>&1 || true
-            if [ -f "$PLOT_DIR/busco_figure.png" ]; then
-                cp "$PLOT_DIR/busco_figure.png" {output.plot}
-            else
-                # Create placeholder if R fails
-                echo "BUSCO plot generation requires R with ggplot2" > {output.plot}
-            fi
-        else
-            echo "BUSCO plot generation failed" > {output.plot}
-        fi
-
-        rm -rf "$PLOT_DIR"
         """
