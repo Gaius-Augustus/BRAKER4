@@ -18,7 +18,7 @@ Output:
 
 rule run_augustus_hints_iter2:
     input:
-        genome=lambda w: os.path.join(get_braker_dir(w), "genome.fa"),
+        genome=lambda w: get_masked_genome(w.sample),
         hintsfile="output/{sample}/hintsfile_iter2.gff",
         optimize_log="output/{sample}/optimize_augustus.log"
     output:
@@ -60,9 +60,10 @@ rule run_augustus_hints_iter2:
 
         splitMfasta.pl {input.genome} --outputpath="$GENOME_SPLIT" 2>/dev/null
 
-        # Rename split files
+        # Rename split files. Glob on *.split.* because splitMfasta.pl
+        # names chunks after the input file stem (genome vs genome_masked).
         cd "$GENOME_SPLIT"
-        for f in genome.split.*; do
+        for f in *.split.*; do
             if [ -f "$f" ]; then
                 NAME=$(grep ">" $f | head -1)
                 mv $f ${{NAME#>}}.fa
