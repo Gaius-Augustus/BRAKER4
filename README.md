@@ -81,7 +81,7 @@ Key differences:
 
 -   **HPC-ready with SLURM.** Snakemake's SLURM executor submits each rule as a separate cluster job. You do not need to wrap BRAKER in a SLURM script.
 
--   **Automatic repeat masking.** If you provide an unmasked genome, BRAKER4 runs RepeatModeler2 and RepeatMasker before gene prediction. You can also provide a pre-masked genome to skip this step.
+-   **Automatic repeat masking.** If you provide an unmasked genome, BRAKER4 runs RepeatModeler2 and RepeatMasker before gene prediction. Red (REpeat Detector) is available as a much faster alternative via `masking_tool = red`. You can also provide a pre-masked genome to skip this step entirely.
 
 -   **Optional non-coding RNA prediction.** When `run_ncrna = 1` is set in `config.ini`, BRAKER4 predicts rRNAs with barrnap, tRNAs with tRNAscan-SE, non-coding RNA families with Infernal against Rfam, and (when transcript evidence is available) long non-coding RNAs with FEELnc. All four predictors' results are merged into a single `braker_with_ncRNA.gff3`. By default (`run_ncrna = 0`), no ncRNA prediction is performed and only the protein-coding gene set is produced.
 
@@ -91,7 +91,7 @@ Key differences:
 
 -   **Integrated postprocessing and quality control.** GFF3 conversion (AGAT) is performed automatically. BUSCO completeness assessment (BUSCO & compleasm), OMArk scoring, and optional evaluation against a reference annotation (gffcompare) provide quality control.
 
--   **IsoSeq support.** BRAKER4 natively supports PacBio IsoSeq long reads, both as pre-aligned BAM and as unaligned FASTA/FASTQ (aligned with minimap2). You can combine IsoSeq with short-read RNA-Seq in a dual-ETP mode.
+-   **IsoSeq support.** BRAKER4 natively supports PacBio IsoSeq long reads, both as pre-aligned BAM and as unaligned FASTA/FASTQ (aligned with minimap2 ≥ 2.29, with optional minisplice splice-site scoring via `use_minisplice = 1`). You can combine IsoSeq with short-read RNA-Seq in a dual-ETP mode.
 
 Benchmark accuracy vs native braker.pl
 ======================================
@@ -184,7 +184,7 @@ Keys to successful gene prediction
 
 -   Use simple scaffold names in the genome file (e.g. `>contig1` will work better than `>contig1my custom species namesome putative function`). Make the scaffold names in all your FASTA files simple before running any alignment program.
 
--   The genome should be masked for repeats. This avoids the prediction of false positive gene structures in repetitive and low complexity regions. Soft-masking (putting repeat regions into lowercase letters) leads to better results than hard-masking (replacing letters with `N`). Previous BRAKER versions required the user to mask the genome before running BRAKER. BRAKER4 integrates RepeatModeler2 and RepeatMasker directly into the Snakemake workflow. If you leave the `genome_masked` column in `samples.csv` empty, BRAKER4 will run repeat masking automatically. If you already have a masked genome, provide it in the `genome_masked` column to skip this step.
+-   The genome should be masked for repeats. This avoids the prediction of false positive gene structures in repetitive and low complexity regions. Soft-masking (lowercase repeat regions) leads to better results than hard-masking (letters replaced with `N`). If you leave the `genome_masked` column in `samples.csv` empty, BRAKER4 runs masking automatically — RepeatModeler2 + RepeatMasker + TRF by default, or the much faster Red repeat detector if you set `masking_tool = red` in `config.ini`. If you already have a masked genome, provide it in the `genome_masked` column to skip this step.
 
 -   If your species is a fungus, set `fungus = 1` in `config.ini`. GeneMark will then use the branch point model.
 
@@ -299,12 +299,13 @@ Consult your HPC administrator if Singularity is not available. BRAKER4 will aut
 | --- | --- | --- | --- |
 | Main BRAKER | `teambraker/braker3:v3.0.10` | 2.4 GB | GeneMark-ES/ET/EP/ETP, AUGUSTUS, ProtHint, DIAMOND, TSEBRA, compleasm, HISAT2, samtools, SRA toolkit, minimap2, getAnnoFastaFromJoingenes — most rules in the pipeline |
 | IsoSeq BRAKER | `teambraker/braker3:isoseq` | 3.0 GB | GeneMark-ETP IsoSeq variant (only when an IsoSeq sample is present) |
-| RepeatModeler/Masker | `dfam/tetools:latest` | 727 MB | RepeatModeler2 + RepeatMasker (only when masking is requested) |
+| RepeatModeler/Masker | `dfam/tetools:latest` | 727 MB | RepeatModeler2 + RepeatMasker + TRF (only when `masking_tool = repeatmasker`, default) |
+| Red | `quay.io/biocontainers/red:2018.09.10--h9948957_3` | 13 MB | Red repeat detector (only when `masking_tool = red`) |
 | BUSCO | `ezlabgva/busco:v6.0.0_cv1` | 801 MB | BUSCO completeness assessment |
 | AGAT | `quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0` | 370 MB | GTF↔GFF3 conversion, normalization |
 | OMArk | `quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0` | 455 MB | OMArk + OMAmer (optional, only when `run_omark = 1`) |
 | VARUS | `katharinahoff/varus-notebook:v0.0.6` | 1.7 GB | VARUS auto-download of RNA-Seq from SRA (optional) |
-| minimap2 | `quay.io/biocontainers/minimap2:2.28--he4a0461_3` | 58 MB | minimap2 splice:hq for IsoSeq alignment (only when an IsoSeq FASTA/FASTQ is provided unaligned) |
+| minimap2 + minisplice | `katharinahoff/minimap-minisplice:v0.1` | ~200 MB | minimap2 ≥ 2.29 splice:hq for IsoSeq alignment, plus the minisplice CNN splice-site scorer (only when an IsoSeq FASTA/FASTQ is provided unaligned; minisplice is used only when `use_minisplice = 1`) |
 | barrnap | `quay.io/biocontainers/barrnap:0.9--hdfd78af_4` | 68 MB | rRNA prediction (only when `run_ncrna = 1`) |
 | tRNAscan-SE | `quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0` | 32 MB | tRNA prediction (only when `run_ncrna = 1`) |
 | Infernal | `quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2` | 28 MB | Rfam scan for snoRNA/snRNA/miRNA (only when `run_ncrna = 1`) |
@@ -361,7 +362,7 @@ sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_i
 |--------|----------|-------------|
 | `sample_name` | yes | Unique identifier. Output goes to `output/{sample_name}/`. |
 | `genome` | yes | Path to genome FASTA file. |
-| `genome_masked` | no | Path to soft-masked genome. If empty, RepeatModeler2 + RepeatMasker run automatically. |
+| `genome_masked` | no | Path to soft-masked genome. If empty, the masking tool selected by `masking_tool` (RepeatModeler2 + RepeatMasker by default, or Red if set) runs automatically. |
 | `protein_fasta` | no | Protein sequences in FASTA format. Multiple files can be colon-separated. We recommend OrthoDB. |
 | `bam_files` | no | Pre-aligned RNA-Seq BAM file(s), colon-separated. Must be coordinate-sorted. |
 | `fastq_r1` | no | Paired-end RNA-Seq FASTQ R1 file(s), colon-separated. Requires `fastq_r2`. |
@@ -643,7 +644,7 @@ sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_i
 my_species,genome.fa,,orthodb_proteins.fa,,,,,,,,,isoseq.fa,eukaryota_odb12,
 ```
 
-BRAKER4 will align the reads to the genome with minimap2 automatically.
+BRAKER4 will align the reads to the genome with minimap2 automatically. You can optionally enable [minisplice](#use_minisplice) splice-site scoring (`use_minisplice = 1`) to improve junction detection during alignment — recommended for older or noisy long-read data.
 
 The accuracy of gene prediction with IsoSeq data depends on the sequencing depth. With PacBio HiFi reads and sufficient transcriptome coverage, you will reach similar results as with short reads. Lower depth or higher error rates will reduce accuracy.
 
@@ -700,7 +701,7 @@ VARUS is useful when you want RNA-Seq evidence but don't already have BAM/FASTQ 
 
 ### use_dev_shm
 
-Set to `1` to use `/dev/shm` (shared memory) for temporary files during repeat masking. This can speed up RepeatModeler2 on systems where `/dev/shm` is large enough. Only relevant if your genome is unmasked.
+Set to `1` to use `/dev/shm` (shared memory) for temporary files during RepeatModeler2/RepeatMasker runs. This can speed up masking on systems where `/dev/shm` is large enough. Only relevant when `masking_tool = repeatmasker` and the genome is unmasked; the Red masker is fast enough that it does not benefit from `/dev/shm`.
 
 ### gm_max_intergenic
 
@@ -1105,7 +1106,7 @@ Example data
 
 Two test datasets are used:
 
-- **Local scenarios** (`test_scenarios_local/`, 7 scenarios): A small *A. thaliana* chr5 fragment (~1 MB, 8 contigs) included in `test_data/`. Fast, no SLURM needed. Each scenario exercises one BRAKER mode (ES, EP, ET/FASTQ, ETP/BAM, IsoSeq/BAM, IsoSeq/FASTA, dual).
+- **Local scenarios** (`test_scenarios_local/`, 8 scenarios): A small *A. thaliana* chr5 fragment (~1 MB, 8 contigs) included in `test_data/`. Fast, no SLURM needed. Each scenario exercises one BRAKER mode (ES, EP, ET/FASTQ, ETP/BAM, IsoSeq/BAM, IsoSeq/FASTA, dual) or feature (EP + Red masking).
 - **HPC scenarios** (`test_scenarios/`, 5 scenarios): The *Ostreococcus tauri* genome (~12.6 MB). Small enough for quick runs, large enough for realistic masking/alignment. Covers ES, EP+masking, ET+VARUS, ETP+SRA, and one multi-mode scenario that runs all 7 BRAKER modes in a single `samples.csv`.
 
 The test data (RNA-Seq BAM, FASTQ, *O. tauri* genome, proteins) must be downloaded before running the test scenarios:
@@ -1161,9 +1162,9 @@ Common problems
 
     If transposable elements have not been masked appropriately, AUGUSTUS tends to predict those elements as protein coding genes. Make sure your genome is soft-masked for repeats. If you provided an unmasked genome, check that RepeatModeler2/RepeatMasker completed successfully.
 
--   *RepeatModeler2 fails on my genome — what now?* **(known issue, cannot be fixed in BRAKER4)**
+-   *RepeatModeler2 fails on my genome — what now?* **(known upstream issue)**
 
-    RepeatModeler2 is known to crash on certain genomes, particularly very small or highly fragmented assemblies, genomes with unusual base composition, or assemblies where the repeat content is too low for the self-training step to converge. This is an upstream issue in RepeatModeler2 itself and cannot be fixed in BRAKER4. **Workaround:** mask the genome yourself with a different tool (e.g. RepeatMasker with a curated repeat library, EDTA, or earlGrey) and provide the soft-masked genome via the `genome_masked` column in `samples.csv`. BRAKER4 will then skip the masking step entirely.
+    RepeatModeler2 is known to crash on certain genomes, particularly very small or highly fragmented assemblies, genomes with unusual base composition, or assemblies where the repeat content is too low for the self-training step to converge. This is an upstream issue in RepeatModeler2 itself and cannot be fixed in BRAKER4. **Workarounds:** (1) switch to the Red repeat detector by setting `masking_tool = red` in `config.ini` — Red does not build a repeat library and is much more robust on small/fragmented assemblies, at the cost of not classifying repeats; (2) mask the genome yourself with another tool (e.g. EDTA, earlGrey, or RepeatMasker with a curated library) and provide the soft-masked genome via the `genome_masked` column in `samples.csv`.
 
 
 Citing BRAKER and software called by BRAKER
