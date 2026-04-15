@@ -1,0 +1,13 @@
+# Host-side Python dependencies for BRAKER4.
+#
+# All bioinformatics tools (GeneMark, AUGUSTUS, RepeatMasker, OMArk,
+# minimap2, Red, minisplice, etc.) run inside Singularity containers
+# and are NOT tracked here. Their pinned image tags live in
+# rules/common.smk and are documented in the README container table.
+#
+# Install with:
+#   pip install -r requirements.txt
+
+snakemake==8.18.2
+snakemake-executor-plugin-slurm==2.6.0
+pandas==2.0.2
