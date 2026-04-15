@@ -59,6 +59,19 @@ rule fantasia_annotate:
     shell:
         r"""
         set -euo pipefail
+
+        # Fail fast on CPU-only hosts. The `gres=gpu:N` and `slurm_partition`
+        # resource hints above are only honored by snakemake's SLURM executor;
+        # with a local executor they are silently dropped and the rule would
+        # otherwise start ProtT5 with --device cuda on a CPU node and crash
+        # mid-run. Check nvidia-smi up front so the error is clear and cheap.
+        if ! command -v nvidia-smi >/dev/null 2>&1 || ! nvidia-smi -L >/dev/null 2>&1; then
+            echo "[ERROR] FANTASIA-Lite requires a CUDA GPU but no nvidia-smi / no visible GPU was found on $(hostname)." >&2
+            echo "[ERROR] Either run snakemake with --executor slurm and a GPU partition configured in [fantasia] partition/gpus," >&2
+            echo "[ERROR] submit your driver job to a GPU node, or set run_fantasia = 0 / BRAKER4_RUN_FANTASIA=0." >&2
+            exit 1
+        fi
+
         mkdir -p {params.outdir}
         OUTDIR=$(readlink -f {params.outdir})
         PROTEINS=$(readlink -f {input.proteins})
