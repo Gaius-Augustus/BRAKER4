@@ -98,8 +98,14 @@ config['min_contig'] = config_parser.getint('PARAMS', 'min_contig', fallback=100
 config['braker3_image'] = config_parser.get('containers', 'braker3_image',
                                              fallback='docker://teambraker/braker3:v3.0.10')
 
+# When [SLURM_ARGS] cpus_per_task is missing from config.ini (typical for
+# local runs), fall back to workflow.cores so that `snakemake --cores N`
+# controls per-rule parallelism. Without this fallback, multithreaded rules
+# like run_augustus_hints would run single-threaded regardless of --cores.
+# See https://github.com/Gaius-Augustus/BRAKER4/issues/10.
 config['slurm_args'] = {
-    'cpus_per_task': config_parser.getint('SLURM_ARGS', 'cpus_per_task', fallback=1),
+    'cpus_per_task': config_parser.getint('SLURM_ARGS', 'cpus_per_task',
+                                          fallback=workflow.cores or 1),
     'mem_of_node': config_parser.getint('SLURM_ARGS', 'mem_of_node', fallback=16000),
     'max_runtime': config_parser.getint('SLURM_ARGS', 'max_runtime', fallback=60)
 }
