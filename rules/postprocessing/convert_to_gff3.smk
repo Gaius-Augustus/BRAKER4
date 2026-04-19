@@ -30,7 +30,7 @@ rule fix_gtf:
         "benchmarks/{sample}/agat/fix_gtf.txt"
     threads: 1
     resources:
-        mem_mb=int(config['slurm_args']['mem_of_node']) // int(config['slurm_args']['cpus_per_task']),
+        mem_mb=max(int(config['slurm_args']['mem_of_node']) // int(config['slurm_args']['cpus_per_task']), 16000),
         runtime=int(config['slurm_args']['max_runtime'])
     container:
         AGAT_CONTAINER
@@ -56,7 +56,7 @@ rule convert_gtf_to_gff3:
         "benchmarks/{sample}/agat/convert_to_gff3.txt"
     threads: 1
     resources:
-        mem_mb=int(config['slurm_args']['mem_of_node']) // int(config['slurm_args']['cpus_per_task']),
+        mem_mb=max(int(config['slurm_args']['mem_of_node']) // int(config['slurm_args']['cpus_per_task']), 16000),
         runtime=int(config['slurm_args']['max_runtime'])
     container:
         AGAT_CONTAINER
