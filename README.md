@@ -405,6 +405,9 @@ samples_file = samples.csv
 augustus_config_path = augustus_config
 # busco_download_path  = /path/to/busco_downloads      # optional, see "Pre-downloading BUSCO data" below
 # compleasm_download_path = /path/to/compleasm_downloads  # optional
+# rfam_cm = /path/to/Rfam.cm                           # optional, required when run_ncrna = 1
+# rfam_clanin = /path/to/Rfam.clanin                   # optional, required when run_ncrna = 1
+# rfam_path = /path/to/rfam                            # optional legacy alternative (directory with both files)
 
 [containers]
 braker3_image = docker://teambraker/braker3:v3.0.10  # optional, this is the default
@@ -848,7 +851,15 @@ All four predictors' results are merged into a single final GFF3 annotation (`br
 
 When `run_ncrna = 0` (the default), no ncRNA annotation is performed and only the protein-coding `braker.gff3` is produced.
 
-**Requirements:** The Rfam database (~30 MB) must be downloaded once. Run `bash test_data/download_test_data.sh` to fetch it automatically. The database is stored in `shared_data/rfam/` and is shared across all samples; the Snakemake `infernal` rule indexes it with `cmpress` inside the Infernal container on first use.
+**Requirements:** Make `Rfam.cm` and `Rfam.clanin` available on disk and point `config.ini` at them:
+
+```ini
+[paths]
+rfam_cm = /path/to/Rfam.cm
+rfam_clanin = /path/to/Rfam.clanin
+```
+
+For backward compatibility, BRAKER4 also accepts `rfam_path = /path/to/rfam` if that directory contains both files. The Snakemake `infernal` rule indexes `Rfam.cm` with `cmpress` inside the Infernal container on first use.
 
 ### masking_tool
 

@@ -8,8 +8,10 @@ Split into two rules:
   1. run_cmscan: runs cmscan in Infernal container → tblout
   2. convert_infernal_to_gff3: converts tblout → GFF3 (no container, uses host Python)
 
-The Rfam database (Rfam.cm + Rfam.clanin) must be pre-downloaded.
-The path is configured via rfam_path in config.ini [paths].
+The Rfam database (Rfam.cm + Rfam.clanin) must be available on disk.
+The files are configured via rfam_cm and rfam_clanin in config.ini [paths].
+For backward compatibility, BRAKER4 also accepts rfam_path pointing to a
+directory that contains both files.
 cmpress indexing runs automatically inside the container on first use
 (flock-guarded so concurrent samples don't race).
 
@@ -26,8 +28,8 @@ rule run_cmscan:
     """Run Infernal cmscan against Rfam to predict ncRNA genes."""
     input:
         genome=lambda wildcards: get_masked_genome(wildcards.sample),
-        rfam_cm=os.path.join(config.get('rfam_path', 'shared_data/rfam'), 'Rfam.cm'),
-        rfam_clanin=os.path.join(config.get('rfam_path', 'shared_data/rfam'), 'Rfam.clanin')
+        rfam_cm=config['rfam_cm'],
+        rfam_clanin=config['rfam_clanin']
     output:
         tblout="output/{sample}/ncrna/infernal.tblout"
     log:
