@@ -1,0 +1,99 @@
+; BRAKER4 configuration template.
+; Copy this file to config.ini in your working directory and adjust the values.
+;
+; Comments must start at the beginning of a line (# or ;).
+; Inline comments after a value are also accepted by BRAKER4, but some
+; third-party INI parsers do not support them, so this template keeps comments
+; on separate lines for maximum compatibility.
+;
+; Every key in [PARAMS] and [SLURM_ARGS] can also be overridden at runtime via
+; an environment variable named BRAKER4_<KEY_UPPER>, e.g.:
+;   export BRAKER4_MAX_RUNTIME=240
+; Environment variables win over values set in this file.
+; The path to the config file itself can be overridden with:
+;   export BRAKER4_CONFIG=/path/to/another.ini
+
+[paths]
+samples_file = samples.csv
+augustus_config_path = augustus_config
+; busco_download_path = /path/to/busco_downloads
+; compleasm_download_path = /path/to/compleasm_downloads
+
+[containers]
+; Default container image. Override only if you need a specific version.
+braker3_image = docker://teambraker/braker3:v3.0.10
+
+[PARAMS]
+; Set to 1 for fungal genomes (GeneMark uses branch point model).
+fungus = 0
+; Skip contigs shorter than this length (bp).
+min_contig = 10000
+; Maximum intergenic region length for GeneMark.
+; Only set this to a low value for small test genomes; do NOT lower it on real data.
+gm_max_intergenic = 50000
+; Set to 1 to enable VARUS auto-download of RNA-Seq from SRA.
+use_varus = 0
+; Set to 1 to skip AUGUSTUS parameter optimization (saves time on large genomes).
+skip_optimize_augustus = 0
+; Set to 1 to disable single-exon training-gene downsampling.
+skip_single_exon_downsampling = 0
+; Poisson lambda for single-exon downsampling (lower = more aggressive).
+downsampling_lambda = 2
+; Set to 1 to use /dev/shm for temp files (faster I/O on systems with large RAM).
+use_dev_shm = 0
+; Set to 0 to exclude BUSCO CDSpart hints from the AUGUSTUS hintsfile
+; (compleasm still runs for completeness assessment).
+use_compleasm_hints = 1
+; Set to 1 to skip compleasm completeness assessment entirely.
+skip_compleasm = 0
+; Set to 1 to skip the full BUSCO pipeline (slower than compleasm).
+skip_busco = 0
+; Set to 1 to run OMArk (requires LUCA.h5 database, ~8.8 GB; see [OMARK] below).
+run_omark = 0
+; Genetic code table (1 = standard, 6 = ciliate). Applies to ES/ET/EP modes only.
+translation_table = 1
+; GC donor splice site probability for GeneMark (ES/EP modes).
+gc_donor = 0.001
+; Non-canonical splice sites passed to AUGUSTUS (comma-separated).
+allow_hinted_splicesites = gcag,atac
+; Genome chunk size (bp) for parallel AUGUSTUS prediction.
+augustus_chunksize = 3000000
+; Overlap (bp) between adjacent AUGUSTUS chunks.
+augustus_overlap = 500000
+; Set to 1 to annotate ncRNAs (tRNA, snoRNA, miRNA, lncRNA).
+run_ncrna = 0
+; Set to 0 to disable the rescue of dropped BUSCO genes after TSEBRA merge.
+run_best_by_compleasm = 1
+; Repeat masking engine: "repeatmasker" (default) or "red" (faster, less detailed).
+masking_tool = repeatmasker
+; Set to 1 to score splice sites with minisplice before minimap2 (IsoSeq mode only).
+use_minisplice = 0
+; Set to 1 to keep all intermediate files (useful for debugging, uses extra disk).
+no_cleanup = 0
+
+[fantasia]
+; Optional functional annotation with FANTASIA-Lite. GPU-only (validated on A100).
+; OFF by default. Set enable = 1 and fill in the paths below to activate.
+enable = 0
+; sif = /path/to/fantasia_lite.sif
+; hf_cache_dir = /path/to/huggingface_cache
+; partition = gpu
+; gpus = 1
+; mem_mb = 25000
+; cpus_per_task = 16
+; max_runtime = 1440
+; min_score = 0.5
+; additional_params =
+
+[OMARK]
+; OMAmer database path (required when run_omark = 1 in [PARAMS]).
+; omamer_db = /path/to/LUCA.h5
+
+[SLURM_ARGS]
+; These settings are used only when running with --executor slurm.
+; Adjust to match your cluster's available resources.
+cpus_per_task = 48
+; Total node memory in MB.
+mem_of_node = 120000
+; Maximum walltime in minutes (default: 72 hours).
+max_runtime = 4320

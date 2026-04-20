@@ -98,7 +98,7 @@ Benchmark accuracy vs native braker.pl
 
 To verify that BRAKER4 reproduces the gene-prediction accuracy of the original `braker.pl` Perl pipeline, we run the same *Arabidopsis thaliana* genome (TAIR10 assembly, ~121 Mb) through both pipelines with matched configurations and score the resulting gene sets against the Phytozome Araport11 reference annotation using `gffcompare` v0.12.6 at the CDS level.
 
-**Inputs (identical for both pipelines):** TAIR10 genome FASTA, VARUS-sampled RNA-Seq BAM (~4.8 GB), close relative proteins (e.g. *Brassica rapa*, for details see Tiberius parameters manuscript, this is not how we typically run BRAKER, it was a convenience choice because we already had the native BRAKER3 accuracy metrics prepared) . Native `braker.pl` is invoked without `--busco_lineage`. BRAKER4 is configured with `use_compleasm_hints = 0` (compleasm still runs for QC and `best_by_compleasm` rescue, but its CDSpart hints are not fed to AUGUSTUS) and `skip_optimize_augustus = 0` so the two pipelines see the same hint stream and run the same training procedure.
+**Inputs (identical for both pipelines):** TAIR10 genome FASTA, VARUS-sampled RNA-Seq BAM (~4.8 GB), close relative proteins (e.g. *Brassica rapa*, for details see Tiberius parameters manuscript, this is not how we typically run BRAKER, it was a convenience choice because we already had the native BRAKER3 accuracy metrics prepared) . Native `braker.pl` is invoked without `--busco_lineage` and with `--skipOptimize`; BRAKER4 is configured with `use_compleasm_hints = 0` (compleasm still runs for QC and `best_by_compleasm` rescue, but its CDSpart hints are not fed to AUGUSTUS) and `skip_optimize_augustus = 1` so the two pipelines see the same hint stream and run the same training procedure. Results are scored with `gffcompare --strict-match -e 3 -T`.
 
 <table>
   <thead>
@@ -141,12 +141,12 @@ To verify that BRAKER4 reproduces the gene-prediction accuracy of the original `
     </tr>
     <tr>
       <td>ETP</td>
-      <td align="right">83.6</td><td align="right"><b>84.0</b></td>
-      <td align="right">82.4</td><td align="right">82.2</td>
-      <td align="right">83.0</td><td align="right"><b>83.1</b></td>
-      <td align="right">82.1</td><td align="right"><b>82.4</b></td>
-      <td align="right">94.4</td><td align="right">94.3</td>
-      <td align="right">87.8</td><td align="right"><b>87.9</b></td>
+      <td align="right">80.3</td><td align="right"><b>80.6</b></td>
+      <td align="right"><b>78.6</b></td><td align="right">78.4</td>
+      <td align="right">79.4</td><td align="right"><b>79.5</b></td>
+      <td align="right">81.6</td><td align="right"><b>81.8</b></td>
+      <td align="right">93.3</td><td align="right">93.3</td>
+      <td align="right">87.1</td><td align="right">87.1</td>
     </tr>
   </tbody>
 </table>
@@ -157,7 +157,7 @@ F1 = 2·Sn·Pr / (Sn + Pr), the harmonic mean of sensitivity and precision.
 
 ET and EP modes have low locus precision (~63–66%) in both pipelines because without the complementary evidence type, AUGUSTUS predicts many loci that are not in the curated Araport11 reference. This is a property of those modes generally, not a pipeline-specific issue.
 
-In ETP mode, BRAKER4 beats native braker.pl on locus F1 (83.1 vs 83.0) and on exon F1 (87.9 vs 87.8), with exon precision essentially tied (94.3 vs 94.4). Across all three modes (ET, EP, ETP), BRAKER4 either matches or slightly beats the original braker.pl Perl pipeline.
+In ETP mode, BRAKER4 matches native braker.pl on locus F1 (79.5 vs 79.4) and ties on exon F1 (87.1). Across all three modes (ET, EP, ETP), BRAKER4 either matches or slightly beats the original braker.pl Perl pipeline. Both pipelines were run with AUGUSTUS `optimize_augustus.pl` disabled (`--skipOptimize` / `skip_optimize_augustus = 1`); we verified that enabling it does not meaningfully change accuracy.
 
 What is BRAKER?
 ===============
@@ -398,6 +398,14 @@ In this example, `fly` runs in ETP mode with a BAM file, `worm` runs in ETP mode
 ### config.ini
 
 This file contains pipeline parameters. Place it in the same directory as your `samples.csv`.
+
+A ready-to-use template is shipped with the repository as [`config.ini.example`](config.ini.example). Copy it to your working directory and rename it:
+
+```bash
+cp /path/to/BRAKER4/config.ini.example config.ini
+```
+
+Then edit the values as needed. The template keeps all comments on separate lines for compatibility with strict INI parsers; BRAKER4 itself also accepts inline comments (`key = value  # comment`).
 
 ```ini
 [paths]
