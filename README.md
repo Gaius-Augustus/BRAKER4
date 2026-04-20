@@ -431,7 +431,7 @@ omark_image = docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0
 [PARAMS]
 fungus = 0                          # set to 1 for fungal genomes
 min_contig = 10000                  # skip contigs shorter than this (bp)
-gm_max_intergenic = 10000           # only set this for small test genomes; do NOT set on real data
+# gm_max_intergenic = 10000        # TEST GENOMES ONLY — omit on real data (GeneMark chooses automatically)
 use_varus = 0                       # set to 1 to enable VARUS auto-download of RNA-Seq from SRA
 skip_optimize_augustus = 0          # set to 1 to skip AUGUSTUS optimization (saves time)
 skip_single_exon_downsampling = 0   # set to 1 to disable single-exon training-gene downsampling

@@ -41,8 +41,9 @@ fungus = 0
 ; Skip contigs shorter than this length (bp).
 min_contig = 10000
 ; Maximum intergenic region length for GeneMark.
-; Only set this to a low value for small test genomes; do NOT lower it on real data.
-gm_max_intergenic = 50000
+; LEAVE THIS COMMENTED OUT on real genomes — GeneMark chooses an appropriate value automatically.
+; Only uncomment for tiny test genomes (e.g. gm_max_intergenic = 10000).
+; gm_max_intergenic = 10000
 ; Set to 1 to enable VARUS auto-download of RNA-Seq from SRA.
 use_varus = 0
 ; Set to 1 to skip AUGUSTUS parameter optimization (saves time on large genomes).
