@@ -594,6 +594,8 @@ AGAT_CONTAINER = config.get("agat_image", "docker://quay.io/biocontainers/agat:1
 BARRNAP_CONTAINER = config.get("barrnap_image", "docker://quay.io/biocontainers/barrnap:0.9--hdfd78af_4")
 BUSCO_CONTAINER = config.get("busco_image", "docker://ezlabgva/busco:v6.0.0_cv1")
 OMARK_CONTAINER = config.get("omark_image", "docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0")
+TETOOLS_CONTAINER = config.get("tetools_image", "docker://dfam/tetools:latest")
+VARUS_CONTAINER = config.get("varus_image", "docker://katharinahoff/varus-notebook:v0.0.6")
 
 # GeneMark-ETP container: uses IsoSeq container when any sample is in IsoSeq mode
 # (the IsoSeq container has a GeneMark-ETP build that handles long-read evidence)

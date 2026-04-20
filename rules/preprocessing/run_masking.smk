@@ -32,7 +32,7 @@ rule run_masking:
         mem_mb = int(config['slurm_args']['mem_of_node']),
         runtime = int(config['slurm_args']['max_runtime'])
     container:
-        "docker://dfam/tetools:latest"
+        TETOOLS_CONTAINER
     shell:
         r"""
         set -euo pipefail

@@ -427,6 +427,8 @@ agat_image = docker://quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0
 barrnap_image = docker://quay.io/biocontainers/barrnap:0.9--hdfd78af_4
 busco_image = docker://ezlabgva/busco:v6.0.0_cv1
 omark_image = docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0
+tetools_image = docker://dfam/tetools:latest
+varus_image = docker://katharinahoff/varus-notebook:v0.0.6
 
 [PARAMS]
 fungus = 0                          # set to 1 for fungal genomes

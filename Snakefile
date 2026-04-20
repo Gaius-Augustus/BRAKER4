@@ -106,6 +106,8 @@ _container_defaults = {
     'barrnap_image':   'docker://quay.io/biocontainers/barrnap:0.9--hdfd78af_4',
     'busco_image':     'docker://ezlabgva/busco:v6.0.0_cv1',
     'omark_image':     'docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0',
+    'tetools_image':   'docker://dfam/tetools:latest',
+    'varus_image':     'docker://katharinahoff/varus-notebook:v0.0.6',
 }
 for _img_key, _img_default in _container_defaults.items():
     config[_img_key] = config_parser.get('containers', _img_key, fallback=_img_default)
