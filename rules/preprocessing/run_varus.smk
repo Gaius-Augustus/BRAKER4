@@ -54,7 +54,7 @@ rule run_varus:
         mem_mb=int(config['slurm_args']['mem_of_node']),
         runtime=int(config['slurm_args']['max_runtime'])
     container:
-        "docker://katharinahoff/varus-notebook:v0.0.6"
+        VARUS_CONTAINER
     shell:
         r"""
         set -euo pipefail

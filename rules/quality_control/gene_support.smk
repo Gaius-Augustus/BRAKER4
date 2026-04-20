@@ -17,7 +17,7 @@ rule gene_support_summary:
     """Compute per-gene evidence support from hints file."""
     input:
         gtf="output/{sample}/braker.gtf",
-        hints="output/{sample}/hintsfile.gff"
+        hints=lambda w: get_augustus_hintsfile(w)
     output:
         tsv="output/{sample}/gene_support.tsv"
     log:

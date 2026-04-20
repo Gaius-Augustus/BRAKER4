@@ -91,14 +91,14 @@ def get_tsebra_inputs(wildcards):
         inputs.update({
             "genemark_gtf": f"output/{sample}/GeneMark-ETP/genemark.gtf",
             "training_gtf": f"output/{sample}/GeneMark-ETP/training.gtf",
-            "hintsfile":    f"output/{sample}/hintsfile.gff",
+            "hintsfile":    get_augustus_hintsfile(sample),
         })
     else:
         # ES / EP / ET — single keep-everything invocation against the
         # already-filtered GeneMark good set.
         inputs.update({
             "keep_genes": f"output/{sample}/genemark/genemark.f.good.gtf",
-            "hintsfile":  f"output/{sample}/hintsfile.gff",
+            "hintsfile":  get_augustus_hintsfile(sample),
         })
 
     return inputs

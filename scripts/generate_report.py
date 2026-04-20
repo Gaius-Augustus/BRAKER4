@@ -1412,6 +1412,9 @@ def main():
                         help="Output directory for report files")
     parser.add_argument("-s", "--sample", default=None,
                         help="Sample name (auto-detected from workdir if omitted)")
+    parser.add_argument("--mode", default=None,
+                        help="Snakemake mode key (es/et/ep/etp/isoseq/dual); "
+                             "overrides filesystem-based detect_mode()")
     args = parser.parse_args()
 
     d = args.workdir
@@ -1419,7 +1422,19 @@ def main():
     os.makedirs(out, exist_ok=True)
 
     sample_name = args.sample or os.path.basename(d.rstrip("/"))
-    mode = detect_mode(d)
+
+    _MODE_LABELS = {
+        "es":     "ES (ab initio)",
+        "et":     "ET/BRAKER1 (RNA-Seq only)",
+        "ep":     "EP/BRAKER2 (proteins only)",
+        "etp":    "ETP/BRAKER3 (RNA-Seq + proteins)",
+        "isoseq": "IsoSeq/BRAKER3 (long-read + proteins)",
+        "dual":   "Dual/BRAKER3 (short-read + IsoSeq + proteins)",
+    }
+    if args.mode and args.mode in _MODE_LABELS:
+        mode = _MODE_LABELS[args.mode]
+    else:
+        mode = detect_mode(d)
 
     # Generate methods text from pipeline outputs (single cohesive paragraph)
     methods_text = generate_methods_text(d, mode)

@@ -87,7 +87,8 @@ rule collect_results:
         sample="{sample}",
         outdir="output/{sample}",
         resultsdir="output/{sample}/results",
-        no_cleanup=config.get('no_cleanup', False)
+        no_cleanup=config.get('no_cleanup', False),
+        mode=lambda w: get_braker_mode(w.sample)
     threads: 1
     resources:
         mem_mb=4000,
@@ -284,6 +285,7 @@ rule collect_results:
             -d "$OUTDIR" \
             -o "$RESULTS" \
             -s "{params.sample}" \
+            --mode "{params.mode}" \
             2>/dev/null || echo "[WARNING] HTML report generation failed (non-fatal)"
 
         # Copy BibTeX to results if generated
