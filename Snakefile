@@ -95,8 +95,20 @@ augustus_config_path = os.path.abspath(config_parser['paths'].get('augustus_conf
 config['samples_file'] = config_parser['paths'].get('samples_file', 'samples.csv')
 config['fungus'] = config_parser.getboolean('PARAMS', 'fungus', fallback=False)
 config['min_contig'] = config_parser.getint('PARAMS', 'min_contig', fallback=10000)
-config['braker3_image'] = config_parser.get('containers', 'braker3_image',
-                                             fallback='docker://teambraker/braker3:v3.0.10')
+_container_defaults = {
+    'braker3_image':   'docker://teambraker/braker3:v3.0.10',
+    'isoseq_image':    'docker://teambraker/braker3:isoseq',
+    'minimap2_image':  'docker://katharinahoff/minimap-minisplice:v0.1',
+    'minisplice_image':'docker://katharinahoff/minimap-minisplice:v0.1',
+    'red_image':       'docker://quay.io/biocontainers/red:2018.09.10--h9948957_3',
+    'gffcompare_image':'docker://quay.io/biocontainers/gffcompare:0.12.6--h9f5acd7_1',
+    'agat_image':      'docker://quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0',
+    'barrnap_image':   'docker://quay.io/biocontainers/barrnap:0.9--hdfd78af_4',
+    'busco_image':     'docker://ezlabgva/busco:v6.0.0_cv1',
+    'omark_image':     'docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0',
+}
+for _img_key, _img_default in _container_defaults.items():
+    config[_img_key] = config_parser.get('containers', _img_key, fallback=_img_default)
 
 # When [SLURM_ARGS] cpus_per_task is missing from config.ini (typical for
 # local runs), fall back to workflow.cores so that `snakemake --cores N`

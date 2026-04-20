@@ -415,7 +415,18 @@ augustus_config_path = augustus_config
 # compleasm_download_path = /path/to/compleasm_downloads  # optional
 
 [containers]
-braker3_image = docker://teambraker/braker3:v3.0.10  # optional, this is the default
+# Replace any docker:// URI with an absolute path to a local .sif file to
+# avoid pulling the image at runtime. All keys are optional (defaults shown).
+braker3_image = docker://teambraker/braker3:v3.0.10
+isoseq_image = docker://teambraker/braker3:isoseq
+minimap2_image = docker://katharinahoff/minimap-minisplice:v0.1
+minisplice_image = docker://katharinahoff/minimap-minisplice:v0.1
+red_image = docker://quay.io/biocontainers/red:2018.09.10--h9948957_3
+gffcompare_image = docker://quay.io/biocontainers/gffcompare:0.12.6--h9f5acd7_1
+agat_image = docker://quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0
+barrnap_image = docker://quay.io/biocontainers/barrnap:0.9--hdfd78af_4
+busco_image = docker://ezlabgva/busco:v6.0.0_cv1
+omark_image = docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0
 
 [PARAMS]
 fungus = 0                          # set to 1 for fungal genomes
