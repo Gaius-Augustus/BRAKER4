@@ -59,8 +59,6 @@ use_dev_shm = 0
 ; Set to 0 to exclude BUSCO CDSpart hints from the AUGUSTUS hintsfile
 ; (compleasm still runs for completeness assessment).
 use_compleasm_hints = 1
-; Set to 1 to skip compleasm completeness assessment entirely.
-skip_compleasm = 0
 ; Set to 1 to skip the full BUSCO pipeline (slower than compleasm).
 skip_busco = 0
 ; Set to 1 to run OMArk (requires LUCA.h5 database, ~8.8 GB; see [OMARK] below).

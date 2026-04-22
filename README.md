@@ -440,7 +440,6 @@ skip_single_exon_downsampling = 0   # set to 1 to disable single-exon training-g
 downsampling_lambda = 2             # Poisson lambda for single-exon downsampling (lower = more aggressive)
 use_dev_shm = 0                     # set to 1 to use /dev/shm for temp files (faster I/O)
 use_compleasm_hints = 1             # 0 to keep BUSCO CDSpart hints out of AUGUSTUS hintsfile (compleasm still runs)
-skip_compleasm = 0                  # set to 1 to skip compleasm completeness assessment entirely
 skip_busco = 0                      # set to 1 to skip the (slow) full BUSCO pipeline
 run_omark = 0                       # set to 1 to run OMArk (requires LUCA.h5 database, ~8.8 GB)
 translation_table = 1               # genetic code table (1=standard, 6=ciliate); only ES/ET/EP modes
@@ -730,13 +729,9 @@ Maximum intergenic length for GeneMark. Only set this for small test genomes. Do
 
 ### use_compleasm_hints
 
-Set to `0` to keep compleasm-derived BUSCO CDSpart hints out of the AUGUSTUS hintsfile. Default is `1` (hints are included). Compleasm itself runs in BRAKER4 unless `skip_compleasm = 1` (see below) — this flag does not change that. When compleasm runs, the genome- and protein-level completeness summaries still appear in the report, and the `best_by_compleasm` BUSCO-rescue step in the TSEBRA merger still uses compleasm internally. The flag only controls whether the `c2h CDSpart` hints get fed to AUGUSTUS during gene prediction.
+Set to `0` to keep compleasm-derived BUSCO CDSpart hints out of the AUGUSTUS hintsfile. Default is `1` (hints are included). Compleasm always runs in BRAKER4 — the genome- and protein-level completeness summaries still appear in the report, and the `best_by_compleasm` BUSCO-rescue step in the TSEBRA merger relies on it. This flag only controls whether the `c2h CDSpart` hints get fed to AUGUSTUS during gene prediction.
 
 When to disable: BUSCO-derived CDSpart hints can shift TSEBRA's per-transcript scoring and occasionally cost a few percentage points of locus-level sensitivity on borderline AUGUSTUS predictions. Disabling them produces a configuration closer to native braker.pl, which never uses BUSCO hints in the AUGUSTUS run. For most users the default (on) is the right choice.
-
-### skip_compleasm
-
-Set to `1` to skip the compleasm completeness assessment entirely (both the genome-level and protein-level runs). Default is `0` (compleasm runs). Disable only when you do not need any compleasm output and want to save runtime, or in CI/test contexts on tiny genomes where the BUSCO lineage dataset would not produce meaningful results. Note that disabling compleasm also disables the `best_by_compleasm` BUSCO-rescue step in TSEBRA merging and removes the compleasm CDSpart hints from AUGUSTUS regardless of `use_compleasm_hints`.
 
 ### skip_busco
 

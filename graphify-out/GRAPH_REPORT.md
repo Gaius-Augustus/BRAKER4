@@ -1,4 +1,4 @@
-# Graph Report - /home/katharina/git/BRAKER4  (2026-04-20)
+# Graph Report - /home/katharina/git/BRAKER4  (2026-04-22)
 
 ## Corpus Check
 - 17 files · ~1,099,114 words
