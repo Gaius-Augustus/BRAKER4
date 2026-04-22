@@ -325,10 +325,31 @@ config['compleasm_download_path'] = os.path.abspath(
     config_parser.get('paths', 'compleasm_download_path',
                       fallback=os.path.join(config['busco_download_path'], 'lineages'))
 )
-config['rfam_path'] = os.path.abspath(
+_rfam_default_dir = os.path.abspath(
     config_parser.get('paths', 'rfam_path',
                       fallback=os.path.join(_shared_data, 'rfam'))
 )
+config['rfam_path'] = _rfam_default_dir
+config['rfam_cm'] = os.path.abspath(
+    config_parser.get('paths', 'rfam_cm',
+                      fallback=os.path.join(_rfam_default_dir, 'Rfam.cm'))
+)
+config['rfam_clanin'] = os.path.abspath(
+    config_parser.get('paths', 'rfam_clanin',
+                      fallback=os.path.join(_rfam_default_dir, 'Rfam.clanin'))
+)
+if config['run_ncrna']:
+    missing_rfam_files = [
+        path for path in (config['rfam_cm'], config['rfam_clanin'])
+        if not os.path.isfile(path)
+    ]
+    if missing_rfam_files:
+        raise FileNotFoundError(
+            "run_ncrna=1 requires accessible Rfam database files. "
+            "Set [paths] rfam_cm and rfam_clanin in config.ini (or the legacy "
+            "rfam_path containing both files). Missing: "
+            + ", ".join(missing_rfam_files)
+        )
 
 config['pipeline_version'] = __version__
 
