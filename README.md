@@ -268,6 +268,8 @@ source snakemake_env/bin/activate
 pip install snakemake==8.18.2
 ```
 
+BRAKER4 supports SLURM as its HPC executor. Other schedulers (SGE, PBS, LSF) are not supported — if your cluster uses a different scheduler, run without `--executor slurm` and submit the Snakemake process itself as a single job, letting it execute rules locally within that allocation.
+
 If you intend to run BRAKER4 on an HPC cluster with SLURM, you also need the Snakemake SLURM executor plugin:
 
 ```
@@ -1180,6 +1182,16 @@ Common problems
 -   *The pipeline fails on SLURM but works locally!*
 
     Snakemake 8's SLURM executor plugin uses a two-tier architecture (`sbatch` + `srun`) that behaves differently from Snakemake 7's `--cluster` mode. Check that your Singularity bind paths are correct on the compute nodes (not just the head node). Also verify that the SLURM partition name in your Snakemake command matches your cluster configuration.
+
+-   *Snakemake says the directory is locked and won't start!*
+
+    This usually happens after a run was interrupted or after switching between `--executor slurm` and local execution (or vice versa). Run with `--unlock` to clear the lock:
+
+    ```bash
+    snakemake --unlock -s /path/to/BRAKER4/Snakefile --configfile config.ini
+    ```
+
+    If `--unlock` alone does not help, delete the `.snakemake/` directory in your working directory and re-run. This directory holds only Snakemake metadata (locks, job tracking) — your output files are unaffected.
 
 -   *A rule failed. How do I restart?*
 
