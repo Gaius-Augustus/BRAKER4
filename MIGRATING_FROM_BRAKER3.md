@@ -39,7 +39,7 @@ If you currently run `braker.pl` directly inside a Singularity shell, you alread
 ## Step 1 — clone the repository
 
 ```bash
-git clone https://github.com/KatharinaHoff/BRAKER4.git
+git clone https://github.com/Gaius-Augustus/BRAKER4.git
 cd BRAKER4
 ```
 
@@ -374,4 +374,4 @@ snakemake ...
 - [TESTING_GUIDE.md](TESTING_GUIDE.md) — how to run the test suite end-to-end.
 - The [multi-mode rulegraph](test_scenarios/scenario_12_multi_mode/rulegraph.png) — visualises the entire DAG including all 7 modes plus repeat masking and QC.
 
-If you get stuck, the per-rule logs in `logs/{sample_name}/` and the SLURM job logs in `.snakemake/slurm_logs/` are usually enough to identify what went wrong. Open an issue at <https://github.com/KatharinaHoff/BRAKER4/issues> if you cannot.
+If you get stuck, the per-rule logs in `logs/{sample_name}/` and the SLURM job logs in `.snakemake/slurm_logs/` are usually enough to identify what went wrong. Open an issue at <https://github.com/Gaius-Augustus/BRAKER4/issues> if you cannot.
