@@ -18,6 +18,9 @@ samples_file = samples.csv
 augustus_config_path = augustus_config
 ; busco_download_path = /path/to/busco_downloads
 ; compleasm_download_path = /path/to/compleasm_downloads
+; rfam_cm = /path/to/Rfam.cm          ; required when run_ncrna = 1
+; rfam_clanin = /path/to/Rfam.clanin  ; required when run_ncrna = 1
+; rfam_path = /path/to/rfam           ; legacy alternative: directory containing both files
 
 [containers]
 ; All container images below default to their docker:// URIs and are pulled on
