@@ -25,7 +25,7 @@ rule hisat2_index:
     input:
         genome=lambda wildcards: get_masked_genome(wildcards.sample)
     output:
-        index="output/{sample}/hisat2/genome.1.ht2"
+        sentinel=touch("output/{sample}/hisat2/.index_complete")
     log:
         "logs/{sample}/hisat2/hisat2_build.log"
     benchmark:
@@ -49,7 +49,8 @@ rule hisat2_index:
             {params.prefix} \
             > {log} 2>&1
 
-        if [ ! -f {output.index} ]; then
+        # Large genomes (>4 GB) produce .ht2l instead of .ht2 — accept either
+        if [ ! -f {params.prefix}.1.ht2 ] && [ ! -f {params.prefix}.1.ht2l ]; then
             echo "ERROR: hisat2-build failed to create index" >> {log}
             exit 1
         fi
@@ -78,7 +79,7 @@ def _get_align_deps(wildcards):
 rule hisat2_align:
     """Align FASTQ reads with HISAT2 and produce sorted BAM."""
     input:
-        index="output/{sample}/hisat2/genome.1.ht2",
+        index="output/{sample}/hisat2/.index_complete",
         deps=_get_align_deps
     output:
         bam="output/{sample}/hisat2_aligned/{align_id}.sorted.bam",
