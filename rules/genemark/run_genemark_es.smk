@@ -63,14 +63,27 @@ rule run_genemark_es:
             --gc_donor {params.gc_donor} \
             1> $LOG_FILE_ABS \
             2> $LOG_ABS
+        GM_EXIT=$?
 
-        if [ ! -f genemark.gtf ]; then
-            echo "ERROR: GeneMark-ES failed to produce genemark.gtf" >> $LOG_ABS
+        if [ $GM_EXIT -ne 0 ] || [ ! -f genemark.gtf ]; then
+            echo "ERROR: GeneMark-ES failed (exit=$GM_EXIT), no genemark.gtf produced" >> $LOG_ABS
+            echo "--- last 30 lines of gmes.log ---" >> $LOG_ABS
+            tail -30 $LOG_FILE_ABS >> $LOG_ABS 2>/dev/null || true
             exit 1
         fi
 
         n_genes=$(grep -c $'\\tgene\\t' genemark.gtf || echo "0")
         echo "GeneMark-ES predicted $n_genes genes" >> $LOG_ABS
+
+        if [ "$n_genes" -eq 0 ]; then
+            echo "ERROR: GeneMark-ES produced genemark.gtf but predicted 0 genes." >> $LOG_ABS
+            echo "       Cannot seed ProtHint with an empty gene set." >> $LOG_ABS
+            echo "       Check genome quality, contig lengths (min_contig={params.min_contig})," >> $LOG_ABS
+            echo "       and whether --fungus should be set." >> $LOG_ABS
+            echo "--- last 30 lines of gmes.log ---" >> $LOG_ABS
+            tail -30 $LOG_FILE_ABS >> $LOG_ABS 2>/dev/null || true
+            exit 1
+        fi
 
         # Record software versions
         cd $WORKDIR
