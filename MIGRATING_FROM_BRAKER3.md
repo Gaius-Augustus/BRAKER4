@@ -225,7 +225,9 @@ snakemake \
     --cores 8 \
     --use-singularity \
     --singularity-prefix .singularity_cache \
-    --singularity-args "-B /home"
+    --singularity-args "-B /home" \
+    --latency-wait 120 \
+    --restart-times 3
 ```
 
 - `--cores 8` → use 8 CPU threads.
@@ -248,7 +250,9 @@ snakemake \
     --jobs 48 \
     --use-singularity \
     --singularity-prefix .singularity_cache \
-    --singularity-args "-B /home -B /scratch"
+    --singularity-args "-B /home -B /scratch" \
+    --latency-wait 120 \
+    --restart-times 3
 ```
 
 - `--executor slurm` → submit each rule as a separate `sbatch` job. Set `slurm_partition=` to your cluster's partition name.
@@ -330,7 +334,7 @@ Provide your already-masked genome in the `genome_masked` column. The `genome` c
 Every value in `[PARAMS]` and `[SLURM_ARGS]` can be overridden via an environment variable named `BRAKER4_<KEY_UPPER>`. For example:
 
 ```bash
-BRAKER4_FUNGUS=1 BRAKER4_MAX_RUNTIME=240 snakemake ...
+BRAKER4_FUNGUS=1 BRAKER4_MAX_RUNTIME=240 snakemake --latency-wait 120 --restart-times 3 ...
 ```
 
 Useful when you want to share one `config.ini` across multiple runs but tweak a few values per-run. The test suite uses this pattern: one shared `config.ini`, plus a small `scenario_overrides.sh` per scenario that exports the differences.
@@ -363,7 +367,7 @@ scancel <jobid> ...
 # remove stale locks
 rm -f .snakemake/locks/*
 # now re-run snakemake
-snakemake ...
+snakemake --latency-wait 120 --restart-times 3 ...
 ```
 
 ## Where to read more

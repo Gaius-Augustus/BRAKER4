@@ -56,6 +56,7 @@ rule hisat2_index:
         fi
 
         echo "HISAT2 index built successfully" >> {log}
+        touch {output.sentinel}
         """
 
 

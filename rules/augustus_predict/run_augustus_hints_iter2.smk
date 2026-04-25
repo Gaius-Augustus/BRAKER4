@@ -142,7 +142,7 @@ rule run_augustus_hints_iter2:
             perl -ne 'if(m/\tAUGUSTUS\t/) {{print $_;}}' | \
             grep -v "^$" > {output.augustus_gtf}
 
-        GENES=$(grep -cP '\tgene\t' {output.augustus_gtf} || echo 0)
+        GENES=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {output.augustus_gtf})
         echo "[INFO] Iteration 2: $GENES genes predicted"
 
         # Cleanup

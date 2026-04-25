@@ -140,8 +140,8 @@ rule add_utr:
             -o {output.utr_gtf} \
             2>> {log}
 
-        n_genes=$(grep -cP '\\tgene\\t' {output.utr_gtf} || echo 0)
-        n_utr=$(grep -cP '\\tfive_prime_UTR\\t|\\tthree_prime_UTR\\t' {output.utr_gtf} || echo 0)
+        n_genes=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {output.utr_gtf})
+        n_utr=$(awk '$3=="five_prime_UTR"||$3=="three_prime_UTR"{{n++}}END{{print n+0}}' {output.utr_gtf})
         echo "Output: $n_genes genes, $n_utr UTR features" >> {log}
 
         # Report

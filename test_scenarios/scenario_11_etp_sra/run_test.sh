@@ -52,6 +52,8 @@ snakemake \
     $DRY_RUN_FLAG \
     --printshellcmds \
     --rerun-incomplete \
+    --latency-wait 120 \
+    --restart-times 3 \
     --use-singularity \
     --singularity-prefix "$PIPELINE_DIR/.singularity_cache" \
     --singularity-args "-B /home --env PREPEND_PATH=/opt/conda/bin" \

@@ -47,5 +47,5 @@ rule normalize_cds:
 
         # Report
         REPORT_DIR=output/{wildcards.sample}
-        N_GENES_OUT=$(grep -cP '\\tgene\\t' {output.gtf} || echo 0)
+        N_GENES_OUT=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {output.gtf})
         """

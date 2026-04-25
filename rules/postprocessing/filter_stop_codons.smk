@@ -55,8 +55,8 @@ rule filter_internal_stop_codons:
         echo "[INFO] Output GTF: {output.braker_gtf}" | tee -a {output.filter_log}
 
         # Count genes before filtering
-        GENES_BEFORE=$(grep -cP '\tgene\t' {input.braker_merged_gtf} || echo 0)
-        TRANSCRIPTS_BEFORE=$(grep -cP '\ttranscript\t' {input.braker_merged_gtf} || echo 0)
+        GENES_BEFORE=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {input.braker_merged_gtf})
+        TRANSCRIPTS_BEFORE=$(awk '$3=="transcript"{{n++}}END{{print n+0}}' {input.braker_merged_gtf})
         echo "[INFO] Genes before filtering: $GENES_BEFORE" | tee -a {output.filter_log}
         echo "[INFO] Transcripts before filtering: $TRANSCRIPTS_BEFORE" | tee -a {output.filter_log}
 
@@ -225,8 +225,8 @@ PYEOF
         fi
 
         # Count genes after filtering
-        GENES_AFTER=$(grep -cP '\tgene\t' {output.braker_gtf} || echo 0)
-        TRANSCRIPTS_AFTER=$(grep -cP '\ttranscript\t' {output.braker_gtf} || echo 0)
+        GENES_AFTER=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {output.braker_gtf})
+        TRANSCRIPTS_AFTER=$(awk '$3=="transcript"{{n++}}END{{print n+0}}' {output.braker_gtf})
         GENES_REMOVED=$((GENES_BEFORE - GENES_AFTER))
         TRANSCRIPTS_REMOVED=$((TRANSCRIPTS_BEFORE - TRANSCRIPTS_AFTER))
 

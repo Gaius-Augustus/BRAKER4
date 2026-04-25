@@ -275,7 +275,7 @@ rule run_augustus_hints:
             perl -ne 'if(m/\tAUGUSTUS\t/) {{print $_;}}' | \
             grep -v "^$" > {output.augustus_gtf}
 
-        GENES_GTF=$(grep -cP '\tgene\t' {output.augustus_gtf} || echo 0)
+        GENES_GTF=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {output.augustus_gtf})
         echo "[INFO] Genes in GTF: $GENES_GTF"
 
         echo "[INFO] ======================================="

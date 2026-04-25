@@ -493,7 +493,9 @@ For running BRAKER4 on a local workstation or a single compute node:
 ```
 snakemake --cores 8 --use-singularity \
     --singularity-prefix .singularity_cache \
-    --singularity-args "-B /home"
+    --singularity-args "-B /home" \
+    --latency-wait 120 \
+    --restart-times 3
 ```
 
 Adjust `--cores` to the number of CPU cores available. If your genome and evidence files reside outside `/home`, add bind paths as described in [Version fragility warning](#version-fragility-warning).
@@ -513,7 +515,9 @@ snakemake \
     --jobs 48 \
     --use-singularity \
     --singularity-prefix .singularity_cache \
-    --singularity-args "-B /home -B /scratch"
+    --singularity-args "-B /home -B /scratch" \
+    --latency-wait 120 \
+    --restart-times 3
 ```
 
 Adjust `slurm_partition`, `mem_mb`, `--cores`, and `--jobs` to your cluster configuration. The `--jobs` parameter controls how many SLURM jobs can be submitted simultaneously.
@@ -537,7 +541,9 @@ snakemake --keep-going \
     --cores 48 --jobs 48 \
     --use-singularity \
     --singularity-prefix .singularity_cache \
-    --singularity-args "-B /home -B /scratch"
+    --singularity-args "-B /home -B /scratch" \
+    --latency-wait 120 \
+    --restart-times 3
 ```
 
 After the run completes, check the Snakemake log for which samples failed and why.
