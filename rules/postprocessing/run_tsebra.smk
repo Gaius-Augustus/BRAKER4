@@ -182,8 +182,8 @@ rule run_tsebra_etp_per_run:
             2>&1 | tee -a {output.log_file}
         rm -f $TSEBRA_TMP
 
-        N_GENES=$(grep -cP '\tgene\t' {output.braker_per_run} || echo 0)
-        N_TX=$(grep -cP '\ttranscript\t' {output.braker_per_run} || echo 0)
+        N_GENES=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {output.braker_per_run})
+        N_TX=$(awk '$3=="transcript"{{n++}}END{{print n+0}}' {output.braker_per_run})
         echo "[INFO] Per-run output ({wildcards.etp_run}): $N_GENES genes, $N_TX transcripts" | tee -a {output.log_file}
         """
 
@@ -230,9 +230,9 @@ rule run_tsebra:
                 # Single ETP-style merge: AUGUSTUS + raw GeneMark predictions
                 # are CANDIDATES (filtered against the hints), HC training
                 # genes are FORCED via --keep_gtf. Mirrors braker.pl ETP.
-                AUG_GENES=$(grep -cP '\tgene\t' {input.augustus_gtf} || echo 0)
-                GM_GENES=$(awk -F'\t' '$3=="CDS"' {input.genemark_gtf} | grep -oP 'gene_id "[^"]+"' | sort -u | wc -l)
-                KEEP_GENES=$(grep -oP 'gene_id "[^"]+"' {input.training_gtf} | sort -u | wc -l)
+                AUG_GENES=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {input.augustus_gtf})
+                GM_GENES=$(awk -F'\t' '$3=="CDS"' {input.genemark_gtf} | grep -oE 'gene_id "[^"]+"' | sort -u | wc -l)
+                KEEP_GENES=$(grep -oE 'gene_id "[^"]+"' {input.training_gtf} | sort -u | wc -l)
                 echo "[INFO] Inputs: AUGUSTUS=$AUG_GENES, GeneMark=$GM_GENES (candidates), training=$KEEP_GENES (forced)" | tee -a {output.tsebra_log}
 
                 tsebra.py \
@@ -265,11 +265,11 @@ rule run_tsebra:
                 sed 's/gene_id "\([^"]*\)"/gene_id "sr_\1"/g; s/transcript_id "\([^"]*\)"/transcript_id "sr_\1"/g'  {input.training_sr}  > $TR_SR_PFX
                 sed 's/gene_id "\([^"]*\)"/gene_id "iso_\1"/g; s/transcript_id "\([^"]*\)"/transcript_id "iso_\1"/g' {input.training_iso} > $TR_ISO_PFX
 
-                AUG_GENES=$(grep -cP '\tgene\t' {input.augustus_gtf} || echo 0)
-                GM_SR_GENES=$(awk -F'\t' '$3=="CDS"' $GM_SR_PFX | grep -oP 'gene_id "[^"]+"' | sort -u | wc -l)
-                GM_ISO_GENES=$(awk -F'\t' '$3=="CDS"' $GM_ISO_PFX | grep -oP 'gene_id "[^"]+"' | sort -u | wc -l)
-                TR_SR_GENES=$(grep -oP 'gene_id "[^"]+"' $TR_SR_PFX | sort -u | wc -l)
-                TR_ISO_GENES=$(grep -oP 'gene_id "[^"]+"' $TR_ISO_PFX | sort -u | wc -l)
+                AUG_GENES=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {input.augustus_gtf})
+                GM_SR_GENES=$(awk -F'\t' '$3=="CDS"' $GM_SR_PFX | grep -oE 'gene_id "[^"]+"' | sort -u | wc -l)
+                GM_ISO_GENES=$(awk -F'\t' '$3=="CDS"' $GM_ISO_PFX | grep -oE 'gene_id "[^"]+"' | sort -u | wc -l)
+                TR_SR_GENES=$(grep -oE 'gene_id "[^"]+"' $TR_SR_PFX | sort -u | wc -l)
+                TR_ISO_GENES=$(grep -oE 'gene_id "[^"]+"' $TR_ISO_PFX | sort -u | wc -l)
                 echo "[INFO] Stage C inputs:" | tee -a {output.tsebra_log}
                 echo "[INFO]   AUGUSTUS=$AUG_GENES (candidate)" | tee -a {output.tsebra_log}
                 echo "[INFO]   GeneMark sr=$GM_SR_GENES iso=$GM_ISO_GENES (candidates)" | tee -a {output.tsebra_log}
@@ -293,8 +293,8 @@ rule run_tsebra:
                 # ES / EP / ET — keep-everything (matches braker.pl). For ES,
                 # genemark.f.good.gtf is the unfiltered sorted set; for EP/ET
                 # it's the filterGenemark.pl-filtered "good" set.
-                AUG_GENES=$(grep -cP '\tgene\t' {input.augustus_gtf} || echo 0)
-                KEEP_GENES=$(grep -oP 'gene_id "[^"]+"' {input.keep_genes} | sort -u | wc -l)
+                AUG_GENES=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {input.augustus_gtf})
+                KEEP_GENES=$(grep -oE 'gene_id "[^"]+"' {input.keep_genes} | sort -u | wc -l)
                 echo "[INFO] Inputs: AUGUSTUS=$AUG_GENES, GeneMark good=$KEEP_GENES (both forced)" | tee -a {output.tsebra_log}
 
                 # ES has no hints — only pass --hintfiles if non-empty.
@@ -318,8 +318,8 @@ rule run_tsebra:
             2>&1 | tee -a {output.tsebra_log}
         rm -f $TSEBRA_TMP
 
-        MERGED_GENES=$(grep -cP '\tgene\t' {output.braker_merged_gtf} || echo 0)
-        MERGED_TX=$(grep -cP '\ttranscript\t' {output.braker_merged_gtf} || echo 0)
+        MERGED_GENES=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {output.braker_merged_gtf})
+        MERGED_TX=$(awk '$3=="transcript"{{n++}}END{{print n+0}}' {output.braker_merged_gtf})
         echo "[INFO] Output: $MERGED_GENES genes, $MERGED_TX transcripts" | tee -a {output.tsebra_log}
         echo "[INFO] TSEBRA merge completed successfully" | tee -a {output.tsebra_log}
 

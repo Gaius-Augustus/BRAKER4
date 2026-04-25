@@ -72,9 +72,9 @@ rule downsample_training_genes:
 
         # Check single-exon gene proportion
         TOTAL_GENES=$(awk -F'\t' '$3=="CDS"' {output.gtf_for_downsample} | \
-            grep -oP 'transcript_id "[^"]+"' | sort -u | wc -l)
+            grep -oE 'transcript_id "[^"]+"' | sort -u | wc -l)
         SINGLE_EXON=$(awk -F'\t' '$3=="CDS"' {output.gtf_for_downsample} | \
-            grep -oP 'transcript_id "[^"]+"' | sort | uniq -c | \
+            grep -oE 'transcript_id "[^"]+"' | sort | uniq -c | \
             awk '$1==1 {{count++}} END {{print count+0}}')
         if [ "$TOTAL_GENES" -gt 0 ]; then
             SINGLE_PCT=$(awk "BEGIN {{printf \"%.0f\", ($SINGLE_EXON/$TOTAL_GENES)*100}}")

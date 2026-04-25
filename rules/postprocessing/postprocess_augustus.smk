@@ -57,10 +57,9 @@ rule extract_final_sequences:
             1> {params.output_dir}/getAnnoFasta_final.stdout \
             2> {params.output_dir}/getAnnoFasta_final.stderr
 
-        # Count final statistics (use grep -P for proper tab matching)
-        GENES_GTF=$(grep -cP '\tgene\t' {input.braker_gtf} || echo 0)
-        TRANSCRIPTS_GTF=$(grep -cP '\ttranscript\t' {input.braker_gtf} || echo 0)
-        CDS_COUNT=$(grep -cP '\tCDS\t' {input.braker_gtf} || echo 0)
+        GENES_GTF=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {input.braker_gtf})
+        TRANSCRIPTS_GTF=$(awk '$3=="transcript"{{n++}}END{{print n+0}}' {input.braker_gtf})
+        CDS_COUNT=$(awk '$3=="CDS"{{n++}}END{{print n+0}}' {input.braker_gtf})
         CODING_SEQ=$(grep -c "^>" {output.braker_codingseq} || echo 0)
         AA_SEQ=$(grep -c "^>" {output.braker_aa} || echo 0)
 
@@ -322,14 +321,13 @@ EOF
         echo "FINAL PREDICTIONS:" >> {output.statistics}
         echo "------------------" >> {output.statistics}
 
-        # Gene counts (use $'\t' for actual tab character in bash)
-        GENES=$(grep -cP '\tgene\t' {input.braker_gtf} || echo 0)
-        TRANSCRIPTS=$(grep -cP '\ttranscript\t' {input.braker_gtf} || echo 0)
-        CDS=$(grep -cP '\tCDS\t' {input.braker_gtf} || echo 0)
-        EXONS=$(grep -cP '\texon\t' {input.braker_gtf} || echo 0)
-        INTRONS=$(grep -cP '\tintron\t' {input.braker_gtf} || echo 0)
-        START_CODONS=$(grep -cP '\tstart_codon\t' {input.braker_gtf} || echo 0)
-        STOP_CODONS=$(grep -cP '\tstop_codon\t' {input.braker_gtf} || echo 0)
+        GENES=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {input.braker_gtf})
+        TRANSCRIPTS=$(awk '$3=="transcript"{{n++}}END{{print n+0}}' {input.braker_gtf})
+        CDS=$(awk '$3=="CDS"{{n++}}END{{print n+0}}' {input.braker_gtf})
+        EXONS=$(awk '$3=="exon"{{n++}}END{{print n+0}}' {input.braker_gtf})
+        INTRONS=$(awk '$3=="intron"{{n++}}END{{print n+0}}' {input.braker_gtf})
+        START_CODONS=$(awk '$3=="start_codon"{{n++}}END{{print n+0}}' {input.braker_gtf})
+        STOP_CODONS=$(awk '$3=="stop_codon"{{n++}}END{{print n+0}}' {input.braker_gtf})
 
         echo "Total genes: $GENES" >> {output.statistics}
         echo "Total transcripts: $TRANSCRIPTS" >> {output.statistics}

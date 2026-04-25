@@ -121,7 +121,7 @@ rule extract_hc_training_genes:
         # Count final clean genes
         NUM_CLEAN_LINES=$(grep -c "^" {output.hc_genes_clean} || echo 0)
         # HC genes are in GeneMark-ST format (no gene features), count unique gene_id values
-        NUM_CLEAN_GENES=$(grep -oP 'gene_id "[^"]+"' {output.hc_genes_clean} | sort -u | wc -l || echo 0)
+        NUM_CLEAN_GENES=$(grep -oE 'gene_id "[^"]+"' {output.hc_genes_clean} | sort -u | wc -l)
         echo "[INFO] Final clean HC GTF: $NUM_CLEAN_LINES lines, $NUM_CLEAN_GENES genes" | tee -a {output.hc_filter_log}
 
         # Re-extract sequences from clean genes using modified local script
