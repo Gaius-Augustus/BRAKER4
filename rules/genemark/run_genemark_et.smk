@@ -51,6 +51,8 @@ rule run_genemark_et:
         LOG_FILE_ABS=$(readlink -f {output.log_file})
         LOG_ABS=$(readlink -f {log})
 
+        GMES_CORES=$(python3 -c "txt=open('/proc/cpuinfo').read(); c=[l.split(':')[-1].strip() for l in txt.splitlines() if l.startswith('cpu cores')]; s=set(l.split(':')[-1].strip() for l in txt.splitlines() if l.startswith('physical id')); total=int(c[0])*max(1,len(s)) if c else 0; print(min({threads},total) if 0<total<{threads} else {threads})" 2>/dev/null || echo {threads})
+
         # Run GeneMark-ET
         cd {params.outdir}
 
@@ -58,7 +60,7 @@ rule run_genemark_et:
             --verbose \
             --sequence $GENOME_ABS \
             --ET $HINTS_ABS \
-            --cores {threads} \
+            --cores $GMES_CORES \
             --min_contig {params.min_contig} \
             {params.fungus} \
             {params.gm_max_intergenic} \
@@ -74,7 +76,7 @@ rule run_genemark_et:
         fi
 
         # Count predictions
-        n_genes=$(grep -c $'\\tgene\\t' genemark.gtf || echo "0")
+        n_genes=$(awk '$3=="gene"{{c++}}END{{print c+0}}' genemark.gtf)
         echo "GeneMark-ET predicted $n_genes genes" >> $LOG_ABS
 
         # Record software versions

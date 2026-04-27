@@ -60,11 +60,13 @@ rule run_genemark_ep:
 
         echo "Running GeneMark-EP..." > $LOG_ABS
 
+        GMES_CORES=$(python3 -c "txt=open('/proc/cpuinfo').read(); c=[l.split(':')[-1].strip() for l in txt.splitlines() if l.startswith('cpu cores')]; s=set(l.split(':')[-1].strip() for l in txt.splitlines() if l.startswith('physical id')); total=int(c[0])*max(1,len(s)) if c else 0; print(min({threads},total) if 0<total<{threads} else {threads})" 2>/dev/null || echo {threads})
+
         # Build command
         CMD="gmes_petap.pl --verbose"
         CMD="$CMD --seq $GENOME_ABS"
         CMD="$CMD --EP $HINTS_ABS"
-        CMD="$CMD --cores {threads}"
+        CMD="$CMD --cores $GMES_CORES"
         CMD="$CMD --min_contig {params.min_contig}"
         CMD="$CMD --gc_donor {params.gc_donor}"
 
@@ -98,7 +100,7 @@ rule run_genemark_ep:
             exit 1
         fi
 
-        n_genes=$(grep -c $'\\tgene\\t' genemark.gtf || echo "0")
+        n_genes=$(awk '$3=="gene"{{c++}}END{{print c+0}}' genemark.gtf)
         echo "GeneMark-EP predicted $n_genes genes" >> $LOG_ABS
 
         # Record software versions
