@@ -69,8 +69,9 @@ _env_overrides = {
     'BRAKER4_MASKING_TOOL':                   ('PARAMS', 'masking_tool'),
     'BRAKER4_USE_MINISPLICE':                 ('PARAMS', 'use_minisplice'),
     'BRAKER4_USE_VARUS':                      ('PARAMS', 'use_varus'),
-    'BRAKER4_SKIP_SINGLE_EXON_DOWNSAMPLING':  ('PARAMS', 'skip_single_exon_downsampling'),
-    'BRAKER4_DOWNSAMPLING_LAMBDA':            ('PARAMS', 'downsampling_lambda'),
+    'BRAKER4_SKIP_SINGLE_EXON_DOWNSAMPLING':              ('PARAMS', 'skip_single_exon_downsampling'),
+    'BRAKER4_DOWNSAMPLING_LAMBDA':                        ('PARAMS', 'downsampling_lambda'),
+    'BRAKER4_DOWNSAMPLING_SINGLE_EXON_SKIP_THRESHOLD':    ('PARAMS', 'downsampling_single_exon_skip_threshold'),
     'BRAKER4_AUGUSTUS_CHUNKSIZE':             ('PARAMS', 'augustus_chunksize'),
     'BRAKER4_AUGUSTUS_OVERLAP':               ('PARAMS', 'augustus_overlap'),
     # FANTASIA-Lite (optional, GPU-only functional annotation)
@@ -128,6 +129,24 @@ config['skip_optimize_augustus'] = config_parser.getboolean(
     'PARAMS',
     'skip_optimize_augustus',
     fallback=False
+)
+
+config['skip_single_exon_downsampling'] = config_parser.getboolean(
+    'PARAMS',
+    'skip_single_exon_downsampling',
+    fallback=False
+)
+
+config['downsampling_lambda'] = config_parser.getint(
+    'PARAMS',
+    'downsampling_lambda',
+    fallback=2
+)
+
+config['downsampling_single_exon_skip_threshold'] = config_parser.getint(
+    'PARAMS',
+    'downsampling_single_exon_skip_threshold',
+    fallback=95
 )
 
 config['use_dev_shm'] = config_parser.getboolean(

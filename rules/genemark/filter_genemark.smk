@@ -116,7 +116,7 @@ rule filter_genemark:
         total_length=0
         count=0
         while read line; do
-            if echo "$line" | grep -q $'\\tgene\\t'; then
+            if [ "$(echo "$line" | cut -f3)" = "gene" ]; then
                 start=$(echo "$line" | cut -f4)
                 end=$(echo "$line" | cut -f5)
                 length=$((end - start + 1))

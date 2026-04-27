@@ -74,7 +74,7 @@ rule run_stringtie:
             -p {threads} \
             2>> {log}
 
-        n_tx=$(grep -c $'\\ttranscript\\t' {output.assembly} || echo 0)
+        n_tx=$(awk '$3=="transcript"{{n++}}END{{print n+0}}' {output.assembly})
         echo "StringTie assembled $n_tx transcripts" >> {log}
 
         # Record software version

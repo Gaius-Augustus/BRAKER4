@@ -443,6 +443,7 @@ use_varus = 0                       # set to 1 to enable VARUS auto-download of 
 skip_optimize_augustus = 0          # set to 1 to skip AUGUSTUS optimization (saves time)
 skip_single_exon_downsampling = 0   # set to 1 to disable single-exon training-gene downsampling
 downsampling_lambda = 2             # Poisson lambda for single-exon downsampling (lower = more aggressive)
+downsampling_single_exon_skip_threshold = 95  # auto-skip downsampling when >= this % of training genes are single-exon
 use_dev_shm = 0                     # set to 1 to use /dev/shm for temp files (faster I/O)
 use_compleasm_hints = 1             # 0 to keep BUSCO CDSpart hints out of AUGUSTUS hintsfile (compleasm still runs)
 skip_busco = 0                      # set to 1 to skip the (slow) full BUSCO pipeline
@@ -722,7 +723,9 @@ By default, BRAKER4 downsamples single-exon training genes when assembling the A
 
 `skip_single_exon_downsampling` (default `0`) controls whether the downsampling step runs at all. Set to `1` to keep every single-exon training gene that passes earlier filters.
 
-`downsampling_lambda` (default `2`) is the Poisson lambda parameter passed to the downsampling routine. Lower values are more aggressive (fewer single-exon genes survive); higher values are gentler. Most users do not need to change this. The pipeline also auto-skips downsampling whenever fewer than ~80% of the candidate training genes are single-exon, since the bias is not present in that case.
+`downsampling_lambda` (default `2`) is the Poisson lambda parameter passed to the downsampling routine. Lower values are more aggressive (fewer single-exon genes survive); higher values are gentler. Most users do not need to change this.
+
+`downsampling_single_exon_skip_threshold` (default `80`) sets the percentage at which the pipeline auto-skips downsampling. When ≥ this percentage of candidate training genes are single-exon, downsampling is skipped on the assumption that the organism genuinely has many intronless genes (e.g. some fungi or protists) and downsampling would incorrectly remove legitimate training genes. Set to `100` to effectively disable the auto-skip, or to a lower value to trigger it earlier. This threshold has no effect when `skip_single_exon_downsampling = 1`.
 
 ### use_varus
 

@@ -79,7 +79,7 @@ rule merge_dual_etp:
 
         rm -f $TRAINING_SR_PREFIXED $TRAINING_ISO_PREFIXED
 
-        n_training=$(grep -c $'\tgene\t' {output.training} || echo 0)
+        n_training=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {output.training})
         echo "  Training genes after redundancy removal: $n_training" >> {log}
 
         # Step 2: Merge HC genes (prefix IDs to avoid collisions between runs)
@@ -96,7 +96,7 @@ rule merge_dual_etp:
 
         # Step 4: Merge StringTie assemblies
         cat {input.stringtie_sr} {input.stringtie_iso} > {output.stringtie}
-        n_tx=$(grep -c $'\ttranscript\t' {output.stringtie} || echo 0)
+        n_tx=$(awk '$3=="transcript"{{n++}}END{{print n+0}}' {output.stringtie})
         echo "  StringTie transcripts: $n_tx (merged)" >> {log}
 
         echo "Dual ETP merge complete" >> {log}

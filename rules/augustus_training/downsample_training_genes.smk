@@ -49,7 +49,10 @@ rule downsample_training_genes:
         mem_mb=int(config['slurm_args']['mem_of_node']) // int(config['slurm_args']['cpus_per_task']),
         runtime=int(config['slurm_args']['max_runtime'])
     params:
-        output_dir = lambda w: get_output_dir(w)
+        output_dir = lambda w: get_output_dir(w),
+        skip = config.get('skip_single_exon_downsampling', False),
+        lam = config.get('downsampling_lambda', 2),
+        skip_threshold = config.get('downsampling_single_exon_skip_threshold', 80)
     container:
         BRAKER3_CONTAINER
     shell:
@@ -83,18 +86,24 @@ rule downsample_training_genes:
         fi
         echo "[INFO] Single-exon genes: $SINGLE_EXON / $TOTAL_GENES ($SINGLE_PCT%)"
 
-        # Skip downsampling if >= 80% single-exon genes (organism likely has mostly intronless genes)
-        if [ "$SINGLE_PCT" -ge 80 ]; then
-            echo "[INFO] >= 80% single-exon genes detected — skipping downsampling"
+        # Skip downsampling if the user disabled it or if >= threshold% single-exon genes
+        # (high fraction indicates the organism genuinely has many intronless genes, e.g. some
+        # fungi/protists; downsampling would incorrectly remove legitimate single-exon training genes)
+        if [ "{params.skip}" = "True" ]; then
+            echo "[INFO] Downsampling disabled via skip_single_exon_downsampling — skipping"
             cp {output.gtf_for_downsample} {output.gtf_downsampled}
-            echo "Skipped: $SINGLE_PCT% single-exon genes" > {output.downsample_log}
+            echo "Skipped: skip_single_exon_downsampling=1" > {output.downsample_log}
+        elif [ "$SINGLE_PCT" -ge {params.skip_threshold} ]; then
+            echo "[INFO] >= {params.skip_threshold}% single-exon genes detected — skipping downsampling"
+            cp {output.gtf_for_downsample} {output.gtf_downsampled}
+            echo "Skipped: $SINGLE_PCT% single-exon genes >= threshold {params.skip_threshold}%" > {output.downsample_log}
         else
-            # Step 3: Downsample using Poisson distribution (lambda=2, BRAKER default)
-            echo "[INFO] Downsampling genes with Poisson distribution (lambda=2)..."
+            # Step 3: Downsample using Poisson distribution
+            echo "[INFO] Downsampling genes with Poisson distribution (lambda={params.lam})..."
             downsample_traingenes.pl \
                 --in_gtf={output.gtf_for_downsample} \
                 --out_gtf={output.gtf_downsampled} \
-                --lambda=2 \
+                --lambda={params.lam} \
                 1> {output.downsample_log} 2>&1
         fi
 
