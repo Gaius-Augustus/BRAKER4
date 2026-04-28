@@ -98,6 +98,8 @@ rule sort_isoseq_sam:
         "logs/{sample}/minimap2/{isoseq_fastq_id}_sort.log"
     benchmark:
         "benchmarks/{sample}/minimap2/{isoseq_fastq_id}_sort.txt"
+    params:
+        sort_threads=lambda wildcards, threads: max(1, threads - 1)
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -109,8 +111,8 @@ rule sort_isoseq_sam:
         set -euo pipefail
         echo "Converting SAM to sorted BAM..." > {log}
 
-        samtools view -bS --threads {threads} {input.sam} | \
-            samtools sort -@ {threads} -o {output.bam} 2>> {log}
+        samtools view -bS --threads 1 {input.sam} | \
+            samtools sort -@ {params.sort_threads} -o {output.bam} 2>> {log}
 
         samtools index -@ {threads} {output.bam} 2>> {log}
 

@@ -94,7 +94,9 @@ rule hisat2_align:
         sra_dir=lambda wildcards: f"output/{wildcards.sample}/sra_fastq",
         r1=lambda wildcards: get_fastq_r1(wildcards.sample, wildcards.align_id) if wildcards.align_id in get_fastq_ids(wildcards.sample) else "",
         r2=lambda wildcards: get_fastq_r2(wildcards.sample, wildcards.align_id) if wildcards.align_id in get_fastq_ids(wildcards.sample) else "",
-        index_prefix=lambda wildcards: f"output/{wildcards.sample}/hisat2/genome"
+        index_prefix=lambda wildcards: f"output/{wildcards.sample}/hisat2/genome",
+        hisat2_threads=lambda wildcards, threads: max(1, threads // 2),
+        sort_threads=lambda wildcards, threads: max(1, threads - threads // 2)
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -115,16 +117,16 @@ rule hisat2_align:
                 hisat2 -x {params.index_prefix} \
                     -1 {params.sra_dir}/{wildcards.align_id}_1.fastq \
                     -2 {params.sra_dir}/{wildcards.align_id}_2.fastq \
-                    --dta -p {threads} \
+                    --dta -p {params.hisat2_threads} \
                     2>> {log} | \
-                    samtools sort -@ {threads} -o {output.bam}
+                    samtools sort -@ {params.sort_threads} -o {output.bam}
             elif [ -f "{params.sra_dir}/{wildcards.align_id}.fastq" ]; then
                 echo "Single-end SRA alignment" >> {log}
                 hisat2 -x {params.index_prefix} \
                     -U {params.sra_dir}/{wildcards.align_id}.fastq \
-                    --dta -p {threads} \
+                    --dta -p {params.hisat2_threads} \
                     2>> {log} | \
-                    samtools sort -@ {threads} -o {output.bam}
+                    samtools sort -@ {params.sort_threads} -o {output.bam}
             else
                 echo "ERROR: No FASTQ files found for SRA ID {wildcards.align_id}" >> {log}
                 ls -la {params.sra_dir}/ >> {log} 2>&1 || true
@@ -136,9 +138,9 @@ rule hisat2_align:
             hisat2 -x {params.index_prefix} \
                 -1 {params.r1} \
                 -2 {params.r2} \
-                --dta -p {threads} \
+                --dta -p {params.hisat2_threads} \
                 2>> {log} | \
-                samtools sort -@ {threads} -o {output.bam}
+                samtools sort -@ {params.sort_threads} -o {output.bam}
         fi
 
         # Index the BAM
