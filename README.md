@@ -313,7 +313,7 @@ Consult your HPC administrator if Singularity is not available. BRAKER4 will aut
 | Infernal | `quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2` | 28 MB | Rfam scan for snoRNA/snRNA/miRNA (only when `run_ncrna = 1`) |
 | FEELnc | `quay.io/biocontainers/feelnc:0.2--pl526_0` | 323 MB | lncRNA prediction (only when `run_ncrna = 1` and transcript evidence is present) |
 | gffcompare | `quay.io/biocontainers/gffcompare:0.12.6--h9f5acd7_1` | 11 MB | Evaluation against a reference annotation (only when `reference_gtf` is set) |
-| FANTASIA-Lite | `katharinahoff/fantasia_for_brain:lite.v0.0.2` | ~6 GB | Functional GO annotation via ProtT5 protein language model embeddings (optional, only when `fantasia.enable = 1`; **GPU-only**, see `run_fantasia` warning below) |
+| FANTASIA-Lite | `katharinahoff/fantasia_for_brain:lite.v1.0.0` | ~6 GB | Functional GO annotation via ProtT5 protein language model embeddings (optional, only when `fantasia.enable = 1`; **GPU-only**, see `run_fantasia` warning below) |
 
 A full BRAKER4 container cache is **roughly 10 GB** on disk if every optional feature is enabled. A minimal ES-mode run without ncRNA, masking, OMArk, IsoSeq, VARUS, or gffcompare only needs the main BRAKER, BUSCO, and AGAT containers (~3.6 GB).
 
@@ -952,9 +952,10 @@ The script is a patched copy of `best_by_compleasm.py` from TSEBRA (Hoff et al.,
 Set `enable = 1` in the `[fantasia]` section of `config.ini` to add a functional
 annotation step that assigns Gene Ontology (GO) terms to every BRAKER-predicted
 protein. The implementation uses **FANTASIA-Lite**, a streamlined reimplementation
-of the FANTASIA pipeline that bundles the lookup table and reference annotations
-inside a single Singularity image -- there is no PostgreSQL, no RabbitMQ, and no
-FANTASIA repository to clone. Internally FANTASIA-Lite computes ProtT5
+of the FANTASIA pipeline -- there is no PostgreSQL, no RabbitMQ, and no
+FANTASIA repository to clone. The lookup bundle (reference embeddings,
+annotations, and accessions) is downloaded separately from Zenodo and
+bind-mounted at runtime (see `lookup_dir` below). Internally FANTASIA-Lite computes ProtT5
 (`Rostlab/prot_t5_xl_uniref50`) protein language model embeddings for each
 predicted protein and assigns GO terms by nearest-neighbour search against a
 pre-computed lookup of reference embeddings. See:
@@ -971,8 +972,10 @@ pre-computed lookup of reference embeddings. See:
 
 **Prerequisites** (one-time setup, before the first run):
 
-The easiest path is to let the test-data downloader stage both artefacts for
-you. Set the opt-in flag and run it once:
+Three artefacts must be staged once before the first run:
+
+The easiest path is to let the test-data downloader stage the container and the
+ProtT5 cache for you. Set the opt-in flag and run it once:
 
 ```bash
 BRAKER4_DOWNLOAD_FANTASIA=1 bash test_data/download_test_data.sh
@@ -991,7 +994,7 @@ copy of the SIF somewhere), the equivalent commands are:
     they will run:
 
     ```bash
-    singularity pull fantasia_lite.sif docker://katharinahoff/fantasia_for_brain:lite.v0.0.2
+    singularity pull fantasia_lite.sif docker://katharinahoff/fantasia_for_brain:lite.v1.0.0
     ```
 
 2.  **Pre-cache the ProtT5 weights** (~5 GB). FANTASIA-Lite is configured to run
@@ -1006,20 +1009,31 @@ copy of the SIF somewhere), the equivalent commands are:
          T5EncoderModel.from_pretrained('Rostlab/prot_t5_xl_uniref50')"
     ```
 
-Either way, BRAKER4 verifies up front -- at config-parse time, before any rule
-runs -- that the configured `fantasia.sif` file and `fantasia.hf_cache_dir`
-directory both exist on disk. If they do not, the workflow refuses to start
-and prints the exact downloader command. This is intentional: a fantasia run
-that fails inside the GPU rule wastes scheduler reservations, so you get an
-immediate, clear error instead.
+3. **Download the lookup bundle** (~1.7 GB, Zenodo record 17720428). The V1
+    container no longer bundles the lookup data; it must be available on disk and
+    bind-mounted at runtime:
 
-**Point the config at both paths** in the `[fantasia]` section of `config.ini`:
+    ```bash
+    wget -O fantasia_lite_data_folder.zip \
+        https://zenodo.org/records/17720428/files/fantasia_lite_data_folder.zip
+    echo "4f41b1dd2242a7750b601aff50501360  fantasia_lite_data_folder.zip" | md5sum -c -
+    unzip fantasia_lite_data_folder.zip -d /path/to/fantasia_v1_lookup
+    ```
+
+Either way, BRAKER4 verifies up front -- at config-parse time, before any rule
+runs -- that `fantasia.sif`, `fantasia.hf_cache_dir`, and `fantasia.lookup_dir`
+all exist on disk. If any is missing, the workflow refuses to start and prints
+the exact error. This is intentional: a fantasia run that fails inside the GPU
+rule wastes scheduler reservations, so you get an immediate, clear error instead.
+
+**Point the config at all three paths** in the `[fantasia]` section of `config.ini`:
 
 ```ini
 [fantasia]
 enable        = 1
 sif           = /abs/path/to/fantasia_lite.sif
 hf_cache_dir  = /abs/path/to/huggingface_cache
+lookup_dir    = /abs/path/to/fantasia_v1_lookup
 # Optional SLURM GPU resource hints (only used by --executor slurm):
 partition     = gpu
 gpus          = 1
@@ -1031,9 +1045,9 @@ min_score     = 0.5
 
 All `fantasia.*` keys can also be overridden via environment variables:
 `BRAKER4_RUN_FANTASIA`, `BRAKER4_FANTASIA_SIF`, `BRAKER4_FANTASIA_HF_CACHE`,
-`BRAKER4_FANTASIA_PARTITION`, `BRAKER4_FANTASIA_GPUS`, `BRAKER4_FANTASIA_MEM_MB`,
-`BRAKER4_FANTASIA_CPUS`, `BRAKER4_FANTASIA_MAX_RUNTIME`, `BRAKER4_FANTASIA_MIN_SCORE`,
-`BRAKER4_FANTASIA_ADDITIONAL_PARAMS`.
+`BRAKER4_FANTASIA_LOOKUP_DIR`, `BRAKER4_FANTASIA_PARTITION`, `BRAKER4_FANTASIA_GPUS`,
+`BRAKER4_FANTASIA_MEM_MB`, `BRAKER4_FANTASIA_CPUS`, `BRAKER4_FANTASIA_MAX_RUNTIME`,
+`BRAKER4_FANTASIA_MIN_SCORE`, `BRAKER4_FANTASIA_ADDITIONAL_PARAMS`.
 
 **Outputs.** Three primary functional-annotation deliverables land at the top
 level of `output/{sample}/results/` alongside the standard `braker.gff3.gz`:
@@ -1094,10 +1108,10 @@ automatically when this step runs.
     are not validated and may run out of memory on long proteins.
 -   The HuggingFace cache must contain `Rostlab/prot_t5_xl_uniref50`. If the
     transformers library cannot find it offline, the rule fails immediately.
--   If you change the FANTASIA-Lite container tag, the bundled lookup data layout
-    inside `/opt/fantasia-lite/` may shift; the rule's `--lookup-npz`,
-    `--annotations-json`, and `--accessions-json` paths assume the
-    `lite.v0.0.2` layout.
+-   The V1 container no longer bundles the lookup data. Ensure `lookup_dir`
+    contains `lookup_table.npz`, `annotations.json`, and `accessions.json`
+    (extracted from the Zenodo record 17720428 zip). The directory is
+    bind-mounted inside the container at its host path.
 
 Output of BRAKER4
 =================

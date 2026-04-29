@@ -78,6 +78,7 @@ _env_overrides = {
     'BRAKER4_RUN_FANTASIA':                   ('fantasia', 'enable'),
     'BRAKER4_FANTASIA_SIF':                   ('fantasia', 'sif'),
     'BRAKER4_FANTASIA_HF_CACHE':              ('fantasia', 'hf_cache_dir'),
+    'BRAKER4_FANTASIA_LOOKUP_DIR':            ('fantasia', 'lookup_dir'),
     'BRAKER4_FANTASIA_PARTITION':             ('fantasia', 'partition'),
     'BRAKER4_FANTASIA_GPUS':                  ('fantasia', 'gpus'),
     'BRAKER4_FANTASIA_MEM_MB':                ('fantasia', 'mem_mb'),
@@ -276,6 +277,7 @@ config['run_fantasia'] = config_parser.getboolean(
 config['fantasia'] = {
     'sif':              config_parser.get('fantasia', 'sif', fallback=''),
     'hf_cache_dir':     config_parser.get('fantasia', 'hf_cache_dir', fallback=''),
+    'lookup_dir':       config_parser.get('fantasia', 'lookup_dir', fallback=''),
     'additional_params': config_parser.get('fantasia', 'additional_params', fallback=''),
     'min_score':        config_parser.get('fantasia', 'min_score', fallback='0.5'),
     'partition':        config_parser.get('fantasia', 'partition', fallback=''),
@@ -292,7 +294,7 @@ if config['run_fantasia']:
         raise ValueError(
             "fantasia.enable=1 but fantasia.sif is empty. Set the path to the "
             "FANTASIA-Lite Singularity image (pre-pulled from "
-            "docker://katharinahoff/fantasia_for_brain:lite.v0.0.2) in config.ini "
+            "docker://katharinahoff/fantasia_for_brain:lite.v1.0.0) in config.ini "
             "[fantasia] sif=, or via BRAKER4_FANTASIA_SIF. You can stage both "
             "the SIF and the ProtT5 cache by running:\n"
             "    BRAKER4_DOWNLOAD_FANTASIA=1 bash test_data/download_test_data.sh"
@@ -303,7 +305,7 @@ if config['run_fantasia']:
             f"{config['fantasia']['sif']}\n"
             "BRAKER4 will not start a run that would only fail later inside the "
             "FANTASIA rule. Either pre-pull the image yourself with "
-            "`singularity pull <path> docker://katharinahoff/fantasia_for_brain:lite.v0.0.2`, "
+            "`singularity pull <path> docker://katharinahoff/fantasia_for_brain:lite.v1.0.0`, "
             "or run:\n"
             "    BRAKER4_DOWNLOAD_FANTASIA=1 bash test_data/download_test_data.sh"
         )
@@ -323,6 +325,21 @@ if config['run_fantasia']:
             "FANTASIA-Lite runs in HF_HUB_OFFLINE mode, so the ProtT5 weights "
             "must already be on disk before the rule is invoked. Run:\n"
             "    BRAKER4_DOWNLOAD_FANTASIA=1 bash test_data/download_test_data.sh"
+        )
+    if not config['fantasia']['lookup_dir']:
+        raise ValueError(
+            "fantasia.enable=1 but fantasia.lookup_dir is empty. Download the "
+            "FANTASIA V1 lookup bundle from Zenodo record 17720428 and set "
+            "fantasia.lookup_dir to the extracted directory in config.ini, or "
+            "via BRAKER4_FANTASIA_LOOKUP_DIR."
+        )
+    if not os.path.isdir(config['fantasia']['lookup_dir']):
+        raise FileNotFoundError(
+            f"fantasia.enable=1 but the configured lookup_dir does not exist: "
+            f"{config['fantasia']['lookup_dir']}\n"
+            "Download the FANTASIA V1 lookup bundle from "
+            "https://zenodo.org/records/17720428/files/fantasia_lite_data_folder.zip "
+            "and extract it to that path."
         )
 
 config['username'] = os.environ.get("USER", "unknown")

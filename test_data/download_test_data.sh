@@ -177,7 +177,7 @@ if [ "${BRAKER4_DOWNLOAD_FANTASIA:-0}" = "1" ]; then
     FANTASIA_DIR="$(cd "$TESTDATA_DIR/.." && pwd)/shared_data/fantasia"
     FANTASIA_SIF="$FANTASIA_DIR/fantasia_lite.sif"
     FANTASIA_HF_CACHE="$FANTASIA_DIR/hf_cache"
-    FANTASIA_IMAGE="docker://katharinahoff/fantasia_for_brain:lite.v0.0.2"
+    FANTASIA_IMAGE="docker://katharinahoff/fantasia_for_brain:lite.v1.0.0"
 
     mkdir -p "$FANTASIA_DIR" "$FANTASIA_HF_CACHE"
 

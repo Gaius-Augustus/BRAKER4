@@ -1,11 +1,13 @@
 """
-Optional functional annotation of BRAKER4 predicted proteins with FANTASIA-Lite.
+Optional functional annotation of BRAKER4 predicted proteins with FANTASIA-Lite
+(V1).
 
 FANTASIA-Lite assigns GO terms to each predicted protein using ProtT5
-(prot_t5_xl_uniref50) protein language model embeddings and a bundled lookup
-table of pre-computed reference embeddings. There is no PostgreSQL, no
-RabbitMQ, and no FANTASIA repo to clone -- everything required for inference
-ships inside the container.
+(prot_t5_xl_uniref50) protein language model embeddings and an external lookup
+bundle (lookup_table.npz, annotations.json, accessions.json) that is
+bind-mounted at runtime from fantasia.lookup_dir -- it is NOT baked into the
+container.  Download the bundle from Zenodo record 17720428 and set lookup_dir
+in [fantasia] before enabling this step.
 
 This step is OFF BY DEFAULT and is the most fragile component of BRAKER4:
 the FANTASIA-Lite container hard-requires an NVIDIA GPU with --nv. The
@@ -26,6 +28,7 @@ Two rules:
 
 FANTASIA_SIF        = config['fantasia']['sif']
 FANTASIA_HF_CACHE   = config['fantasia']['hf_cache_dir']
+FANTASIA_LOOKUP_DIR = config['fantasia']['lookup_dir']
 FANTASIA_ADD_PARAMS = config['fantasia'].get('additional_params', '') or ''
 FANTASIA_MIN_SCORE  = float(config['fantasia'].get('min_score', 0.5))
 
@@ -44,6 +47,7 @@ rule fantasia_annotate:
     params:
         sif=FANTASIA_SIF,
         hf_cache=FANTASIA_HF_CACHE,
+        lookup_dir=FANTASIA_LOOKUP_DIR,
         add_params=FANTASIA_ADD_PARAMS,
         outdir=lambda wc: f"output/{wc.sample}/fantasia"
     threads:
@@ -86,41 +90,28 @@ rule fantasia_annotate:
         nProteins=$(grep -c '^>' "$PROTEINS" || echo 0)
         echo "[$(date)] Input proteins: $nProteins" >> {log}
 
-        # Validated invocation copied from EukAssembly-Bin/rules/fantasia.smk.
-        # The flags below were debugged extensively on an A100 in the Hoff lab;
-        # do not edit casually -- changes here have repeatedly broken the run.
-
-        # Pre-create a writable venv on the host filesystem that inherits all packages
-        # from the container's /opt/venv via --system-site-packages.  This sidesteps
-        # the permission problem: pip writes to the host-side writable venv while
-        # finding torch/transformers/etc. from the container's read-only /opt/venv.
-        if [ ! -d "$OUTDIR/venv" ]; then
-            singularity exec --nv \
-                -B "$PWD":"$PWD" \
-                -B "{params.hf_cache}":"{params.hf_cache}" \
-                "{params.sif}" \
-                /opt/venv/bin/python3 -m venv --system-site-packages "$OUTDIR/venv"
-        fi
-
-        # PIP_NO_INDEX=1: prevents pip from contacting PyPI entirely.
-        # All packages are already present via --system-site-packages so every
-        # "pip install" step in FANTASIA will resolve as "already satisfied".
-        SINGULARITYENV_PIP_NO_INDEX=1 \
-        singularity exec --nv --writable-tmpfs \
+        # Validated invocation mirroring EukAssembly-Bin (BOUDICCA) V1 and
+        # Nextflow_Tiberius_FANTASIA V1.  The lookup bundle is no longer baked
+        # into the container; it is bind-mounted from params.lookup_dir.
+        # All packages are pre-installed in /opt/venv inside the container --
+        # no host-side venv creation or pip workarounds are needed.
+        singularity exec --nv \
             -B "$PWD":"$PWD" \
             -B "{params.hf_cache}":"{params.hf_cache}" \
+            -B "{params.lookup_dir}":"{params.lookup_dir}" \
             "{params.sif}" \
             python3 /opt/fantasia-lite/src/fantasia_pipeline.py \
                 --serial-models \
                 --embed-models prot_t5 \
                 --device cuda \
-                --venv-dir "$OUTDIR/venv" \
-                --lookup-npz /opt/fantasia-lite/data/lookup/lookup_table.npz \
-                --annotations-json /opt/fantasia-lite/data/lookup/annotations.json \
-                --accessions-json /opt/fantasia-lite/data/lookup/accessions.json \
+                --venv-dir /opt/venv \
+                --lookup-npz "{params.lookup_dir}/lookup_table.npz" \
+                --annotations-json "{params.lookup_dir}/annotations.json" \
+                --accessions-json "{params.lookup_dir}/accessions.json" \
                 --embeddings-npz "$OUTDIR/query_embeddings.npz" \
                 --config-yaml "$OUTDIR/fantasia_config.yaml" \
                 --results-csv "$OUTDIR/results.csv" \
+                --topgo \
                 --topgo-dir "$OUTDIR/topgo" \
                 --chunk-dir "$OUTDIR/tmp/fasta_chunks" \
                 --chunk-embed-dir "$OUTDIR/tmp/chunk_embeddings" \
