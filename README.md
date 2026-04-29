@@ -268,7 +268,34 @@ source snakemake_env/bin/activate
 pip install snakemake==8.18.2
 ```
 
-BRAKER4 supports SLURM as its HPC executor. Other schedulers (SGE, PBS, LSF) are not supported — if your cluster uses a different scheduler, run without `--executor slurm` and submit the Snakemake process itself as a single job, letting it execute rules locally within that allocation.
+BRAKER4 supports SLURM as its HPC executor. For other schedulers (SGE, PBS, LSF) there are two options:
+
+**Option 1 (recommended for non-SLURM clusters):** Omit `--executor slurm` entirely and submit the Snakemake master process as a single job on your scheduler. Snakemake will then run all rules locally within that allocation.
+
+**Option 2 (confirmed to work on SGE):** Use the [`cluster-generic` Snakemake executor plugin](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/cluster-generic.html), which submits jobs via a custom shell command (e.g. `qsub`). A BRAKER4 user confirmed this works on SGE ([issue #20](https://github.com/Gaius-Augustus/BRAKER4/issues/20)):
+
+```bash
+pip install snakemake-executor-plugin-cluster-generic
+```
+
+```bash
+mkdir -p sge_logs
+
+snakemake \
+    --executor cluster-generic \
+    --cluster-generic-submit-cmd "qsub -cwd -V -o sge_logs -e sge_logs" \
+    --default-resources \
+    --cores 40 \
+    --jobs 40 \
+    --snakefile /path/to/BRAKER4/Snakefile \
+    --use-singularity \
+    --singularity-prefix .singularity_cache \
+    --singularity-args "-B /your/data/path"
+```
+
+For other schedulers (PBS, LSF), see the [Snakemake plugin catalog](https://snakemake.github.io/snakemake-plugin-catalog/) for an appropriate plugin. These are not tested by the BRAKER4 team.
+
+**Important:** Do not pass `--executor slurm` on a non-SLURM cluster. Snakemake will attempt SLURM-style job submission, which will fail or produce only a partial run, and leave the working directory locked. If this happens, see the [lock troubleshooting entry](#common-problems) for the fix.
 
 If you intend to run BRAKER4 on an HPC cluster with SLURM, you also need the Snakemake SLURM executor plugin:
 
