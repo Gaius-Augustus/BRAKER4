@@ -465,6 +465,7 @@ no_cleanup = 0                      # set to 1 to keep all intermediate files (d
 enable = 0
 # sif = /path/to/fantasia_lite.sif
 # hf_cache_dir = /path/to/huggingface_cache
+# lookup_dir = /path/to/fantasia_v1_lookup   # Zenodo record 17720428
 # partition = gpu                   # SLURM GPU partition (only for SLURM executor)
 # gpus = 1                          # number of GPUs to request
 # mem_mb = 25000                    # memory for the FANTASIA job (MB)

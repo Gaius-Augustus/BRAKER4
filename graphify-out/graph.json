@@ -1171,90 +1171,90 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L312",
-      "id": "stringtie2utr_rationale_312",
       "community": 2,
-      "norm_label": "create a utr feature line with explicit start/end coordinates.      avoids the s"
+      "norm_label": "create a utr feature line with explicit start/end coordinates.      avoids the s",
+      "id": "stringtie2utr_rationale_312"
     },
     {
       "label": "Compute the UTR features for each transcript in tsebra_gtf based on strand infor",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L330",
-      "id": "stringtie2utr_rationale_330",
       "community": 2,
-      "norm_label": "compute the utr features for each transcript in tsebra_gtf based on strand infor"
+      "norm_label": "compute the utr features for each transcript in tsebra_gtf based on strand infor",
+      "id": "stringtie2utr_rationale_330"
     },
     {
       "label": "The list of features in gtf_dict has been expanded compared to the original vers",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L437",
-      "id": "stringtie2utr_rationale_437",
       "community": 2,
-      "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers"
+      "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers",
+      "id": "stringtie2utr_rationale_437"
     },
     {
       "label": "Print GTF lines based on gene_dict and gtf_dict.          Args:     - filename (",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L493",
-      "id": "stringtie2utr_rationale_493",
       "community": 2,
-      "norm_label": "print gtf lines based on gene_dict and gtf_dict.          args:     - filename ("
+      "norm_label": "print gtf lines based on gene_dict and gtf_dict.          args:     - filename (",
+      "id": "stringtie2utr_rationale_493"
     },
     {
       "label": "Build an interval tree from data. We will use that to quickly find the overlappi",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L540",
-      "id": "stringtie2utr_rationale_540",
       "community": 2,
-      "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi"
+      "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi",
+      "id": "stringtie2utr_rationale_540"
     },
     {
       "label": "Contructs a dictionary that has sequence name as first key, then strand as secon",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L548",
-      "id": "stringtie2utr_rationale_548",
       "community": 2,
-      "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon"
+      "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
+      "id": "stringtie2utr_rationale_548"
     },
     {
       "label": "Contructs a dictionary that has sequence name as first key, then strand as secon",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L577",
-      "id": "stringtie2utr_rationale_577",
       "community": 2,
-      "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon"
+      "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
+      "id": "stringtie2utr_rationale_577"
     },
     {
       "label": "Find transcripts that overlap with genes.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L610",
-      "id": "stringtie2utr_rationale_610",
       "community": 2,
-      "norm_label": "find transcripts that overlap with genes."
+      "norm_label": "find transcripts that overlap with genes.",
+      "id": "stringtie2utr_rationale_610"
     },
     {
       "label": "Extract introns directly from stringtie_tx_dict.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L629",
-      "id": "stringtie2utr_rationale_629",
       "community": 2,
-      "norm_label": "extract introns directly from stringtie_tx_dict."
+      "norm_label": "extract introns directly from stringtie_tx_dict.",
+      "id": "stringtie2utr_rationale_629"
     },
     {
       "label": "Check if the overlapping transcripts are compatible with the gene models.     In",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L638",
-      "id": "stringtie2utr_rationale_638",
       "community": 2,
-      "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in"
+      "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in",
+      "id": "stringtie2utr_rationale_638"
     },
     {
       "label": "fantasia_decorate_gff3.py",
@@ -2350,36 +2350,36 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L1",
-      "id": "test_stringtie2utr_single_exon_rationale_1",
       "community": 16,
-      "norm_label": "regression and positive tests for the single-exon guard added to merge_features("
+      "norm_label": "regression and positive tests for the single-exon guard added to merge_features(",
+      "id": "test_stringtie2utr_single_exon_rationale_1"
     },
     {
       "label": "Distant second exon of a multi-exon StringTie transcript must not be     merged",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L39",
-      "id": "test_stringtie2utr_single_exon_rationale_39",
       "community": 16,
-      "norm_label": "distant second exon of a multi-exon stringtie transcript must not be     merged"
+      "norm_label": "distant second exon of a multi-exon stringtie transcript must not be     merged",
+      "id": "test_stringtie2utr_single_exon_rationale_39"
     },
     {
       "label": "A StringTie exon that overlaps the BRAKER exon must still be merged.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L92",
-      "id": "test_stringtie2utr_single_exon_rationale_92",
       "community": 16,
-      "norm_label": "a stringtie exon that overlaps the braker exon must still be merged."
+      "norm_label": "a stringtie exon that overlaps the braker exon must still be merged.",
+      "id": "test_stringtie2utr_single_exon_rationale_92"
     },
     {
       "label": "For a multi-exon BRAKER transcript the single-exon guard must not     activate;",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L139",
-      "id": "test_stringtie2utr_single_exon_rationale_139",
       "community": 16,
-      "norm_label": "for a multi-exon braker transcript the single-exon guard must not     activate;"
+      "norm_label": "for a multi-exon braker transcript the single-exon guard must not     activate;",
+      "id": "test_stringtie2utr_single_exon_rationale_139"
     },
     {
       "label": "Create a UTR feature line with explicit start/end coordinates.      Avoids the s",
@@ -6445,8 +6445,8 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L67",
       "weight": 1.0,
-      "_src": "test_stringtie2utr_single_exon_test_single_exon_braker_distant_stringtie_exon_not_merged",
-      "_tgt": "stringtie2utr_merge_features",
+      "_src": "stringtie2utr_merge_features",
+      "_tgt": "test_stringtie2utr_single_exon_test_single_exon_braker_distant_stringtie_exon_not_merged",
       "source": "stringtie2utr_merge_features",
       "target": "test_stringtie2utr_single_exon_test_single_exon_braker_distant_stringtie_exon_not_merged"
     },
@@ -6457,8 +6457,8 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L116",
       "weight": 1.0,
-      "_src": "test_stringtie2utr_single_exon_test_single_exon_braker_overlapping_stringtie_exon_is_merged",
-      "_tgt": "stringtie2utr_merge_features",
+      "_src": "stringtie2utr_merge_features",
+      "_tgt": "test_stringtie2utr_single_exon_test_single_exon_braker_overlapping_stringtie_exon_is_merged",
       "source": "stringtie2utr_merge_features",
       "target": "test_stringtie2utr_single_exon_test_single_exon_braker_overlapping_stringtie_exon_is_merged"
     },
@@ -6469,8 +6469,8 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L170",
       "weight": 1.0,
-      "_src": "test_stringtie2utr_single_exon_test_multi_exon_braker_all_stringtie_exons_merged",
-      "_tgt": "stringtie2utr_merge_features",
+      "_src": "stringtie2utr_merge_features",
+      "_tgt": "test_stringtie2utr_single_exon_test_multi_exon_braker_all_stringtie_exons_merged",
       "source": "stringtie2utr_merge_features",
       "target": "test_stringtie2utr_single_exon_test_multi_exon_braker_all_stringtie_exons_merged"
     },
