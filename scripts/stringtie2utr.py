@@ -268,7 +268,19 @@ def merge_features(tsebra_gtf, stringtie_gtf, selected_transcripts):
         tsebra_features = tsebra_gtf[tsebra_tx]
         stringtie_exons = [f for f in stringtie_gtf[stringtie_tx] if f.split('\t')[2] == 'exon']
         tsebra_cds_features = [f for f in tsebra_features if f.split('\t')[2] == 'CDS']
-        
+
+        # For single-exon BRAKER transcripts, only accept StringTie exons that overlap
+        # the BRAKER exon. Single-exon genes are matched by position overlap, not by
+        # intron identity, so a multi-exon StringTie transcript can be selected whose
+        # distant exons have nothing to do with this gene's UTR structure.
+        tsebra_exon_features = [f for f in tsebra_features if f.split('\t')[2] == 'exon']
+        if len(tsebra_exon_features) == 1:
+            be = tsebra_exon_features[0].split('\t')
+            be_start, be_end = int(be[3]), int(be[4])
+            stringtie_exons = [e for e in stringtie_exons
+                               if overlap(int(e.split('\t')[3]), int(e.split('\t')[4]),
+                                          be_start, be_end)]
+
         for exon in stringtie_exons:
             exon_parts = exon.split('\t')
             exon_start, exon_end = int(exon_parts[3]), int(exon_parts[4])
