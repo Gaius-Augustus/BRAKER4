@@ -89,7 +89,24 @@ rule fantasia_annotate:
         # Validated invocation copied from EukAssembly-Bin/rules/fantasia.smk.
         # The flags below were debugged extensively on an A100 in the Hoff lab;
         # do not edit casually -- changes here have repeatedly broken the run.
-        singularity exec --nv \
+
+        # Pre-create a writable venv on the host filesystem that inherits all packages
+        # from the container's /opt/venv via --system-site-packages.  This sidesteps
+        # the permission problem: pip writes to the host-side writable venv while
+        # finding torch/transformers/etc. from the container's read-only /opt/venv.
+        if [ ! -d "$OUTDIR/venv" ]; then
+            singularity exec --nv \
+                -B "$PWD":"$PWD" \
+                -B "{params.hf_cache}":"{params.hf_cache}" \
+                "{params.sif}" \
+                /opt/venv/bin/python3 -m venv --system-site-packages "$OUTDIR/venv"
+        fi
+
+        # PIP_NO_INDEX=1: prevents pip from contacting PyPI entirely.
+        # All packages are already present via --system-site-packages so every
+        # "pip install" step in FANTASIA will resolve as "already satisfied".
+        SINGULARITYENV_PIP_NO_INDEX=1 \
+        singularity exec --nv --writable-tmpfs \
             -B "$PWD":"$PWD" \
             -B "{params.hf_cache}":"{params.hf_cache}" \
             "{params.sif}" \
@@ -97,7 +114,7 @@ rule fantasia_annotate:
                 --serial-models \
                 --embed-models prot_t5 \
                 --device cuda \
-                --venv-dir /opt/venv \
+                --venv-dir "$OUTDIR/venv" \
                 --lookup-npz /opt/fantasia-lite/data/lookup/lookup_table.npz \
                 --annotations-json /opt/fantasia-lite/data/lookup/annotations.json \
                 --accessions-json /opt/fantasia-lite/data/lookup/accessions.json \
