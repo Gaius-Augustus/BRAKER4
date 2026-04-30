@@ -218,7 +218,7 @@
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L1",
       "id": "scripts_both_agree_rescue_py",
-      "community": 13,
+      "community": 14,
       "norm_label": "both_agree_rescue.py"
     },
     {
@@ -227,7 +227,7 @@
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L21",
       "id": "both_agree_rescue_parse_intron_hints",
-      "community": 13,
+      "community": 14,
       "norm_label": "parse_intron_hints()"
     },
     {
@@ -236,7 +236,7 @@
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L51",
       "id": "both_agree_rescue_parse_cds_intron_chains",
-      "community": 13,
+      "community": 14,
       "norm_label": "parse_cds_intron_chains()"
     },
     {
@@ -245,7 +245,7 @@
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L93",
       "id": "both_agree_rescue_extract_gene_blocks",
-      "community": 13,
+      "community": 14,
       "norm_label": "extract_gene_blocks()"
     },
     {
@@ -254,7 +254,7 @@
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L162",
       "id": "both_agree_rescue_rename_gene_ids",
-      "community": 13,
+      "community": 14,
       "norm_label": "rename_gene_ids()"
     },
     {
@@ -263,7 +263,7 @@
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L214",
       "id": "both_agree_rescue_main",
-      "community": 13,
+      "community": 14,
       "norm_label": "main()"
     },
     {
@@ -271,7 +271,7 @@
       "file_type": "rationale",
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L22",
-      "community": 13,
+      "community": 14,
       "norm_label": "parse hintsfile.gff and return a set of (chrom, start, end, strand) for intron h",
       "id": "both_agree_rescue_rationale_22"
     },
@@ -280,7 +280,7 @@
       "file_type": "rationale",
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L52",
-      "community": 13,
+      "community": 14,
       "norm_label": "parse a gtf and return per-transcript cds intron chains.      returns:         c",
       "id": "both_agree_rescue_rationale_52"
     },
@@ -289,7 +289,7 @@
       "file_type": "rationale",
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L94",
-      "community": 13,
+      "community": 14,
       "norm_label": "extract full gene blocks (all gtf lines) for given transcript ids.      returns",
       "id": "both_agree_rescue_rationale_94"
     },
@@ -298,7 +298,7 @@
       "file_type": "rationale",
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L163",
-      "community": 13,
+      "community": 14,
       "norm_label": "rename gene and transcript ids in gtf lines to avoid collisions.      prefixes a",
       "id": "both_agree_rescue_rationale_163"
     },
@@ -992,14 +992,14 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L265",
       "id": "stringtie2utr_merge_features",
-      "community": 16,
+      "community": 8,
       "norm_label": "merge_features()"
     },
     {
       "label": "_make_utr_feature()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L311",
+      "source_location": "L320",
       "id": "stringtie2utr_make_utr_feature",
       "community": 2,
       "norm_label": "_make_utr_feature()"
@@ -1008,7 +1008,7 @@
       "label": "compute_utr_features()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L329",
+      "source_location": "L338",
       "id": "stringtie2utr_compute_utr_features",
       "community": 2,
       "norm_label": "compute_utr_features()"
@@ -1017,7 +1017,7 @@
       "label": "fix_feature_coordinates()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L436",
+      "source_location": "L445",
       "id": "stringtie2utr_fix_feature_coordinates",
       "community": 2,
       "norm_label": "fix_feature_coordinates()"
@@ -1026,7 +1026,7 @@
       "label": "print_gtf()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L492",
+      "source_location": "L509",
       "id": "stringtie2utr_print_gtf",
       "community": 2,
       "norm_label": "print_gtf()"
@@ -1035,7 +1035,7 @@
       "label": "build_tree()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L539",
+      "source_location": "L556",
       "id": "stringtie2utr_build_tree",
       "community": 2,
       "norm_label": "build_tree()"
@@ -1044,7 +1044,7 @@
       "label": "construct_transcript_tree()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L547",
+      "source_location": "L564",
       "id": "stringtie2utr_construct_transcript_tree",
       "community": 2,
       "norm_label": "construct_transcript_tree()"
@@ -1053,7 +1053,7 @@
       "label": "construct_gene_tree()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L576",
+      "source_location": "L593",
       "id": "stringtie2utr_construct_gene_tree",
       "community": 2,
       "norm_label": "construct_gene_tree()"
@@ -1062,7 +1062,7 @@
       "label": "find_overlapping_transcripts()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L609",
+      "source_location": "L626",
       "id": "stringtie2utr_find_overlapping_transcripts",
       "community": 2,
       "norm_label": "find_overlapping_transcripts()"
@@ -1071,7 +1071,7 @@
       "label": "extract_introns_from_dict()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L628",
+      "source_location": "L645",
       "id": "stringtie2utr_extract_introns_from_dict",
       "community": 2,
       "norm_label": "extract_introns_from_dict()"
@@ -1080,7 +1080,7 @@
       "label": "check_overlap_compatibility()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L637",
+      "source_location": "L654",
       "id": "stringtie2utr_check_overlap_compatibility",
       "community": 2,
       "norm_label": "check_overlap_compatibility()"
@@ -1089,7 +1089,7 @@
       "label": "main()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L685",
+      "source_location": "L702",
       "id": "stringtie2utr_main",
       "community": 2,
       "norm_label": "main()"
@@ -1170,91 +1170,91 @@
       "label": "Create a UTR feature line with explicit start/end coordinates.      Avoids the s",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L312",
+      "source_location": "L321",
+      "id": "stringtie2utr_rationale_321",
       "community": 2,
-      "norm_label": "create a utr feature line with explicit start/end coordinates.      avoids the s",
-      "id": "stringtie2utr_rationale_312"
+      "norm_label": "create a utr feature line with explicit start/end coordinates.      avoids the s"
     },
     {
       "label": "Compute the UTR features for each transcript in tsebra_gtf based on strand infor",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L330",
+      "source_location": "L339",
+      "id": "stringtie2utr_rationale_339",
       "community": 2,
-      "norm_label": "compute the utr features for each transcript in tsebra_gtf based on strand infor",
-      "id": "stringtie2utr_rationale_330"
+      "norm_label": "compute the utr features for each transcript in tsebra_gtf based on strand infor"
     },
     {
       "label": "The list of features in gtf_dict has been expanded compared to the original vers",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L437",
+      "source_location": "L446",
+      "id": "stringtie2utr_rationale_446",
       "community": 2,
-      "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers",
-      "id": "stringtie2utr_rationale_437"
+      "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers"
     },
     {
       "label": "Print GTF lines based on gene_dict and gtf_dict.          Args:     - filename (",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L493",
+      "source_location": "L510",
+      "id": "stringtie2utr_rationale_510",
       "community": 2,
-      "norm_label": "print gtf lines based on gene_dict and gtf_dict.          args:     - filename (",
-      "id": "stringtie2utr_rationale_493"
+      "norm_label": "print gtf lines based on gene_dict and gtf_dict.          args:     - filename ("
     },
     {
       "label": "Build an interval tree from data. We will use that to quickly find the overlappi",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L540",
+      "source_location": "L557",
+      "id": "stringtie2utr_rationale_557",
       "community": 2,
-      "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi",
-      "id": "stringtie2utr_rationale_540"
+      "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi"
+    },
+    {
+      "label": "Contructs a dictionary that has sequence name as first key, then strand as secon",
+      "file_type": "rationale",
+      "source_file": "scripts/stringtie2utr.py",
+      "source_location": "L565",
+      "community": 2,
+      "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
+      "id": "stringtie2utr_rationale_565"
     },
     {
       "label": "Contructs a dictionary that has sequence name as first key, then strand as secon",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L548",
+      "source_location": "L594",
+      "id": "stringtie2utr_rationale_594",
       "community": 2,
-      "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
-      "id": "stringtie2utr_rationale_548"
-    },
-    {
-      "label": "Contructs a dictionary that has sequence name as first key, then strand as secon",
-      "file_type": "rationale",
-      "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L577",
-      "community": 2,
-      "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
-      "id": "stringtie2utr_rationale_577"
+      "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon"
     },
     {
       "label": "Find transcripts that overlap with genes.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L610",
+      "source_location": "L627",
+      "id": "stringtie2utr_rationale_627",
       "community": 2,
-      "norm_label": "find transcripts that overlap with genes.",
-      "id": "stringtie2utr_rationale_610"
+      "norm_label": "find transcripts that overlap with genes."
     },
     {
       "label": "Extract introns directly from stringtie_tx_dict.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L629",
+      "source_location": "L646",
+      "id": "stringtie2utr_rationale_646",
       "community": 2,
-      "norm_label": "extract introns directly from stringtie_tx_dict.",
-      "id": "stringtie2utr_rationale_629"
+      "norm_label": "extract introns directly from stringtie_tx_dict."
     },
     {
       "label": "Check if the overlapping transcripts are compatible with the gene models.     In",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L638",
+      "source_location": "L655",
+      "id": "stringtie2utr_rationale_655",
       "community": 2,
-      "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in",
-      "id": "stringtie2utr_rationale_638"
+      "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in"
     },
     {
       "label": "fantasia_decorate_gff3.py",
@@ -1262,7 +1262,7 @@
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L1",
       "id": "scripts_fantasia_decorate_gff3_py",
-      "community": 14,
+      "community": 15,
       "norm_label": "fantasia_decorate_gff3.py"
     },
     {
@@ -1271,7 +1271,7 @@
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L51",
       "id": "fantasia_decorate_gff3_lookup_key",
-      "community": 14,
+      "community": 15,
       "norm_label": "_lookup_key()"
     },
     {
@@ -1280,7 +1280,7 @@
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L66",
       "id": "fantasia_decorate_gff3_load_go_assignments",
-      "community": 14,
+      "community": 15,
       "norm_label": "load_go_assignments()"
     },
     {
@@ -1289,7 +1289,7 @@
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L83",
       "id": "fantasia_decorate_gff3_add_ontology_term",
-      "community": 14,
+      "community": 15,
       "norm_label": "_add_ontology_term()"
     },
     {
@@ -1298,7 +1298,7 @@
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L110",
       "id": "fantasia_decorate_gff3_decorate",
-      "community": 14,
+      "community": 15,
       "norm_label": "decorate()"
     },
     {
@@ -1307,7 +1307,7 @@
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L164",
       "id": "fantasia_decorate_gff3_main",
-      "community": 14,
+      "community": 15,
       "norm_label": "main()"
     },
     {
@@ -1315,7 +1315,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L52",
-      "community": 14,
+      "community": 15,
       "norm_label": "return the fantasia lookup key for a transcript-equivalent row.      prefers `tr",
       "id": "fantasia_decorate_gff3_rationale_52"
     },
@@ -1324,7 +1324,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L67",
-      "community": 14,
+      "community": 15,
       "norm_label": "map transcript_id -> set of go ids above the score threshold.",
       "id": "fantasia_decorate_gff3_rationale_67"
     },
@@ -1333,7 +1333,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L84",
-      "community": 14,
+      "community": 15,
       "norm_label": "append or merge an ontology_term attribute on a gff3 col9 string.      preserves",
       "id": "fantasia_decorate_gff3_rationale_84"
     },
@@ -1342,7 +1342,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L111",
-      "community": 14,
+      "community": 15,
       "norm_label": "two-pass: build transcript->gene map, then rewrite the gff3.      both `mrna` an",
       "id": "fantasia_decorate_gff3_rationale_111"
     },
@@ -1613,7 +1613,7 @@
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L1",
       "id": "scripts_gene_support_summary_py",
-      "community": 15,
+      "community": 16,
       "norm_label": "gene_support_summary.py"
     },
     {
@@ -1622,7 +1622,7 @@
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L30",
       "id": "gene_support_summary_parse_hints",
-      "community": 15,
+      "community": 16,
       "norm_label": "parse_hints()"
     },
     {
@@ -1631,7 +1631,7 @@
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L83",
       "id": "gene_support_summary_parse_gtf_transcripts",
-      "community": 15,
+      "community": 16,
       "norm_label": "parse_gtf_transcripts()"
     },
     {
@@ -1640,7 +1640,7 @@
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L152",
       "id": "gene_support_summary_check_support",
-      "community": 15,
+      "community": 16,
       "norm_label": "check_support()"
     },
     {
@@ -1649,7 +1649,7 @@
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L193",
       "id": "gene_support_summary_check_exon_support",
-      "community": 15,
+      "community": 16,
       "norm_label": "check_exon_support()"
     },
     {
@@ -1658,7 +1658,7 @@
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L222",
       "id": "gene_support_summary_main",
-      "community": 15,
+      "community": 16,
       "norm_label": "main()"
     },
     {
@@ -1666,7 +1666,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L31",
-      "community": 15,
+      "community": 16,
       "norm_label": "parse hints file into interval trees by (chrom, feature_type, source_class).",
       "id": "gene_support_summary_rationale_31"
     },
@@ -1675,7 +1675,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L84",
-      "community": 15,
+      "community": 16,
       "norm_label": "parse gtf into per-transcript feature lists.      returns list of (gene_id, tx_i",
       "id": "gene_support_summary_rationale_84"
     },
@@ -1684,7 +1684,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L153",
-      "community": 15,
+      "community": 16,
       "norm_label": "check how many intervals are supported by hints.      for introns: exact match (",
       "id": "gene_support_summary_rationale_153"
     },
@@ -1693,7 +1693,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L194",
-      "community": 15,
+      "community": 16,
       "norm_label": "check how many exons have any overlapping exon/cds hints.      uses overlap (not",
       "id": "gene_support_summary_rationale_194"
     },
@@ -1703,7 +1703,7 @@
       "source_file": "scripts/parseTrfOutput.py",
       "source_location": "L1",
       "id": "scripts_parsetrfoutput_py",
-      "community": 10,
+      "community": 11,
       "norm_label": "parsetrfoutput.py"
     },
     {
@@ -1712,7 +1712,7 @@
       "source_file": "scripts/parseTrfOutput.py",
       "source_location": "L17",
       "id": "parsetrfoutput_state",
-      "community": 10,
+      "community": 11,
       "norm_label": "state"
     },
     {
@@ -1721,7 +1721,7 @@
       "source_file": "",
       "source_location": "",
       "id": "enum",
-      "community": 10,
+      "community": 11,
       "norm_label": "enum"
     },
     {
@@ -1730,7 +1730,7 @@
       "source_file": "scripts/parseTrfOutput.py",
       "source_location": "L23",
       "id": "parsetrfoutput_extractfeaturegtf",
-      "community": 10,
+      "community": 11,
       "norm_label": "extractfeaturegtf()"
     },
     {
@@ -1739,7 +1739,7 @@
       "source_file": "scripts/parseTrfOutput.py",
       "source_location": "L28",
       "id": "parsetrfoutput_extractfeaturegff",
-      "community": 10,
+      "community": 11,
       "norm_label": "extractfeaturegff()"
     },
     {
@@ -1748,7 +1748,7 @@
       "source_file": "scripts/parseTrfOutput.py",
       "source_location": "L33",
       "id": "parsetrfoutput_printstatistics",
-      "community": 10,
+      "community": 11,
       "norm_label": "printstatistics()"
     },
     {
@@ -1757,7 +1757,7 @@
       "source_file": "scripts/parseTrfOutput.py",
       "source_location": "L62",
       "id": "parsetrfoutput_addtodict",
-      "community": 10,
+      "community": 11,
       "norm_label": "addtodict()"
     },
     {
@@ -1766,7 +1766,7 @@
       "source_file": "scripts/parseTrfOutput.py",
       "source_location": "L69",
       "id": "parsetrfoutput_initcounts",
-      "community": 10,
+      "community": 11,
       "norm_label": "initcounts()"
     },
     {
@@ -1775,7 +1775,7 @@
       "source_file": "scripts/parseTrfOutput.py",
       "source_location": "L77",
       "id": "parsetrfoutput_addtogc",
-      "community": 10,
+      "community": 11,
       "norm_label": "addtogc()"
     },
     {
@@ -1784,7 +1784,7 @@
       "source_file": "scripts/parseTrfOutput.py",
       "source_location": "L88",
       "id": "parsetrfoutput_parse",
-      "community": 10,
+      "community": 11,
       "norm_label": "parse()"
     },
     {
@@ -1793,7 +1793,7 @@
       "source_file": "scripts/parseTrfOutput.py",
       "source_location": "L134",
       "id": "parsetrfoutput_main",
-      "community": 10,
+      "community": 11,
       "norm_label": "main()"
     },
     {
@@ -1802,7 +1802,7 @@
       "source_file": "scripts/parseTrfOutput.py",
       "source_location": "L144",
       "id": "parsetrfoutput_parsecmd",
-      "community": 10,
+      "community": 11,
       "norm_label": "parsecmd()"
     },
     {
@@ -1811,7 +1811,7 @@
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L1",
       "id": "scripts_normalize_gtf_py",
-      "community": 8,
+      "community": 9,
       "norm_label": "normalize_gtf.py"
     },
     {
@@ -1820,7 +1820,7 @@
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L24",
       "id": "normalize_gtf_parse_gtf",
-      "community": 8,
+      "community": 9,
       "norm_label": "parse_gtf()"
     },
     {
@@ -1829,7 +1829,7 @@
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L58",
       "id": "normalize_gtf_parse_attrs",
-      "community": 8,
+      "community": 9,
       "norm_label": "parse_attrs()"
     },
     {
@@ -1838,7 +1838,7 @@
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L71",
       "id": "normalize_gtf_get_sequence",
-      "community": 8,
+      "community": 9,
       "norm_label": "get_sequence()"
     },
     {
@@ -1847,7 +1847,7 @@
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L81",
       "id": "normalize_gtf_get_cds_features",
-      "community": 8,
+      "community": 9,
       "norm_label": "get_cds_features()"
     },
     {
@@ -1856,7 +1856,7 @@
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L88",
       "id": "normalize_gtf_normalize_transcript",
-      "community": 8,
+      "community": 9,
       "norm_label": "normalize_transcript()"
     },
     {
@@ -1865,7 +1865,7 @@
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L174",
       "id": "normalize_gtf_update_gene_boundaries",
-      "community": 8,
+      "community": 9,
       "norm_label": "update_gene_boundaries()"
     },
     {
@@ -1874,7 +1874,7 @@
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L196",
       "id": "normalize_gtf_write_gtf",
-      "community": 8,
+      "community": 9,
       "norm_label": "write_gtf()"
     },
     {
@@ -1883,7 +1883,7 @@
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L226",
       "id": "normalize_gtf_main",
-      "community": 8,
+      "community": 9,
       "norm_label": "main()"
     },
     {
@@ -1891,7 +1891,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L25",
-      "community": 8,
+      "community": 9,
       "norm_label": "parse gtf into gene -> transcript -> features structure.",
       "id": "normalize_gtf_rationale_25"
     },
@@ -1900,7 +1900,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L59",
-      "community": 8,
+      "community": 9,
       "norm_label": "parse gtf attribute string into dict.",
       "id": "normalize_gtf_rationale_59"
     },
@@ -1909,7 +1909,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L72",
-      "community": 8,
+      "community": 9,
       "norm_label": "extract sequence from genome (1-based coords).",
       "id": "normalize_gtf_rationale_72"
     },
@@ -1918,7 +1918,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L82",
-      "community": 8,
+      "community": 9,
       "norm_label": "get cds features sorted by genomic position.",
       "id": "normalize_gtf_rationale_82"
     },
@@ -1927,7 +1927,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L89",
-      "community": 8,
+      "community": 9,
       "norm_label": "normalize cds boundaries for a transcript.      returns (normalized_features, is",
       "id": "normalize_gtf_rationale_89"
     },
@@ -1936,7 +1936,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L175",
-      "community": 8,
+      "community": 9,
       "norm_label": "update gene and transcript boundaries to match their features.",
       "id": "normalize_gtf_rationale_175"
     },
@@ -1945,7 +1945,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L197",
-      "community": 8,
+      "community": 9,
       "norm_label": "write normalized gtf, preserving gene/transcript/feature order.",
       "id": "normalize_gtf_rationale_197"
     },
@@ -1955,7 +1955,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L1",
       "id": "scripts_gene_set_statistics_py",
-      "community": 11,
+      "community": 12,
       "norm_label": "gene_set_statistics.py"
     },
     {
@@ -1964,7 +1964,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L27",
       "id": "gene_set_statistics_parse_gtf",
-      "community": 11,
+      "community": 12,
       "norm_label": "parse_gtf()"
     },
     {
@@ -1973,7 +1973,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L77",
       "id": "gene_set_statistics_compute_statistics",
-      "community": 11,
+      "community": 12,
       "norm_label": "compute_statistics()"
     },
     {
@@ -1982,7 +1982,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L149",
       "id": "gene_set_statistics_parse_support_tsv",
-      "community": 11,
+      "community": 12,
       "norm_label": "parse_support_tsv()"
     },
     {
@@ -1991,7 +1991,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L171",
       "id": "gene_set_statistics_generate_plots",
-      "community": 11,
+      "community": 12,
       "norm_label": "generate_plots()"
     },
     {
@@ -2000,7 +2000,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L340",
       "id": "gene_set_statistics_write_summary",
-      "community": 11,
+      "community": 12,
       "norm_label": "write_summary()"
     },
     {
@@ -2009,7 +2009,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L366",
       "id": "gene_set_statistics_main",
-      "community": 11,
+      "community": 12,
       "norm_label": "main()"
     },
     {
@@ -2017,7 +2017,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L28",
-      "community": 11,
+      "community": 12,
       "norm_label": "parse gtf file into gene/transcript/exon structure.      returns:         genes:",
       "id": "gene_set_statistics_rationale_28"
     },
@@ -2026,7 +2026,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L78",
-      "community": 11,
+      "community": 12,
       "norm_label": "compute summary statistics from parsed gene structure.",
       "id": "gene_set_statistics_rationale_78"
     },
@@ -2035,7 +2035,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L150",
-      "community": 11,
+      "community": 12,
       "norm_label": "parse gene_support.tsv for evidence support visualization.",
       "id": "gene_set_statistics_rationale_150"
     },
@@ -2044,7 +2044,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L172",
-      "community": 11,
+      "community": 12,
       "norm_label": "generate all publication-quality plots.",
       "id": "gene_set_statistics_rationale_172"
     },
@@ -2053,7 +2053,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L341",
-      "community": 11,
+      "community": 12,
       "norm_label": "write gene set statistics summary text file.",
       "id": "gene_set_statistics_rationale_341"
     },
@@ -2063,7 +2063,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L1",
       "id": "scripts_fix_in_frame_stop_codon_genes_py",
-      "community": 9,
+      "community": 10,
       "norm_label": "fix_in_frame_stop_codon_genes.py"
     },
     {
@@ -2072,7 +2072,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L180",
       "id": "fix_in_frame_stop_codon_genes_create_random_string",
-      "community": 9,
+      "community": 10,
       "norm_label": "create_random_string()"
     },
     {
@@ -2081,7 +2081,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L195",
       "id": "fix_in_frame_stop_codon_genes_create_log_file_name",
-      "community": 9,
+      "community": 10,
       "norm_label": "create_log_file_name()"
     },
     {
@@ -2090,7 +2090,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L201",
       "id": "fix_in_frame_stop_codon_genes_create_tmp_dir",
-      "community": 9,
+      "community": 10,
       "norm_label": "create_tmp_dir()"
     },
     {
@@ -2099,7 +2099,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L209",
       "id": "fix_in_frame_stop_codon_genes_find_tool",
-      "community": 9,
+      "community": 10,
       "norm_label": "find_tool()"
     },
     {
@@ -2108,7 +2108,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L222",
       "id": "fix_in_frame_stop_codon_genes_check_tool_in_given_path",
-      "community": 9,
+      "community": 10,
       "norm_label": "check_tool_in_given_path()"
     },
     {
@@ -2117,7 +2117,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L239",
       "id": "fix_in_frame_stop_codon_genes_run_process",
-      "community": 9,
+      "community": 10,
       "norm_label": "run_process()"
     },
     {
@@ -2126,7 +2126,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L331",
       "id": "fix_in_frame_stop_codon_genes_sortfirst",
-      "community": 9,
+      "community": 10,
       "norm_label": "sortfirst()"
     },
     {
@@ -2135,7 +2135,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L335",
       "id": "fix_in_frame_stop_codon_genes_sortsecond",
-      "community": 9,
+      "community": 10,
       "norm_label": "sortsecond()"
     },
     {
@@ -2143,7 +2143,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L181",
-      "community": 9,
+      "community": 10,
       "norm_label": "funtion that creates a random string added to the logfile name         and tmp d",
       "id": "fix_in_frame_stop_codon_genes_rationale_181"
     },
@@ -2152,7 +2152,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L196",
-      "community": 9,
+      "community": 10,
       "norm_label": "function that creates a log file with a random name",
       "id": "fix_in_frame_stop_codon_genes_rationale_196"
     },
@@ -2161,7 +2161,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L202",
-      "community": 9,
+      "community": 10,
       "norm_label": "function that creates a directory for temporary files with a random name",
       "id": "fix_in_frame_stop_codon_genes_rationale_202"
     },
@@ -2170,7 +2170,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L210",
-      "community": 9,
+      "community": 10,
       "norm_label": "function that tries to locate a tool with which",
       "id": "fix_in_frame_stop_codon_genes_rationale_210"
     },
@@ -2179,7 +2179,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L223",
-      "community": 9,
+      "community": 10,
       "norm_label": "if tool_path is provided as command line option, check whether the     required",
       "id": "fix_in_frame_stop_codon_genes_rationale_223"
     },
@@ -2198,7 +2198,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L1",
       "id": "scripts_fantasia_summary_py",
-      "community": 12,
+      "community": 13,
       "norm_label": "fantasia_summary.py"
     },
     {
@@ -2207,7 +2207,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L199",
       "id": "fantasia_summary_compile_categories",
-      "community": 12,
+      "community": 13,
       "norm_label": "_compile_categories()"
     },
     {
@@ -2216,7 +2216,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L208",
       "id": "fantasia_summary_classify_proteins",
-      "community": 12,
+      "community": 13,
       "norm_label": "classify_proteins()"
     },
     {
@@ -2225,7 +2225,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L253",
       "id": "fantasia_summary_parse_results",
-      "community": 12,
+      "community": 13,
       "norm_label": "parse_results()"
     },
     {
@@ -2234,7 +2234,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L302",
       "id": "fantasia_summary_write_go_terms_tsv",
-      "community": 12,
+      "community": 13,
       "norm_label": "write_go_terms_tsv()"
     },
     {
@@ -2243,7 +2243,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L312",
       "id": "fantasia_summary_write_summary",
-      "community": 12,
+      "community": 13,
       "norm_label": "write_summary()"
     },
     {
@@ -2252,7 +2252,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L334",
       "id": "fantasia_summary_write_categories_pie",
-      "community": 12,
+      "community": 13,
       "norm_label": "write_categories_pie()"
     },
     {
@@ -2261,7 +2261,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L404",
       "id": "fantasia_summary_main",
-      "community": 12,
+      "community": 13,
       "norm_label": "main()"
     },
     {
@@ -2269,7 +2269,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L209",
-      "community": 12,
+      "community": 13,
       "norm_label": "map each protein to all categories its go terms touch.      returns a counter of",
       "id": "fantasia_summary_rationale_209"
     },
@@ -2278,7 +2278,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L254",
-      "community": 12,
+      "community": 13,
       "norm_label": "stream results.csv: collect counters and per-row tuples for the tsv.",
       "id": "fantasia_summary_rationale_254"
     },
@@ -2287,7 +2287,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L303",
-      "community": 12,
+      "community": 13,
       "norm_label": "flat per-(transcript, go term) tsv with human-readable go names.",
       "id": "fantasia_summary_rationale_303"
     },
@@ -2296,9 +2296,72 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L335",
-      "community": 12,
+      "community": 13,
       "norm_label": "pie chart of broad functional categories.      each protein is counted once per",
       "id": "fantasia_summary_rationale_335"
+    },
+    {
+      "label": "test_stringtie2utr_cross_scaffold.py",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L1",
+      "id": "home_katharina_git_braker4_tests_test_stringtie2utr_cross_scaffold_py",
+      "community": 8,
+      "norm_label": "test_stringtie2utr_cross_scaffold.py"
+    },
+    {
+      "label": "_gtf_line()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L25",
+      "id": "test_stringtie2utr_cross_scaffold_gtf_line",
+      "community": 8,
+      "norm_label": "_gtf_line()"
+    },
+    {
+      "label": "test_cross_scaffold_mstrg_collision_multi_exon()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L37",
+      "id": "test_stringtie2utr_cross_scaffold_test_cross_scaffold_mstrg_collision_multi_exon",
+      "community": 8,
+      "norm_label": "test_cross_scaffold_mstrg_collision_multi_exon()"
+    },
+    {
+      "label": "test_fix_feature_coordinates_ignores_wrong_scaffold()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L93",
+      "id": "test_stringtie2utr_cross_scaffold_test_fix_feature_coordinates_ignores_wrong_scaffold",
+      "community": 8,
+      "norm_label": "test_fix_feature_coordinates_ignores_wrong_scaffold()"
+    },
+    {
+      "label": "Regression tests for the cross-scaffold MSTRG ID collision bug.  Root cause (iss",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L1",
+      "id": "test_stringtie2utr_cross_scaffold_rationale_1",
+      "community": 8,
+      "norm_label": "regression tests for the cross-scaffold mstrg id collision bug.  root cause (iss"
+    },
+    {
+      "label": "Exons from a colliding scaffold must not be merged into the BRAKER transcript.",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L38",
+      "id": "test_stringtie2utr_cross_scaffold_rationale_38",
+      "community": 8,
+      "norm_label": "exons from a colliding scaffold must not be merged into the braker transcript."
+    },
+    {
+      "label": "fix_feature_coordinates must skip features whose seqname differs from the transc",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L94",
+      "id": "test_stringtie2utr_cross_scaffold_rationale_94",
+      "community": 8,
+      "norm_label": "fix_feature_coordinates must skip features whose seqname differs from the transc"
     },
     {
       "label": "test_stringtie2utr_single_exon.py",
@@ -2306,7 +2369,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L1",
       "id": "home_katharina_git_braker4_tests_test_stringtie2utr_single_exon_py",
-      "community": 16,
+      "community": 8,
       "norm_label": "test_stringtie2utr_single_exon.py"
     },
     {
@@ -2315,7 +2378,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L26",
       "id": "test_stringtie2utr_single_exon_gtf_line",
-      "community": 16,
+      "community": 8,
       "norm_label": "_gtf_line()"
     },
     {
@@ -2324,7 +2387,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L38",
       "id": "test_stringtie2utr_single_exon_test_single_exon_braker_distant_stringtie_exon_not_merged",
-      "community": 16,
+      "community": 8,
       "norm_label": "test_single_exon_braker_distant_stringtie_exon_not_merged()"
     },
     {
@@ -2333,7 +2396,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L91",
       "id": "test_stringtie2utr_single_exon_test_single_exon_braker_overlapping_stringtie_exon_is_merged",
-      "community": 16,
+      "community": 8,
       "norm_label": "test_single_exon_braker_overlapping_stringtie_exon_is_merged()"
     },
     {
@@ -2342,7 +2405,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L138",
       "id": "test_stringtie2utr_single_exon_test_multi_exon_braker_all_stringtie_exons_merged",
-      "community": 16,
+      "community": 8,
       "norm_label": "test_multi_exon_braker_all_stringtie_exons_merged()"
     },
     {
@@ -2350,7 +2413,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L1",
-      "community": 16,
+      "community": 8,
       "norm_label": "regression and positive tests for the single-exon guard added to merge_features(",
       "id": "test_stringtie2utr_single_exon_rationale_1"
     },
@@ -2359,7 +2422,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L39",
-      "community": 16,
+      "community": 8,
       "norm_label": "distant second exon of a multi-exon stringtie transcript must not be     merged",
       "id": "test_stringtie2utr_single_exon_rationale_39"
     },
@@ -2368,7 +2431,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L92",
-      "community": 16,
+      "community": 8,
       "norm_label": "a stringtie exon that overlaps the braker exon must still be merged.",
       "id": "test_stringtie2utr_single_exon_rationale_92"
     },
@@ -2377,16 +2440,106 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L139",
-      "community": 16,
+      "community": 8,
       "norm_label": "for a multi-exon braker transcript the single-exon guard must not     activate;",
       "id": "test_stringtie2utr_single_exon_rationale_139"
     },
     {
       "label": "Create a UTR feature line with explicit start/end coordinates.      Avoids the s",
       "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
+      "source_location": "L312",
+      "community": 25,
+      "norm_label": "create a utr feature line with explicit start/end coordinates.      avoids the s",
+      "id": "stringtie2utr_rationale_312"
+    },
+    {
+      "label": "Compute the UTR features for each transcript in tsebra_gtf based on strand infor",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
+      "source_location": "L330",
+      "community": 26,
+      "norm_label": "compute the utr features for each transcript in tsebra_gtf based on strand infor",
+      "id": "stringtie2utr_rationale_330"
+    },
+    {
+      "label": "The list of features in gtf_dict has been expanded compared to the original vers",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
+      "source_location": "L437",
+      "community": 27,
+      "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers",
+      "id": "stringtie2utr_rationale_437"
+    },
+    {
+      "label": "Print GTF lines based on gene_dict and gtf_dict.          Args:     - filename (",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
+      "source_location": "L493",
+      "community": 28,
+      "norm_label": "print gtf lines based on gene_dict and gtf_dict.          args:     - filename (",
+      "id": "stringtie2utr_rationale_493"
+    },
+    {
+      "label": "Build an interval tree from data. We will use that to quickly find the overlappi",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
+      "source_location": "L540",
+      "community": 29,
+      "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi",
+      "id": "stringtie2utr_rationale_540"
+    },
+    {
+      "label": "Contructs a dictionary that has sequence name as first key, then strand as secon",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
+      "source_location": "L548",
+      "community": 30,
+      "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
+      "id": "stringtie2utr_rationale_548"
+    },
+    {
+      "label": "Contructs a dictionary that has sequence name as first key, then strand as secon",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
+      "source_location": "L577",
+      "community": 31,
+      "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
+      "id": "stringtie2utr_rationale_577"
+    },
+    {
+      "label": "Find transcripts that overlap with genes.",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
+      "source_location": "L610",
+      "community": 32,
+      "norm_label": "find transcripts that overlap with genes.",
+      "id": "stringtie2utr_rationale_610"
+    },
+    {
+      "label": "Extract introns directly from stringtie_tx_dict.",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
+      "source_location": "L629",
+      "community": 33,
+      "norm_label": "extract introns directly from stringtie_tx_dict.",
+      "id": "stringtie2utr_rationale_629"
+    },
+    {
+      "label": "Check if the overlapping transcripts are compatible with the gene models.     In",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
+      "source_location": "L638",
+      "community": 34,
+      "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in",
+      "id": "stringtie2utr_rationale_638"
+    },
+    {
+      "label": "Create a UTR feature line with explicit start/end coordinates.      Avoids the s",
+      "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L300",
-      "community": 25,
+      "community": 35,
       "norm_label": "create a utr feature line with explicit start/end coordinates.      avoids the s",
       "id": "stringtie2utr_rationale_300"
     },
@@ -2395,7 +2548,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L318",
-      "community": 26,
+      "community": 36,
       "norm_label": "compute the utr features for each transcript in tsebra_gtf based on strand infor",
       "id": "stringtie2utr_rationale_318"
     },
@@ -2404,7 +2557,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L425",
-      "community": 27,
+      "community": 37,
       "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers",
       "id": "stringtie2utr_rationale_425"
     },
@@ -2413,7 +2566,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L481",
-      "community": 28,
+      "community": 38,
       "norm_label": "print gtf lines based on gene_dict and gtf_dict.          args:     - filename (",
       "id": "stringtie2utr_rationale_481"
     },
@@ -2422,7 +2575,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L528",
-      "community": 29,
+      "community": 39,
       "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi",
       "id": "stringtie2utr_rationale_528"
     },
@@ -2431,25 +2584,16 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L536",
-      "community": 30,
+      "community": 40,
       "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
       "id": "stringtie2utr_rationale_536"
-    },
-    {
-      "label": "Contructs a dictionary that has sequence name as first key, then strand as secon",
-      "file_type": "rationale",
-      "source_file": "scripts/stringtie2utr.py",
-      "source_location": "L565",
-      "community": 31,
-      "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
-      "id": "stringtie2utr_rationale_565"
     },
     {
       "label": "Find transcripts that overlap with genes.",
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L598",
-      "community": 32,
+      "community": 41,
       "norm_label": "find transcripts that overlap with genes.",
       "id": "stringtie2utr_rationale_598"
     },
@@ -2458,7 +2602,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L617",
-      "community": 33,
+      "community": 42,
       "norm_label": "extract introns directly from stringtie_tx_dict.",
       "id": "stringtie2utr_rationale_617"
     },
@@ -2467,7 +2611,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L626",
-      "community": 34,
+      "community": 43,
       "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in",
       "id": "stringtie2utr_rationale_626"
     },
@@ -2480,7 +2624,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 35,
+      "community": 44,
       "norm_label": ".gitignore (braker4)",
       "id": "gitignore_braker4"
     },
@@ -2493,7 +2637,7 @@
       "captured_at": null,
       "author": "Katharina Hoff",
       "contributor": null,
-      "community": 36,
+      "community": 45,
       "norm_label": "mit license (braker4)",
       "id": "license_mit"
     },
@@ -2675,7 +2819,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 37,
+      "community": 46,
       "norm_label": "samples.csv + config.ini input specification",
       "id": "concept_samples_csv_config"
     },
@@ -6070,7 +6214,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L311",
+      "source_location": "L320",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_stringtie2utr_py",
       "_tgt": "stringtie2utr_make_utr_feature",
@@ -6082,7 +6226,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L329",
+      "source_location": "L338",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_stringtie2utr_py",
       "_tgt": "stringtie2utr_compute_utr_features",
@@ -6094,7 +6238,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L436",
+      "source_location": "L445",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_stringtie2utr_py",
       "_tgt": "stringtie2utr_fix_feature_coordinates",
@@ -6106,7 +6250,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L492",
+      "source_location": "L509",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_stringtie2utr_py",
       "_tgt": "stringtie2utr_print_gtf",
@@ -6118,7 +6262,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L539",
+      "source_location": "L556",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_stringtie2utr_py",
       "_tgt": "stringtie2utr_build_tree",
@@ -6130,7 +6274,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L547",
+      "source_location": "L564",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_stringtie2utr_py",
       "_tgt": "stringtie2utr_construct_transcript_tree",
@@ -6142,7 +6286,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L576",
+      "source_location": "L593",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_stringtie2utr_py",
       "_tgt": "stringtie2utr_construct_gene_tree",
@@ -6154,7 +6298,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L609",
+      "source_location": "L626",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_stringtie2utr_py",
       "_tgt": "stringtie2utr_find_overlapping_transcripts",
@@ -6166,7 +6310,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L628",
+      "source_location": "L645",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_stringtie2utr_py",
       "_tgt": "stringtie2utr_extract_introns_from_dict",
@@ -6178,7 +6322,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L637",
+      "source_location": "L654",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_stringtie2utr_py",
       "_tgt": "stringtie2utr_check_overlap_compatibility",
@@ -6190,7 +6334,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L685",
+      "source_location": "L702",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_stringtie2utr_py",
       "_tgt": "stringtie2utr_main",
@@ -6202,7 +6346,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L699",
+      "source_location": "L716",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_read_gtf",
@@ -6226,7 +6370,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L703",
+      "source_location": "L720",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_add_intron_features",
@@ -6250,7 +6394,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L708",
+      "source_location": "L725",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_create_introns_hash",
@@ -6274,7 +6418,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L710",
+      "source_location": "L727",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_find_matching_transcripts",
@@ -6298,7 +6442,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L713",
+      "source_location": "L730",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_find_single_exon_genes",
@@ -6322,7 +6466,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L726",
+      "source_location": "L743",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_tx_len",
@@ -6346,7 +6490,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L727",
+      "source_location": "L744",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_select_longest_tx",
@@ -6370,7 +6514,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L281",
+      "source_location": "L290",
       "weight": 1.0,
       "_src": "stringtie2utr_merge_features",
       "_tgt": "stringtie2utr_overlap",
@@ -6382,7 +6526,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L621",
+      "source_location": "L638",
       "weight": 1.0,
       "_src": "stringtie2utr_find_overlapping_transcripts",
       "_tgt": "stringtie2utr_overlap",
@@ -6430,13 +6574,25 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L731",
+      "source_location": "L748",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_merge_features",
       "source": "stringtie2utr_merge_features",
       "target": "stringtie2utr_main",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L72",
+      "weight": 1.0,
+      "_src": "test_stringtie2utr_cross_scaffold_test_cross_scaffold_mstrg_collision_multi_exon",
+      "_tgt": "stringtie2utr_merge_features",
+      "source": "stringtie2utr_merge_features",
+      "target": "test_stringtie2utr_cross_scaffold_test_cross_scaffold_mstrg_collision_multi_exon"
     },
     {
       "relation": "calls",
@@ -6478,7 +6634,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L369",
+      "source_location": "L378",
       "weight": 1.0,
       "_src": "stringtie2utr_compute_utr_features",
       "_tgt": "stringtie2utr_make_utr_feature",
@@ -6490,19 +6646,19 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L312",
+      "source_location": "L321",
       "weight": 1.0,
-      "_src": "stringtie2utr_rationale_312",
+      "_src": "stringtie2utr_rationale_321",
       "_tgt": "stringtie2utr_make_utr_feature",
       "source": "stringtie2utr_make_utr_feature",
-      "target": "stringtie2utr_rationale_312",
+      "target": "stringtie2utr_rationale_321",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L733",
+      "source_location": "L750",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_compute_utr_features",
@@ -6514,19 +6670,19 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L330",
+      "source_location": "L339",
       "weight": 1.0,
-      "_src": "stringtie2utr_rationale_330",
+      "_src": "stringtie2utr_rationale_339",
       "_tgt": "stringtie2utr_compute_utr_features",
       "source": "stringtie2utr_compute_utr_features",
-      "target": "stringtie2utr_rationale_330",
+      "target": "stringtie2utr_rationale_339",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L736",
+      "source_location": "L753",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_fix_feature_coordinates",
@@ -6538,19 +6694,31 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L437",
+      "source_location": "L446",
       "weight": 1.0,
-      "_src": "stringtie2utr_rationale_437",
+      "_src": "stringtie2utr_rationale_446",
       "_tgt": "stringtie2utr_fix_feature_coordinates",
       "source": "stringtie2utr_fix_feature_coordinates",
-      "target": "stringtie2utr_rationale_437",
+      "target": "stringtie2utr_rationale_446",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L120",
+      "weight": 1.0,
+      "_src": "test_stringtie2utr_cross_scaffold_test_fix_feature_coordinates_ignores_wrong_scaffold",
+      "_tgt": "stringtie2utr_fix_feature_coordinates",
+      "source": "stringtie2utr_fix_feature_coordinates",
+      "target": "test_stringtie2utr_cross_scaffold_test_fix_feature_coordinates_ignores_wrong_scaffold"
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L739",
+      "source_location": "L756",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_print_gtf",
@@ -6562,19 +6730,19 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L493",
+      "source_location": "L510",
       "weight": 1.0,
-      "_src": "stringtie2utr_rationale_493",
+      "_src": "stringtie2utr_rationale_510",
       "_tgt": "stringtie2utr_print_gtf",
       "source": "stringtie2utr_print_gtf",
-      "target": "stringtie2utr_rationale_493",
+      "target": "stringtie2utr_rationale_510",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L572",
+      "source_location": "L589",
       "weight": 1.0,
       "_src": "stringtie2utr_construct_transcript_tree",
       "_tgt": "stringtie2utr_build_tree",
@@ -6586,7 +6754,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L605",
+      "source_location": "L622",
       "weight": 1.0,
       "_src": "stringtie2utr_construct_gene_tree",
       "_tgt": "stringtie2utr_build_tree",
@@ -6598,19 +6766,19 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L540",
+      "source_location": "L557",
       "weight": 1.0,
-      "_src": "stringtie2utr_rationale_540",
+      "_src": "stringtie2utr_rationale_557",
       "_tgt": "stringtie2utr_build_tree",
       "source": "stringtie2utr_build_tree",
-      "target": "stringtie2utr_rationale_540",
+      "target": "stringtie2utr_rationale_557",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L716",
+      "source_location": "L733",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_construct_transcript_tree",
@@ -6622,19 +6790,19 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L548",
+      "source_location": "L565",
       "weight": 1.0,
-      "_src": "stringtie2utr_rationale_548",
+      "_src": "stringtie2utr_rationale_565",
       "_tgt": "stringtie2utr_construct_transcript_tree",
       "source": "stringtie2utr_construct_transcript_tree",
-      "target": "stringtie2utr_rationale_548",
+      "target": "stringtie2utr_rationale_565",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L717",
+      "source_location": "L734",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_construct_gene_tree",
@@ -6646,19 +6814,19 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L577",
+      "source_location": "L594",
       "weight": 1.0,
-      "_src": "stringtie2utr_rationale_577",
+      "_src": "stringtie2utr_rationale_594",
       "_tgt": "stringtie2utr_construct_gene_tree",
       "source": "stringtie2utr_construct_gene_tree",
-      "target": "stringtie2utr_rationale_577",
+      "target": "stringtie2utr_rationale_594",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L718",
+      "source_location": "L735",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_find_overlapping_transcripts",
@@ -6670,19 +6838,19 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L610",
+      "source_location": "L627",
       "weight": 1.0,
-      "_src": "stringtie2utr_rationale_610",
+      "_src": "stringtie2utr_rationale_627",
       "_tgt": "stringtie2utr_find_overlapping_transcripts",
       "source": "stringtie2utr_find_overlapping_transcripts",
-      "target": "stringtie2utr_rationale_610",
+      "target": "stringtie2utr_rationale_627",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L668",
+      "source_location": "L685",
       "weight": 1.0,
       "_src": "stringtie2utr_check_overlap_compatibility",
       "_tgt": "stringtie2utr_extract_introns_from_dict",
@@ -6694,19 +6862,19 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L629",
+      "source_location": "L646",
       "weight": 1.0,
-      "_src": "stringtie2utr_rationale_629",
+      "_src": "stringtie2utr_rationale_646",
       "_tgt": "stringtie2utr_extract_introns_from_dict",
       "source": "stringtie2utr_extract_introns_from_dict",
-      "target": "stringtie2utr_rationale_629",
+      "target": "stringtie2utr_rationale_646",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L720",
+      "source_location": "L737",
       "weight": 1.0,
       "_src": "stringtie2utr_main",
       "_tgt": "stringtie2utr_check_overlap_compatibility",
@@ -6718,12 +6886,12 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
-      "source_location": "L638",
+      "source_location": "L655",
       "weight": 1.0,
-      "_src": "stringtie2utr_rationale_638",
+      "_src": "stringtie2utr_rationale_655",
       "_tgt": "stringtie2utr_check_overlap_compatibility",
       "source": "stringtie2utr_check_overlap_compatibility",
-      "target": "stringtie2utr_rationale_638",
+      "target": "stringtie2utr_rationale_655",
       "confidence_score": 1.0
     },
     {
@@ -8572,6 +8740,102 @@
       "_tgt": "fantasia_summary_write_categories_pie",
       "source": "fantasia_summary_write_categories_pie",
       "target": "fantasia_summary_rationale_335",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_stringtie2utr_cross_scaffold_py",
+      "_tgt": "test_stringtie2utr_cross_scaffold_gtf_line",
+      "source": "home_katharina_git_braker4_tests_test_stringtie2utr_cross_scaffold_py",
+      "target": "test_stringtie2utr_cross_scaffold_gtf_line",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L37",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_stringtie2utr_cross_scaffold_py",
+      "_tgt": "test_stringtie2utr_cross_scaffold_test_cross_scaffold_mstrg_collision_multi_exon",
+      "source": "home_katharina_git_braker4_tests_test_stringtie2utr_cross_scaffold_py",
+      "target": "test_stringtie2utr_cross_scaffold_test_cross_scaffold_mstrg_collision_multi_exon",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L93",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_stringtie2utr_cross_scaffold_py",
+      "_tgt": "test_stringtie2utr_cross_scaffold_test_fix_feature_coordinates_ignores_wrong_scaffold",
+      "source": "home_katharina_git_braker4_tests_test_stringtie2utr_cross_scaffold_py",
+      "target": "test_stringtie2utr_cross_scaffold_test_fix_feature_coordinates_ignores_wrong_scaffold",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_src": "test_stringtie2utr_cross_scaffold_rationale_1",
+      "_tgt": "home_katharina_git_braker4_tests_test_stringtie2utr_cross_scaffold_py",
+      "source": "home_katharina_git_braker4_tests_test_stringtie2utr_cross_scaffold_py",
+      "target": "test_stringtie2utr_cross_scaffold_rationale_1",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L45",
+      "weight": 1.0,
+      "_src": "test_stringtie2utr_cross_scaffold_test_cross_scaffold_mstrg_collision_multi_exon",
+      "_tgt": "test_stringtie2utr_cross_scaffold_gtf_line",
+      "source": "test_stringtie2utr_cross_scaffold_gtf_line",
+      "target": "test_stringtie2utr_cross_scaffold_test_cross_scaffold_mstrg_collision_multi_exon",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_src": "test_stringtie2utr_cross_scaffold_test_fix_feature_coordinates_ignores_wrong_scaffold",
+      "_tgt": "test_stringtie2utr_cross_scaffold_gtf_line",
+      "source": "test_stringtie2utr_cross_scaffold_gtf_line",
+      "target": "test_stringtie2utr_cross_scaffold_test_fix_feature_coordinates_ignores_wrong_scaffold",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_src": "test_stringtie2utr_cross_scaffold_rationale_38",
+      "_tgt": "test_stringtie2utr_cross_scaffold_test_cross_scaffold_mstrg_collision_multi_exon",
+      "source": "test_stringtie2utr_cross_scaffold_test_cross_scaffold_mstrg_collision_multi_exon",
+      "target": "test_stringtie2utr_cross_scaffold_rationale_38",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
+      "source_location": "L94",
+      "weight": 1.0,
+      "_src": "test_stringtie2utr_cross_scaffold_rationale_94",
+      "_tgt": "test_stringtie2utr_cross_scaffold_test_fix_feature_coordinates_ignores_wrong_scaffold",
+      "source": "test_stringtie2utr_cross_scaffold_test_fix_feature_coordinates_ignores_wrong_scaffold",
+      "target": "test_stringtie2utr_cross_scaffold_rationale_94",
       "confidence_score": 1.0
     },
     {

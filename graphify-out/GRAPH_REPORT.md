@@ -1,12 +1,12 @@
-# Graph Report - /home/katharina/git/BRAKER4  (2026-04-29)
+# Graph Report - /home/katharina/git/BRAKER4  (2026-04-30)
 
 ## Corpus Check
-- 18 files · ~721,308 words
+- 19 files · ~722,448 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 408 nodes · 595 edges · 38 communities detected
-- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 40 edges (avg confidence: 0.82)
+- 424 nodes · 605 edges · 47 communities detected
+- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 42 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -48,6 +48,15 @@
 - [[_COMMUNITY_Community 35|Community 35]]
 - [[_COMMUNITY_Community 36|Community 36]]
 - [[_COMMUNITY_Community 37|Community 37]]
+- [[_COMMUNITY_Community 38|Community 38]]
+- [[_COMMUNITY_Community 39|Community 39]]
+- [[_COMMUNITY_Community 40|Community 40]]
+- [[_COMMUNITY_Community 41|Community 41]]
+- [[_COMMUNITY_Community 42|Community 42]]
+- [[_COMMUNITY_Community 43|Community 43]]
+- [[_COMMUNITY_Community 44|Community 44]]
+- [[_COMMUNITY_Community 45|Community 45]]
+- [[_COMMUNITY_Community 46|Community 46]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `BRAKER4 Test Scenarios README` - 19 edges
@@ -119,40 +128,40 @@ Cohesion: 0.16
 Nodes (17): analyze_hint_support(), check_cds_overlap(), check_intron_support(), load_hints(), load_transcripts_and_introns(), main(), parse_gff_line(), parse_gtf_line() (+9 more)
 
 ### Community 8 - "Community 8"
+Cohesion: 0.17
+Nodes (15): merge_features(), _gtf_line(), Regression tests for the cross-scaffold MSTRG ID collision bug.  Root cause (iss, Exons from a colliding scaffold must not be merged into the BRAKER transcript., fix_feature_coordinates must skip features whose seqname differs from the transc, test_cross_scaffold_mstrg_collision_multi_exon(), test_fix_feature_coordinates_ignores_wrong_scaffold(), _gtf_line() (+7 more)
+
+### Community 9 - "Community 9"
 Cohesion: 0.19
 Nodes (15): get_cds_features(), get_sequence(), main(), normalize_transcript(), parse_attrs(), parse_gtf(), Update gene and transcript boundaries to match their features., Write normalized GTF, preserving gene/transcript/feature order. (+7 more)
 
-### Community 9 - "Community 9"
+### Community 10 - "Community 10"
 Cohesion: 0.14
 Nodes (10): check_tool_in_given_path(), create_log_file_name(), create_random_string(), create_tmp_dir(), find_tool(), Funtion that creates a random string added to the logfile name         and tmp d, Function that creates a log file with a random name, Function that creates a directory for temporary files with a random name (+2 more)
 
-### Community 10 - "Community 10"
+### Community 11 - "Community 11"
 Cohesion: 0.27
 Nodes (9): Enum, addToDict(), addToGc(), initCounts(), main(), parse(), parseCmd(), printStatistics() (+1 more)
 
-### Community 11 - "Community 11"
+### Community 12 - "Community 12"
 Cohesion: 0.24
 Nodes (11): compute_statistics(), generate_plots(), main(), parse_gtf(), parse_support_tsv(), Parse gene_support.tsv for evidence support visualization., Generate all publication-quality plots., Parse GTF file into gene/transcript/exon structure.      Returns:         genes: (+3 more)
 
-### Community 12 - "Community 12"
+### Community 13 - "Community 13"
 Cohesion: 0.26
 Nodes (11): classify_proteins(), _compile_categories(), main(), parse_results(), Map each protein to all categories its GO terms touch.      Returns a Counter of, Stream results.csv: collect counters AND per-row tuples for the TSV., Flat per-(transcript, GO term) TSV with human-readable GO names., Pie chart of broad functional categories.      Each protein is counted once per (+3 more)
 
-### Community 13 - "Community 13"
+### Community 14 - "Community 14"
 Cohesion: 0.29
 Nodes (9): extract_gene_blocks(), main(), parse_cds_intron_chains(), parse_intron_hints(), Rename gene and transcript IDs in GTF lines to avoid collisions.      Prefixes a, Parse hintsfile.gff and return a set of (chrom, start, end, strand) for intron h, Parse a GTF and return per-transcript CDS intron chains.      Returns:         c, Extract full gene blocks (all GTF lines) for given transcript IDs.      Returns (+1 more)
 
-### Community 14 - "Community 14"
+### Community 15 - "Community 15"
 Cohesion: 0.29
 Nodes (9): _add_ontology_term(), decorate(), load_go_assignments(), _lookup_key(), main(), Two-pass: build transcript->gene map, then rewrite the GFF3.      Both `mRNA` an, Return the FANTASIA lookup key for a transcript-equivalent row.      Prefers `tr, Map transcript_id -> set of GO IDs above the score threshold. (+1 more)
 
-### Community 15 - "Community 15"
+### Community 16 - "Community 16"
 Cohesion: 0.29
 Nodes (9): check_exon_support(), check_support(), main(), parse_gtf_transcripts(), parse_hints(), Check how many intervals are supported by hints.      For introns: exact match (, Check how many exons have any overlapping exon/CDS hints.      Uses overlap (not, Parse hints file into interval trees by (chrom, feature_type, source_class). (+1 more)
-
-### Community 16 - "Community 16"
-Cohesion: 0.31
-Nodes (9): merge_features(), _gtf_line(), Regression and positive tests for the single-exon guard added to merge_features(, For a multi-exon BRAKER transcript the single-exon guard must not     activate;, Distant second exon of a multi-exon StringTie transcript must not be     merged, A StringTie exon that overlaps the BRAKER exon must still be merged., test_multi_exon_braker_all_stringtie_exons_merged(), test_single_exon_braker_distant_stringtie_exon_not_merged() (+1 more)
 
 ### Community 17 - "Community 17"
 Cohesion: 0.36
@@ -228,18 +237,54 @@ Nodes (1): Check if the overlapping transcripts are compatible with the gene mod
 
 ### Community 35 - "Community 35"
 Cohesion: 1.0
-Nodes (1): .gitignore (BRAKER4)
+Nodes (1): Create a UTR feature line with explicit start/end coordinates.      Avoids the s
 
 ### Community 36 - "Community 36"
 Cohesion: 1.0
-Nodes (1): MIT License (BRAKER4)
+Nodes (1): Compute the UTR features for each transcript in tsebra_gtf based on strand infor
 
 ### Community 37 - "Community 37"
+Cohesion: 1.0
+Nodes (1): The list of features in gtf_dict has been expanded compared to the original vers
+
+### Community 38 - "Community 38"
+Cohesion: 1.0
+Nodes (1): Print GTF lines based on gene_dict and gtf_dict.          Args:     - filename (
+
+### Community 39 - "Community 39"
+Cohesion: 1.0
+Nodes (1): Build an interval tree from data. We will use that to quickly find the overlappi
+
+### Community 40 - "Community 40"
+Cohesion: 1.0
+Nodes (1): Contructs a dictionary that has sequence name as first key, then strand as secon
+
+### Community 41 - "Community 41"
+Cohesion: 1.0
+Nodes (1): Find transcripts that overlap with genes.
+
+### Community 42 - "Community 42"
+Cohesion: 1.0
+Nodes (1): Extract introns directly from stringtie_tx_dict.
+
+### Community 43 - "Community 43"
+Cohesion: 1.0
+Nodes (1): Check if the overlapping transcripts are compatible with the gene models.     In
+
+### Community 44 - "Community 44"
+Cohesion: 1.0
+Nodes (1): .gitignore (BRAKER4)
+
+### Community 45 - "Community 45"
+Cohesion: 1.0
+Nodes (1): MIT License (BRAKER4)
+
+### Community 46 - "Community 46"
 Cohesion: 1.0
 Nodes (1): samples.csv + config.ini input specification
 
 ## Knowledge Gaps
-- **138 isolated node(s):** `Parse BUSCO summary for genome and proteome scores.`, `Parse compleasm summary.txt.`, `Generate horizontal stacked bar chart.`, `Parse hintsfile.gff and return a set of (chrom, start, end, strand) for intron h`, `Parse a GTF and return per-transcript CDS intron chains.      Returns:         c` (+133 more)
+- **150 isolated node(s):** `Parse BUSCO summary for genome and proteome scores.`, `Parse compleasm summary.txt.`, `Generate horizontal stacked bar chart.`, `Parse hintsfile.gff and return a set of (chrom, start, end, strand) for intron h`, `Parse a GTF and return per-transcript CDS intron chains.      Returns:         c` (+145 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **Thin community `Community 22`** (2 nodes): `Translation table validation (codes 1, 6, 29 only)`, `Rationale: restrict translation_table to {1,6,29} because gmes_petap.pl rejects others`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -267,20 +312,38 @@ Nodes (1): samples.csv + config.ini input specification
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 34`** (1 nodes): `Check if the overlapping transcripts are compatible with the gene models.     In`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 35`** (1 nodes): `.gitignore (BRAKER4)`
+- **Thin community `Community 35`** (1 nodes): `Create a UTR feature line with explicit start/end coordinates.      Avoids the s`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 36`** (1 nodes): `MIT License (BRAKER4)`
+- **Thin community `Community 36`** (1 nodes): `Compute the UTR features for each transcript in tsebra_gtf based on strand infor`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 37`** (1 nodes): `samples.csv + config.ini input specification`
+- **Thin community `Community 37`** (1 nodes): `The list of features in gtf_dict has been expanded compared to the original vers`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 38`** (1 nodes): `Print GTF lines based on gene_dict and gtf_dict.          Args:     - filename (`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 39`** (1 nodes): `Build an interval tree from data. We will use that to quickly find the overlappi`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 40`** (1 nodes): `Contructs a dictionary that has sequence name as first key, then strand as secon`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 41`** (1 nodes): `Find transcripts that overlap with genes.`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 42`** (1 nodes): `Extract introns directly from stringtie_tx_dict.`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 43`** (1 nodes): `Check if the overlapping transcripts are compatible with the gene models.     In`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 44`** (1 nodes): `.gitignore (BRAKER4)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 45`** (1 nodes): `MIT License (BRAKER4)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 46`** (1 nodes): `samples.csv + config.ini input specification`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `overlap()` connect `Community 2` to `Community 16`, `Community 15`?**
-  _High betweenness centrality (0.006) - this node is a cross-community bridge._
+- **Why does `merge_features()` connect `Community 8` to `Community 2`?**
+  _High betweenness centrality (0.008) - this node is a cross-community bridge._
 - **What connects `Parse BUSCO summary for genome and proteome scores.`, `Parse compleasm summary.txt.`, `Generate horizontal stacked bar chart.` to the rest of the system?**
-  _138 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _150 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.07 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
