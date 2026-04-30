@@ -269,6 +269,15 @@ def merge_features(tsebra_gtf, stringtie_gtf, selected_transcripts):
         stringtie_exons = [f for f in stringtie_gtf[stringtie_tx] if f.split('\t')[2] == 'exon']
         tsebra_cds_features = [f for f in tsebra_features if f.split('\t')[2] == 'CDS']
 
+        # When StringTie is run per-scaffold and outputs are merged, MSTRG IDs
+        # can collide: the same transcript_id appears on multiple scaffolds and
+        # read_gtf() groups all those features under one key. Only keep StringTie
+        # exons that are on the same scaffold as the BRAKER transcript.
+        tsebra_seqname = tsebra_features[0].split('\t')[0] if tsebra_features else None
+        if tsebra_seqname:
+            stringtie_exons = [e for e in stringtie_exons
+                               if e.split('\t')[0] == tsebra_seqname]
+
         # For single-exon BRAKER transcripts, only accept StringTie exons that overlap
         # the BRAKER exon. Single-exon genes are matched by position overlap, not by
         # intron identity, so a multi-exon StringTie transcript can be selected whose
@@ -450,13 +459,21 @@ def fix_feature_coordinates(gtf_dict, gene_dict, tx_to_gene_dict, tx_dict):
     """
     # 1. Update transcript coordinates based on feature coordinates in gtf_dict
     for tx_id, features in gtf_dict.items():
+        # Determine the expected scaffold from the transcript line so that any
+        # cross-scaffold features that slipped through cannot corrupt coordinates.
+        tx_seqname = tx_dict[tx_id].split('\t')[0] if tx_id in tx_dict else None
         starts = []
         ends = []
         for feature in features:
             fields = feature.split('\t')
+            if tx_seqname and fields[0] != tx_seqname:
+                continue
             starts.append(int(fields[3]))
             ends.append(int(fields[4]))
-        
+
+        if not starts:
+            continue
+
         # Find the min and max coordinates for the transcript
         min_coord = min(starts)
         max_coord = max(ends)
