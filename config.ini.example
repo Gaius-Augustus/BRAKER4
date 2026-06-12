@@ -23,22 +23,24 @@ augustus_config_path = augustus_config
 ; rfam_path = /path/to/rfam           ; legacy alternative: directory containing both files
 
 [containers]
-; All container images below default to their docker:// URIs and are pulled on
-; first use. To use pre-downloaded local SIF files instead (avoids pulling),
-; replace any docker:// URI with the absolute path to the .sif file, e.g.:
+; All container images default to their docker:// URIs (see Snakefile for the
+; exact defaults) and are pulled on first use. Only set a key here to override
+; the default — e.g. to pin a different tag or use a pre-downloaded SIF file:
 ;   braker3_image = /path/to/braker3_v3.0.10.sif
-braker3_image = docker://teambraker/braker3:v3.0.10
-isoseq_image = docker://teambraker/braker3:isoseq
-minimap2_image = docker://katharinahoff/minimap-minisplice:v0.1
-minisplice_image = docker://katharinahoff/minimap-minisplice:v0.1
-red_image = docker://quay.io/biocontainers/red:2018.09.10--h9948957_3
-gffcompare_image = docker://quay.io/biocontainers/gffcompare:0.12.6--h9f5acd7_1
-agat_image = docker://quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0
-pybarrnap_image = docker://quay.io/biocontainers/pybarrnap:0.5.1--pyhdfd78af_0
-busco_image = docker://ezlabgva/busco:v6.0.0_cv1
-omark_image = docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0
-tetools_image = docker://dfam/tetools:latest
-varus_image = docker://katharinahoff/varus-notebook:v0.0.6
+;   braker3_image = docker://teambraker/braker3:devel
+;
+;braker3_image = docker://teambraker/braker3:v3.1.0
+;isoseq_image = docker://teambraker/braker3:isoseq
+;minimap2_image = docker://katharinahoff/minimap-minisplice:v0.1
+;minisplice_image = docker://katharinahoff/minimap-minisplice:v0.1
+;red_image = docker://quay.io/biocontainers/red:2018.09.10--h9948957_3
+;gffcompare_image = docker://quay.io/biocontainers/gffcompare:0.12.6--h9f5acd7_1
+;agat_image = docker://quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0
+;pybarrnap_image = docker://quay.io/biocontainers/pybarrnap:0.5.1--pyhdfd78af_0
+;busco_image = docker://ezlabgva/busco:v6.0.0_cv1
+;omark_image = docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0
+;tetools_image = docker://dfam/tetools:latest
+;varus_image = docker://katharinahoff/varus-notebook:v0.0.6
 
 [PARAMS]
 ; Set to 1 for fungal genomes (GeneMark uses branch point model).
