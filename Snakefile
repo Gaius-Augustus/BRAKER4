@@ -100,7 +100,7 @@ config['samples_file'] = config_parser['paths'].get('samples_file', 'samples.csv
 config['fungus'] = config_parser.getboolean('PARAMS', 'fungus', fallback=False)
 config['min_contig'] = config_parser.getint('PARAMS', 'min_contig', fallback=10000)
 _container_defaults = {
-    'braker3_image':   'docker://teambraker/braker3:v3.0.10',
+    'braker3_image':   'docker://teambraker/braker3:v3.1.0',
     'isoseq_image':    'docker://teambraker/braker3:isoseq',
     'minimap2_image':  'docker://katharinahoff/minimap-minisplice:v0.1',
     'minisplice_image':'docker://katharinahoff/minimap-minisplice:v0.1',
