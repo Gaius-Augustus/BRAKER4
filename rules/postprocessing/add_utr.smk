@@ -60,7 +60,7 @@ rule run_stringtie:
             echo "Merging $(echo {input.bams} | wc -w) BAM files..." > {log}
             samtools merge -@ {threads} output/{wildcards.sample}/stringtie/merged.bam {input.bams} 2>> {log}
             samtools sort -@ {threads} -o output/{wildcards.sample}/stringtie/merged.s.bam output/{wildcards.sample}/stringtie/merged.bam 2>> {log}
-            samtools index -@ {threads} output/{wildcards.sample}/stringtie/merged.s.bam 2>> {log}
+            samtools index -c -@ {threads} output/{wildcards.sample}/stringtie/merged.s.bam 2>> {log}
             INPUT_BAM=output/{wildcards.sample}/stringtie/merged.s.bam
             rm -f output/{wildcards.sample}/stringtie/merged.bam
         else
@@ -82,7 +82,7 @@ rule run_stringtie:
         ST_VER=$(stringtie --version 2>&1 | head -1 || echo "unknown")
         ( flock 9; printf "StringTie\t%s\n" "$ST_VER" >> "$VERSIONS_FILE" ) 9>"$VERSIONS_FILE.lock"
 
-        rm -f output/{wildcards.sample}/stringtie/merged.s.bam output/{wildcards.sample}/stringtie/merged.s.bam.bai
+        rm -f output/{wildcards.sample}/stringtie/merged.s.bam output/{wildcards.sample}/stringtie/merged.s.bam.csi
         """
 
 

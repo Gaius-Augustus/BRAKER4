@@ -10,7 +10,7 @@ Input:
 
 Output:
     - Coordinate-sorted BAM file
-    - Index file (.bai)
+    - Index file (.csi)
 
 Container: teambraker/braker3:latest (contains samtools)
 """
@@ -30,7 +30,7 @@ rule check_bam_sorted:
         bam=get_input_bam
     output:
         bam=temp("output/{sample}/bam_sorted/{bam_id}.sorted.bam"),
-        bai=temp("output/{sample}/bam_sorted/{bam_id}.sorted.bam.bai")
+        csi=temp("output/{sample}/bam_sorted/{bam_id}.sorted.bam.csi")
     log:
         "logs/{sample}/check_bam_sorted/{bam_id}.log"
     benchmark:
@@ -54,13 +54,13 @@ rule check_bam_sorted:
             ln -sf $(readlink -f {input.bam}) {output.bam} 2>> {log}
 
             # Test if we can index it
-            if samtools index -@ {threads} {output.bam} 2>> {log}; then
+            if samtools index -c -@ {threads} {output.bam} 2>> {log}; then
                 echo "BAM file is properly sorted and indexable" >> {log}
                 IS_SORTED=true
             else
                 echo "BAM file claims to be sorted but cannot be indexed (unmapped reads in wrong position)" >> {log}
                 echo "Will re-sort to fix the issue" >> {log}
-                rm -f {output.bam} {output.bai}
+                rm -f {output.bam} {output.csi}
                 IS_SORTED=false
             fi
         else
@@ -82,10 +82,10 @@ rule check_bam_sorted:
             echo "Sorting complete" >> {log}
 
             # Create index
-            samtools index -@ {threads} {output.bam} 2>> {log}
+            samtools index -c -@ {threads} {output.bam} 2>> {log}
             echo "Indexing complete" >> {log}
         fi
 
         echo "Final BAM file: {output.bam}" >> {log}
-        echo "Final index file: {output.bai}" >> {log}
+        echo "Final index file: {output.csi}" >> {log}
         """

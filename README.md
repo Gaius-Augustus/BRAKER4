@@ -717,7 +717,7 @@ The BAM file must contain spliced alignments to the genome. You can generate it 
 
 ```
 minimap2 -t 48 -ax splice:hq -uf genome.fa isoseq.fa | samtools sort -@ 48 -o isoseq.bam
-samtools index isoseq.bam
+samtools index -c isoseq.bam
 ```
 
 **Unaligned IsoSeq FASTA/FASTQ:**

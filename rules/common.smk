@@ -395,17 +395,17 @@ def get_rnaseq_bam(wildcards):
     if bam_id in get_bam_ids(sample):
         return {
             "bam": f"output/{sample}/bam_sorted/{bam_id}.sorted.bam",
-            "bai": f"output/{sample}/bam_sorted/{bam_id}.sorted.bam.bai"
+            "csi": f"output/{sample}/bam_sorted/{bam_id}.sorted.bam.csi"
         }
     elif bam_id in get_sra_ids(sample) or bam_id in get_fastq_ids(sample):
         return {
             "bam": f"output/{sample}/hisat2_aligned/{bam_id}.sorted.bam",
-            "bai": f"output/{sample}/hisat2_aligned/{bam_id}.sorted.bam.bai"
+            "csi": f"output/{sample}/hisat2_aligned/{bam_id}.sorted.bam.csi"
         }
     elif bam_id in get_varus_ids(sample):
         return {
             "bam": f"output/{sample}/varus/varus.sorted.bam",
-            "bai": f"output/{sample}/varus/varus.sorted.bam.bai"
+            "csi": f"output/{sample}/varus/varus.sorted.bam.csi"
         }
     else:
         raise ValueError(f"Unknown RNA-seq ID: {bam_id} for sample {sample}")

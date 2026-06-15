@@ -84,7 +84,7 @@ rule hisat2_align:
         deps=_get_align_deps
     output:
         bam="output/{sample}/hisat2_aligned/{align_id}.sorted.bam",
-        bai="output/{sample}/hisat2_aligned/{align_id}.sorted.bam.bai"
+        csi="output/{sample}/hisat2_aligned/{align_id}.sorted.bam.csi"
     log:
         "logs/{sample}/hisat2/{align_id}.log"
     benchmark:
@@ -144,7 +144,7 @@ rule hisat2_align:
         fi
 
         # Index the BAM
-        samtools index -@ {threads} {output.bam} 2>> {log}
+        samtools index -c -@ {threads} {output.bam} 2>> {log}
 
         N_READS=$(samtools view -c {output.bam})
         echo "Alignment complete: $N_READS reads mapped" >> {log}
