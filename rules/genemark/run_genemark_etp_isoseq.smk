@@ -19,12 +19,31 @@ def _get_etp_isoseq_bam_files(wildcards):
         return [isoseq_bam]
     return []
 
+def _get_etp_bam_files(wildcards):
+    """Get sorted short-read BAM files for GeneMark-ETP.
+    """
+    sample = wildcards.sample
+    mode = get_braker_mode(sample)
+    bams = []
+
+    for bid in get_bam_ids(sample):
+        bams.append(f"output/{sample}/bam_sorted/{bid}.sorted.bam")
+    for sid in get_sra_ids(sample):
+        bams.append(f"output/{sample}/hisat2_aligned/{sid}.sorted.bam")
+    for fid in get_fastq_ids(sample):
+        bams.append(f"output/{sample}/hisat2_aligned/{fid}.sorted.bam")
+    for vid in get_varus_ids(sample):
+        bams.append(f"output/{sample}/varus/{vid}.sorted.bam")
+
+    return bams
+
 
 rule run_genemark_etp_isoseq:
     input:
         genome=lambda wildcards: get_masked_genome(wildcards.sample),
         proteins=lambda wildcards: get_protein_fasta(wildcards.sample),
-        bams=_get_etp_isoseq_bam_files
+        bams=_get_etp_isoseq_bam_files,
+        sr_bams=_get_etp_bam_files
     output:
         gtf="output/{sample}/GeneMark-ETP-isoseq/genemark.gtf",
         training="output/{sample}/GeneMark-ETP-isoseq/training.gtf",
@@ -40,11 +59,11 @@ rule run_genemark_etp_isoseq:
         mem_mb=int(config['slurm_args']['mem_of_node']),
         runtime=int(config['slurm_args']['max_runtime'])
     params:
-        outdir=lambda wildcards: f"output/{wildcards.sample}/GeneMark-ETP-isoseq",
+        outdir="output/{sample}/GeneMark-ETP-isoseq",
         species_name=lambda wildcards: get_species_name(wildcards),
         fungus="--fungus" if config.get("fungus", False) else ""
     container:
-        ISOSEQ_CONTAINER
+        BRAKER3_CONTAINER
     shell:
         r"""
         # Disable set -e and pipefail: gmetp.pl, get_etp_hints.py, and
@@ -52,19 +71,34 @@ rule run_genemark_etp_isoseq:
         set +e
         set +o pipefail
         WORKDIR=$(pwd)
-        mkdir -p {params.outdir}/etp_data
+        mkdir -p {params.outdir}/etp_lr_data # isoseq reads
+        mkdir -p {params.outdir}/etp_sr_data # short reads
 
         OUTDIR_ABS=$(readlink -f {params.outdir})
         GENOME_ABS=$(readlink -f {input.genome})
         PROTEINS_ABS=$(readlink -f {input.proteins})
 
-        # Step 1: Copy IsoSeq BAM into etp_data/
+        # Step 1: Copy IsoSeq BAM into etp_lr_data/
         echo "Preparing IsoSeq BAM for GeneMark-ETP (isoseq)..." > {log}
         BAM_IDS=""
         for bam in {input.bams}; do
             BAM_ABS=$(readlink -f $bam)
             LIB=$(basename $bam .sorted.bam)
-            cp $BAM_ABS $OUTDIR_ABS/etp_data/${{LIB}}.bam
+            cp $BAM_ABS $OUTDIR_ABS/etp_lr_data/${{LIB}}.bam
+            if [ -z "$BAM_IDS" ]; then
+                BAM_IDS="$LIB"
+            else
+                BAM_IDS="$BAM_IDS,$LIB"
+            fi
+            echo "  Prepared BAM: $LIB" >> {log}
+        done
+
+        echo "Preparing SR BAM for GeneMark-ETP (isoseq)..." > {log}
+        BAM_IDS=""
+        for bam in {input.sr_bams}; do
+            BAM_ABS=$(readlink -f $bam)
+            LIB=$(basename $bam .sorted.bam)
+            cp $BAM_ABS $OUTDIR_ABS/etp_sr_data/${{LIB}}.bam
             if [ -z "$BAM_IDS" ]; then
                 BAM_IDS="$LIB"
             else
@@ -90,15 +124,15 @@ YAMLEOF
 
         echo "YAML config created with rnaseq_sets: [$BAM_IDS]" >> {log}
 
-        GMES_CORES=$(python3 -c "txt=open('/proc/cpuinfo').read(); c=[l.split(':')[-1].strip() for l in txt.splitlines() if l.startswith('cpu cores')]; s=set(l.split(':')[-1].strip() for l in txt.splitlines() if l.startswith('physical id')); total=int(c[0])*max(1,len(s)) if c else 0; print(min({threads},total) if 0<total<{threads} else {threads})" 2>/dev/null || echo {threads})
-
+        GMES_CORES={threads}
         # Step 4: Run GeneMark-ETP with isoseq container
         cd $OUTDIR_ABS
 
         if gmetp.pl \
             --cfg $OUTDIR_ABS/etp_config.yaml \
             --workdir $OUTDIR_ABS \
-            --bam $OUTDIR_ABS/etp_data/ \
+            --long_bam $OUTDIR_ABS/etp_lr_data/RNAseq.bam \
+            --bam $OUTDIR_ABS/etp_sr_data/ \
             --cores $GMES_CORES \
             --softmask \
             {params.fungus} \
