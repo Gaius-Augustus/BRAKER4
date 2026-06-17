@@ -584,7 +584,7 @@ def get_extrinsic_cfg(wildcards):
 # Container Configuration
 # ==============================================================================
 
-BRAKER3_CONTAINER = config.get("braker3_image", "docker://teambraker/braker3:v3.0.10")
+BRAKER3_CONTAINER = config.get("braker3_image", "docker://teambraker/braker3:v3.1.1")
 ISOSEQ_CONTAINER = config.get("isoseq_image", "docker://teambraker/braker3:isoseq")
 MINIMAP2_CONTAINER = config.get("minimap2_image", "docker://katharinahoff/minimap-minisplice:v0.1")
 MINISPLICE_CONTAINER = config.get("minisplice_image", "docker://katharinahoff/minimap-minisplice:v0.1")
