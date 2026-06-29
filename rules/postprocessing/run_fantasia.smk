@@ -50,6 +50,8 @@ rule fantasia_annotate:
         lookup_dir=FANTASIA_LOOKUP_DIR,
         add_params=FANTASIA_ADD_PARAMS,
         outdir=lambda wc: f"output/{wc.sample}/fantasia"
+    conda:
+        envs/singularity.yaml
     threads:
         int(config['fantasia'].get('cpus_per_task', config['slurm_args']['cpus_per_task']))
     resources:

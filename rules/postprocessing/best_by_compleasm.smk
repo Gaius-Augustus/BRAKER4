@@ -42,10 +42,7 @@ def _bbc_genemark_inputs(wildcards):
     elif mode == 'et':
         sr = f"output/{sample}/genemark/genemark.gtf"
     elif mode == 'dual':
-        return {
-            "genemark_sr":  f"output/{sample}/GeneMark-ETP/genemark.gtf",
-            "genemark_iso": f"output/{sample}/GeneMark-ETP-isoseq/genemark.gtf",
-        }
+        sr = f"output/{sample}/GeneMark-ETP-isoseq/genemark.gtf"
     else:  # etp / isoseq
         sr = f"output/{sample}/GeneMark-ETP/genemark.gtf"
     # Non-dual: alias genemark_iso to genemark_sr (the iso branch never runs).
@@ -185,39 +182,39 @@ rule best_by_compleasm:
         }}
 
         # ---------------------------------------------------------------- main
-        if [ "{params.mode}" = "dual" ]; then
-            echo "[INFO] dual mode: running 3 best_by_compleasm passes" >> {log}
-
-            # Pass 1: rescue using SHORT-READ GeneMark-ETP
-            run_pass "sr"  {input.braker_raw} {input.augustus_gtf} {input.genemark_sr}
-            pick_result "sr"  {input.braker_raw} "$TMP/sr_rescued.gtf"
-
-            # Pass 2: rescue using ISOSEQ GeneMark-ETP
-            run_pass "iso" {input.braker_raw} {input.augustus_gtf} {input.genemark_iso}
-            pick_result "iso" {input.braker_raw} "$TMP/iso_rescued.gtf"
-
-            # Pass 3: merge the two rescued sets
-            #   The script always wants three inputs (braker, augustus, genemark);
-            #   we feed it the original braker as "braker", the SR-rescued set as
-            #   "augustus", and the IsoSeq-rescued set as "genemark". run_pass
-            #   regenerates augustus.hints.aa from sr_rescued.gtf so compleasm
-            #   sees a protein set that matches the staged augustus.hints.gtf.
-            run_pass "final" {input.braker_raw} "$TMP/sr_rescued.gtf" "$TMP/iso_rescued.gtf"
-            pick_result "final" {input.braker_raw} {output.braker_merged_gtf}
-
-            # Aggregate logs from all three passes into the master bbc_log
-            {{
-                echo "===== best_by_compleasm pass 1 (short-read) ====="
-                cat "$TMP/sr/bbc.stdout" 2>/dev/null || true
-                echo
-                echo "===== best_by_compleasm pass 2 (IsoSeq) ====="
-                cat "$TMP/iso/bbc.stdout" 2>/dev/null || true
-                echo
-                echo "===== best_by_compleasm pass 3 (merge) ====="
-                cat "$TMP/final/bbc.stdout" 2>/dev/null || true
-            }} > {output.bbc_log}
-
-        else
+        # if [ "{params.mode}" = "dual" ]; then
+        #     echo "[INFO] dual mode: running 3 best_by_compleasm passes" >> {log}
+        #
+        #     # Pass 1: rescue using SHORT-READ GeneMark-ETP
+        #     run_pass "sr"  {input.braker_raw} {input.augustus_gtf} {input.genemark_sr}
+        #     pick_result "sr"  {input.braker_raw} "$TMP/sr_rescued.gtf"
+        #
+        #     # Pass 2: rescue using ISOSEQ GeneMark-ETP
+        #     run_pass "iso" {input.braker_raw} {input.augustus_gtf} {input.genemark_iso}
+        #     pick_result "iso" {input.braker_raw} "$TMP/iso_rescued.gtf"
+        #
+        #     # Pass 3: merge the two rescued sets
+        #     #   The script always wants three inputs (braker, augustus, genemark);
+        #     #   we feed it the original braker as "braker", the SR-rescued set as
+        #     #   "augustus", and the IsoSeq-rescued set as "genemark". run_pass
+        #     #   regenerates augustus.hints.aa from sr_rescued.gtf so compleasm
+        #     #   sees a protein set that matches the staged augustus.hints.gtf.
+        #     run_pass "final" {input.braker_raw} "$TMP/sr_rescued.gtf" "$TMP/iso_rescued.gtf"
+        #     pick_result "final" {input.braker_raw} {output.braker_merged_gtf}
+        #
+        #     # Aggregate logs from all three passes into the master bbc_log
+        #     {{
+        #         echo "===== best_by_compleasm pass 1 (short-read) ====="
+        #         cat "$TMP/sr/bbc.stdout" 2>/dev/null || true
+        #         echo
+        #         echo "===== best_by_compleasm pass 2 (IsoSeq) ====="
+        #         cat "$TMP/iso/bbc.stdout" 2>/dev/null || true
+        #         echo
+        #         echo "===== best_by_compleasm pass 3 (merge) ====="
+        #         cat "$TMP/final/bbc.stdout" 2>/dev/null || true
+        #     }} > {output.bbc_log}
+        #
+        # else
             echo "[INFO] non-dual mode: running 1 best_by_compleasm pass" >> {log}
             run_pass "single" {input.braker_raw} {input.augustus_gtf} {input.genemark_sr}
             pick_result "single" {input.braker_raw} {output.braker_merged_gtf}
@@ -225,7 +222,7 @@ rule best_by_compleasm:
             if [ ! -s {output.bbc_log} ]; then
                 echo "best_by_compleasm produced no stdout (script may have failed)" > {output.bbc_log}
             fi
-        fi
+        # fi
 
         # Final sanity check — ensure the output file exists
         if [ ! -f {output.braker_merged_gtf} ]; then

@@ -96,7 +96,7 @@ def _get_stringtie_gtf(wildcards):
     sample = wildcards.sample
     mode = get_braker_mode(sample)
     if mode == 'dual':
-        return f"output/{sample}/dual_etp_merged/transcripts_merged.gff"
+        return f"output/{sample}/GeneMark-ETP-isoseq/rnaseq/stringtie/transcripts_merged.gff"
     elif mode in ('etp', 'isoseq'):
         return f"output/{sample}/GeneMark-ETP/rnaseq/stringtie/transcripts_merged.gff"
     else:  # et
@@ -123,7 +123,7 @@ rule add_utr:
         script=os.path.join(script_dir, "stringtie2utr.py")
     threads: 1
     resources:
-        mem_mb=int(config['slurm_args']['mem_of_node']) // int(config['slurm_args']['cpus_per_task']),
+        mem_mb=int(config['slurm_args']['mem_of_node']),
         runtime=int(config['slurm_args']['max_runtime'])
     container:
         BRAKER3_CONTAINER

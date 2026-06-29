@@ -490,7 +490,7 @@ def get_genemark_output(wildcards):
     elif mode == 'ep':
         return f"output/{sample}/GeneMark-EP/genemark.gtf"
     elif mode == 'dual':
-        return f"output/{sample}/dual_etp_merged/training.gtf"
+        return f"output/{sample}/GeneMark-ETP-isoseq/training.gtf"
     elif mode in ('etp', 'isoseq'):
         return f"output/{sample}/GeneMark-ETP/training.gtf"
     else:  # et
@@ -529,7 +529,7 @@ def get_genemark_training_gtf(wildcards):
     sample = wildcards.sample if hasattr(wildcards, 'sample') else wildcards
     mode = get_braker_mode(sample)
     if mode == 'dual':
-        return f"output/{sample}/dual_etp_merged/training.gtf"
+        return f"output/{sample}/GeneMark-ETP-isoseq/training.gtf"
     elif mode in ('etp', 'isoseq'):
         return f"output/{sample}/GeneMark-ETP/training.gtf"
     else:
@@ -584,8 +584,7 @@ def get_extrinsic_cfg(wildcards):
 # Container Configuration
 # ==============================================================================
 
-BRAKER3_CONTAINER = config.get("braker3_image", "docker://teambraker/braker3:v3.0.10")
-ISOSEQ_CONTAINER = config.get("isoseq_image", "docker://teambraker/braker3:isoseq")
+BRAKER3_CONTAINER = config.get("braker3_image", "docker://teambraker/braker3:v3.1.1")
 MINIMAP2_CONTAINER = config.get("minimap2_image", "docker://katharinahoff/minimap-minisplice:v0.1")
 MINISPLICE_CONTAINER = config.get("minisplice_image", "docker://katharinahoff/minimap-minisplice:v0.1")
 RED_CONTAINER = config.get("red_image", "docker://quay.io/biocontainers/red:2018.09.10--h9948957_3")
@@ -601,11 +600,8 @@ VARUS_CONTAINER = config.get("varus_image", "docker://katharinahoff/varus-notebo
 # (the IsoSeq container has a GeneMark-ETP build that handles long-read evidence)
 # All other rules always use BRAKER3_CONTAINER
 # GeneMark-ETP container selection:
-# - 'isoseq' mode (IsoSeq only): use ISOSEQ_CONTAINER for the single ETP run
-# - 'dual' mode: short-read ETP uses BRAKER3_CONTAINER, IsoSeq ETP uses ISOSEQ_CONTAINER
-# - 'etp' mode: use BRAKER3_CONTAINER
-HAS_ISOSEQ_ONLY = any(get_braker_mode(s) == 'isoseq' for s in SAMPLES)
-GENEMARK_ETP_CONTAINER = ISOSEQ_CONTAINER if HAS_ISOSEQ_ONLY else BRAKER3_CONTAINER
+# - now everyone uses the normal container
+GENEMARK_ETP_CONTAINER = BRAKER3_CONTAINER
 
 # ==============================================================================
 # Workflow Summary

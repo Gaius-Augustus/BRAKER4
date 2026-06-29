@@ -131,7 +131,7 @@ YAMLEOF
         if gmetp.pl \
             --cfg $OUTDIR_ABS/etp_config.yaml \
             --workdir $OUTDIR_ABS \
-            --long_bam $OUTDIR_ABS/etp_lr_data/RNAseq.bam \
+            --long_bam $OUTDIR_ABS/etp_lr_data/isoseq.bam \
             --bam $OUTDIR_ABS/etp_sr_data/ \
             --cores $GMES_CORES \
             --softmask \
