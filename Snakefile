@@ -8,11 +8,11 @@ Dynamic workflow supporting all BRAKER modes:
 - IsoSeq: PacBio long-read + Proteins
 
 Authors: Henning Krall, Katharina J. Hoff
-Version: 0.4.0-beta
+Version: 0.5.0-beta
 """
 
 __author__ = "Henning Krall,Katharina J. Hoff"
-__version__ = "0.4.0-beta"
+__version__ = "0.5.0-beta"
 
 import pandas as pd
 import configparser
