@@ -59,7 +59,7 @@ rule run_stringtie:
         if [ $(echo {input.bams} | wc -w) -gt 1 ]; then
             echo "Merging $(echo {input.bams} | wc -w) BAM files..." > {log}
             samtools merge -@ {threads} output/{wildcards.sample}/stringtie/merged.bam {input.bams} 2>> {log}
-            samtools sort -@ {threads} -o output/{wildcards.sample}/stringtie/merged.s.bam output/{wildcards.sample}/stringtie/merged.bam 2>> {log}
+            samtools sort -@ {threads} -T {resources.tmpdir}/{wildcards.sample}_addutr -o output/{wildcards.sample}/stringtie/merged.s.bam output/{wildcards.sample}/stringtie/merged.bam 2>> {log}
             samtools index -@ {threads} output/{wildcards.sample}/stringtie/merged.s.bam 2>> {log}
             INPUT_BAM=output/{wildcards.sample}/stringtie/merged.s.bam
             rm -f output/{wildcards.sample}/stringtie/merged.bam

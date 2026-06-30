@@ -75,6 +75,7 @@ rule check_bam_sorted:
             # Sort with parallel threads (fixes BRAKER issue: was -@ 0)
             samtools sort \
                 -@ {threads} \
+                -T {resources.tmpdir}/{wildcards.sample}_{wildcards.bam_id} \
                 -o {output.bam} \
                 {input.bam} \
                 2>> {log}

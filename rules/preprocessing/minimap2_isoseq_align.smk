@@ -112,7 +112,7 @@ rule sort_isoseq_sam:
         echo "Converting SAM to sorted BAM..." > {log}
 
         samtools view -bS --threads 1 {input.sam} | \
-            samtools sort -@ {params.sort_threads} -o {output.bam} 2>> {log}
+            samtools sort -@ {params.sort_threads} -T {resources.tmpdir}/{wildcards.sample}_{wildcards.isoseq_fastq_id} -o {output.bam} 2>> {log}
 
         samtools index -@ {threads} {output.bam} 2>> {log}
 
