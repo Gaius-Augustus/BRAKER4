@@ -531,6 +531,7 @@ enable = 0
 cpus_per_task = 48
 mem_of_node = 120000                # memory in MB
 max_runtime = 4320                  # runtime in minutes (72 hours)
+skip_mem_request = 0                # set to 1 if your cluster does not support requesting memory
 ```
 
 Every value in `[PARAMS]` and `[SLURM_ARGS]` can also be overridden via an environment variable named `BRAKER4_<KEY_UPPER>`, e.g. `BRAKER4_MAX_RUNTIME=240` or `BRAKER4_RUN_NCRNA=1`. Environment variables win over the file. The path of the file itself can be overridden with `BRAKER4_CONFIG=/path/to/another.ini`, which makes it easy to share a single config across multiple runs.
