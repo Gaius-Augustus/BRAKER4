@@ -18,12 +18,6 @@ cmpress indexing runs automatically inside the container on first use
 Container: quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2
 """
 
-INFERNAL_CONTAINER = config.get(
-    "infernal_image",
-    "docker://quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2"
-)
-
-
 rule run_cmscan:
     """Run Infernal cmscan against Rfam to predict ncRNA genes."""
     input:

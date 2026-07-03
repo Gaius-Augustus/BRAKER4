@@ -7,11 +7,6 @@ Outputs GFF3 format natively via the --gff flag.
 Container: quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0
 """
 
-TRNASCAN_CONTAINER = config.get(
-    "trnascan_image",
-    "docker://quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0"
-)
-
 
 rule run_trnascan:
     """Run tRNAscan-SE to predict tRNA genes on the genome."""

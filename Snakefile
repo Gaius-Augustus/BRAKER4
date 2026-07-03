@@ -112,6 +112,9 @@ _container_defaults = {
     'omark_image':     'docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0',
     'tetools_image':   'docker://dfam/tetools:latest',
     'varus_image':     'docker://katharinahoff/varus-notebook:v0.0.6',
+    'trnascan_image': 'docker://quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0',
+    'feelnc_image': 'docker://quay.io/biocontainers/feelnc:0.2--pl526_0',
+    'infernal_image': 'docker://quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2',
 }
 for _img_key, _img_default in _container_defaults.items():
     config[_img_key] = config_parser.get('containers', _img_key, fallback=_img_default)
@@ -642,6 +645,7 @@ if GLOBAL_DATA_TYPES['needs_masking']:
 #   - lncRNA via FEELnc (only when transcript evidence is available)
 # All ncRNA predictions are merged into braker_with_ncRNA.gff3.
 RUN_NCRNA = config.get('run_ncrna', False)
+
 if RUN_NCRNA:
     include: "rules/ncrna/run_barrnap.smk"
     include: "rules/ncrna/run_trnascan.smk"
