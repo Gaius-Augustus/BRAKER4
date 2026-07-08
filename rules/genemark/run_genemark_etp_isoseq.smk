@@ -83,17 +83,17 @@ rule run_genemark_etp_isoseq:
         BAM_IDS=""
         for bam in {input.bams}; do
             BAM_ABS=$(readlink -f $bam)
-            LIB=$(basename $bam .sorted.bam)
-            cp $BAM_ABS $OUTDIR_ABS/etp_lr_data/${{LIB}}.bam
+            LR_LIB=$(basename $bam .sorted.bam)
+            cp $BAM_ABS $OUTDIR_ABS/etp_lr_data/${{LR_LIB}}.bam
             if [ -z "$BAM_IDS" ]; then
-                BAM_IDS="$LIB"
+                BAM_IDS="$LR_LIB"
             else
-                BAM_IDS="$BAM_IDS,$LIB"
+                BAM_IDS="$BAM_IDS,$LR_LIB"
             fi
-            echo "  Prepared BAM: $LIB" >> {log}
+            echo "  Prepared BAM: $LR_LIB" >> {log}
         done
 
-        echo "Preparing SR BAM for GeneMark-ETP (isoseq)..." > {log}
+        echo "Preparing SR BAM for GeneMark-ETP (isoseq)..." >> {log}
         BAM_IDS=""
         for bam in {input.sr_bams}; do
             BAM_ABS=$(readlink -f $bam)
@@ -127,11 +127,11 @@ YAMLEOF
         GMES_CORES={threads}
         # Step 4: Run GeneMark-ETP with isoseq container
         cd $OUTDIR_ABS
-
+        
         if gmetp.pl \
             --cfg $OUTDIR_ABS/etp_config.yaml \
             --workdir $OUTDIR_ABS \
-            --long_bam $OUTDIR_ABS/etp_lr_data/isoseq.bam \
+            --long_bam $OUTDIR_ABS/etp_lr_data/${{LR_LIB}}.bam \
             --bam $OUTDIR_ABS/etp_sr_data/ \
             --cores $GMES_CORES \
             --softmask \
