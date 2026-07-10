@@ -42,7 +42,8 @@ rule run_genemark_etp_isoseq:
     params:
         outdir=lambda wildcards: f"output/{wildcards.sample}/GeneMark-ETP-isoseq",
         species_name=lambda wildcards: get_species_name(wildcards),
-        fungus="--fungus" if config.get("fungus", False) else ""
+        fungus="--fungus" if config.get("fungus", False) else "",
+        translation_table=config.get("translation_table", 1)
     container:
         ISOSEQ_CONTAINER
     shell:
@@ -86,11 +87,11 @@ genome_path: $GENOME_ABS
 protdb_path: $(readlink -f $PROT_FILE)
 rnaseq_sets: [$BAM_IDS]
 species: {params.species_name}_isoseq
+translation_table: {params.translation_table}
+gcode: {params.translation_table}
 YAMLEOF
 
         echo "YAML config created with rnaseq_sets: [$BAM_IDS]" >> {log}
-
-        GMES_CORES=$(python3 -c "txt=open('/proc/cpuinfo').read(); c=[l.split(':')[-1].strip() for l in txt.splitlines() if l.startswith('cpu cores')]; s=set(l.split(':')[-1].strip() for l in txt.splitlines() if l.startswith('physical id')); total=int(c[0])*max(1,len(s)) if c else 0; print(min({threads},total) if 0<total<{threads} else {threads})" 2>/dev/null || echo {threads})
 
         # Step 4: Run GeneMark-ETP with isoseq container
         cd $OUTDIR_ABS
@@ -99,7 +100,7 @@ YAMLEOF
             --cfg $OUTDIR_ABS/etp_config.yaml \
             --workdir $OUTDIR_ABS \
             --bam $OUTDIR_ABS/etp_data/ \
-            --cores $GMES_CORES \
+            --cores {threads} \
             --softmask \
             {params.fungus} \
             >> $WORKDIR/{log} 2>&1
@@ -113,38 +114,10 @@ YAMLEOF
 
         if [ ! -f $OUTDIR_ABS/genemark.gtf ]; then
             echo "ERROR: GeneMark-ETP (isoseq) failed (exit=$ETP_EXIT)" >> {log}
-            if grep -q "Illegal division by zero" $WORKDIR/{log} 2>/dev/null; then
-                N_TRAIN=$(grep "genes found for training:" $WORKDIR/{log} | tail -1 | awk '{{print $NF}}' 2>/dev/null || echo "unknown")
-                echo "HINT: GeneMark-ETP crashed in model training (parse_set.pl / train_super.pl division by zero)." >> {log}
-                echo "  Training genes found: $N_TRAIN (minimum needed: ~100 multi-exon genes)." >> {log}
-                echo "  Likely causes:" >> {log}
-                echo "    1. Fungal organism: add 'fungus: true' to config.yaml" >> {log}
-                echo "    2. Low IsoSeq coverage: too few reads to build reliable gene models" >> {log}
-                echo "    3. Protein database too distant: ProtHint yields too few HC introns" >> {log}
-                echo "  See https://github.com/gatech-genemark/GeneMark-ETP/issues" >> {log}
-            else
-                TSEQ=$OUTDIR_ABS/rnaseq/stringtie/transcripts_merged.fasta
-                if [ -f "$TSEQ" ]; then
-                    TSEQ_SIZE=$(wc -c < "$TSEQ")
-                    echo "DIAGNOSTIC: transcripts_merged.fasta size: $TSEQ_SIZE bytes" >> {log}
-                    if [ "$TSEQ_SIZE" -eq 0 ]; then
-                        echo "HINT: transcripts_merged.fasta is empty -- StringTie produced no transcripts from the IsoSeq BAM. Check alignment quality and coverage." >> {log}
-                    else
-                        echo "HINT: exit 139 = segfault in gmhmmp (internal GeneMark binary). This is a known issue when the transcript set is very large. Try subsampling the IsoSeq BAM and rerunning." >> {log}
-                    fi
-                else
-                    echo "DIAGNOSTIC: transcripts_merged.fasta not found -- GeneMark-ETP likely crashed before StringTie completed." >> {log}
-                fi
-            fi
-            GMS_LOG=$(find $OUTDIR_ABS -name "gms.log" | head -1)
-            if [ -n "$GMS_LOG" ]; then
-                echo "DIAGNOSTIC: last lines of gms.log ($GMS_LOG):" >> {log}
-                tail -10 "$GMS_LOG" >> {log}
-            fi
             exit 1
         fi
 
-        n_genes=$(awk '$3=="gene"{{c++}}END{{print c+0}}' $OUTDIR_ABS/genemark.gtf)
+        n_genes=$(grep -c $'\\tgene\\t' $OUTDIR_ABS/genemark.gtf || echo "0")
         echo "GeneMark-ETP (isoseq) predicted $n_genes genes (exit=$ETP_EXIT)" >> {log}
 
         # Step 5: Find and copy training genes and HC genes
