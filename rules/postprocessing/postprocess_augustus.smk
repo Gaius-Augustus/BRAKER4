@@ -217,6 +217,12 @@ rule assess_completeness:
         fi
 
         echo "[INFO] =======================================" | tee -a {output.compleasm_log}
+
+        # Remove compleasm protein internal files; keep only summary.txt.
+        find {params.compleasm_outdir} -mindepth 1 -type f ! -name 'summary.txt' \
+            -delete 2>/dev/null || true
+        find {params.compleasm_outdir} -mindepth 1 -type d -empty \
+            -delete 2>/dev/null || true
         """
 
 

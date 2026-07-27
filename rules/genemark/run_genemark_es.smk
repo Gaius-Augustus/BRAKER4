@@ -102,4 +102,11 @@ rule run_genemark_es:
         REPORT_DIR=output/{wildcards.sample}
         source {script_dir}/report_citations.sh
         cite genemark_es "$REPORT_DIR"
+
+        # Remove GeneMark-ES working files; keep only Snakemake-tracked outputs.
+        # Iteration directories (itr_1/ etc.) and model files account for most inodes.
+        find {params.outdir} -mindepth 1 -type f \
+            ! -name 'genemark.gtf' ! -name 'gmes.log' \
+            -delete 2>/dev/null || true
+        find {params.outdir} -mindepth 1 -type d -empty -delete 2>/dev/null || true
         """

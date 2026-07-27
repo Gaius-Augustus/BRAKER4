@@ -214,4 +214,19 @@ rule run_omark:
         source {script_dir}/report_citations.sh
         cite omark "$REPORT_DIR"
         cite omamer "$REPORT_DIR"
+
+        # Remove large inputs and OMArk internal files now that the rule is done.
+        # Keep: omark_summary.txt, .done, *_detailed_summary.txt, *.sum, *.tax
+        # (all needed by collect_results). Delete proteome.omamer (large), isoforms.splice,
+        # and any working subdirectories OMArk created.
+        rm -f "$OUTDIR/proteome.omamer" \
+              "$OUTDIR/isoforms.splice" 2>/dev/null || true
+        find "$OUTDIR" -mindepth 1 -type f \
+            ! -name 'omark_summary.txt' \
+            ! -name '.done' \
+            ! -name '*_detailed_summary.txt' \
+            ! -name '*.sum' \
+            ! -name '*.tax' \
+            -delete 2>/dev/null || true
+        find "$OUTDIR" -mindepth 1 -type d -empty -delete 2>/dev/null || true
         """

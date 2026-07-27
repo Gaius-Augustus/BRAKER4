@@ -77,4 +77,12 @@ rule join_hints:
               output/{wildcards.sample}/hints/joined.gff
 
         echo "Final hints file contains $(wc -l < {output.hintsfile}) hints" >> {log}
+
+        # Remove HISAT2 index files; all alignments are done at this point
+        # (join_hints depends on every bam2hints output which depends on every BAM).
+        # Also remove the sentinel so a pipeline restart would rebuild the index
+        # rather than try to align against missing .ht2 files.
+        rm -f output/{wildcards.sample}/hisat2/genome.*.ht2 \
+              output/{wildcards.sample}/hisat2/genome.*.ht2l \
+              output/{wildcards.sample}/hisat2/.index_complete 2>/dev/null || true
         """
