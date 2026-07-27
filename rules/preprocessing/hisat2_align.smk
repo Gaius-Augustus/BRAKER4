@@ -158,6 +158,14 @@ rule hisat2_align:
           printf "SAMtools\t%s\n" "$SAM_VER" >> "$VERSIONS_FILE"
         ) 9>"$VERSIONS_FILE.lock"
 
+        # Remove SRA FASTQ files after alignment (no longer needed downstream)
+        if [ "{params.source}" = "sra" ]; then
+            rm -f {params.sra_dir}/{wildcards.align_id}_1.fastq \
+                  {params.sra_dir}/{wildcards.align_id}_2.fastq \
+                  {params.sra_dir}/{wildcards.align_id}.fastq 2>/dev/null || true
+            echo "Removed SRA FASTQ files for {wildcards.align_id}" >> {log}
+        fi
+
         # Report
         REPORT_DIR=output/{wildcards.sample}
         source {script_dir}/report_citations.sh

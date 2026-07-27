@@ -131,6 +131,11 @@ rule fantasia_annotate:
         source {script_dir}/report_citations.sh
         cite fantasia "$REPORT_DIR"
         cite fantasia_methods "$REPORT_DIR"
+
+        # Remove chunk working dirs and the full embedding matrix; results.csv
+        # and topgo/ are kept (copied by collect_results and read by downstream rules).
+        rm -rf "$OUTDIR/tmp" 2>/dev/null || true
+        rm -f  "$OUTDIR/query_embeddings.npz" 2>/dev/null || true
         """
 
 

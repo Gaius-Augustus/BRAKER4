@@ -145,4 +145,13 @@ rule run_prothint_iter2:
         REPORT_DIR=output/{wildcards.sample}
         source {script_dir}/report_citations.sh || true
         cite prothint "$REPORT_DIR" || true
+
+        # Remove iter2 working directory (not a Snakemake output).
+        rm -rf {params.outdir} 2>/dev/null || true
+        # Remove the Spaln output that iter1 preserved for us; iter2 is done with it.
+        # Leave prothint.gff (Snakemake output from iter1) in place.
+        PROTHINT1_DIR=$(dirname $(readlink -f {input.prothint_evidence}))
+        find "$PROTHINT1_DIR" -mindepth 1 -type f ! -name 'prothint.gff' \
+            -delete 2>/dev/null || true
+        find "$PROTHINT1_DIR" -mindepth 1 -type d -empty -delete 2>/dev/null || true
         """

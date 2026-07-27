@@ -119,4 +119,10 @@ rule run_genemark_ep:
         source {script_dir}/report_citations.sh
         cite genemark_ep "$REPORT_DIR"
         cite braker2 "$REPORT_DIR"
+
+        # Remove GeneMark-EP working files; keep only Snakemake-tracked outputs.
+        find {params.outdir} -mindepth 1 -type f \
+            ! -name 'genemark.gtf' ! -name 'gmes.log' \
+            -delete 2>/dev/null || true
+        find {params.outdir} -mindepth 1 -type d -empty -delete 2>/dev/null || true
         """

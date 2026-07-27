@@ -239,4 +239,14 @@ rule busco_summary:
         else
             echo "Results not found" >> {output.summary}
         fi
+
+        # Remove BUSCO working directories; keep only short_summary*.txt per mode
+        # (collect_results locates them via find -name 'short_summary*.txt') and .done.
+        for bmode in genome proteins; do
+            find {params.busco_dir}/$bmode -mindepth 1 -type f \
+                ! -name 'short_summary*.txt' ! -name '.done' \
+                -delete 2>/dev/null || true
+            find {params.busco_dir}/$bmode -mindepth 1 -type d -empty \
+                -delete 2>/dev/null || true
+        done
         """

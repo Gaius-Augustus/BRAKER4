@@ -119,4 +119,11 @@ rule run_compleasm:
         source {script_dir}/report_citations.sh
         cite compleasm "$REPORT_DIR"
         cite miniprot "$REPORT_DIR"
+
+        # Remove compleasm genome internal files (miniprot alignments, working dirs).
+        # Keep only summary.txt which is the Snakemake-tracked output.
+        find {params.compleasm_outdir} -mindepth 1 -type f ! -name 'summary.txt' \
+            -delete 2>/dev/null || true
+        find {params.compleasm_outdir} -mindepth 1 -type d -empty \
+            -delete 2>/dev/null || true
         """

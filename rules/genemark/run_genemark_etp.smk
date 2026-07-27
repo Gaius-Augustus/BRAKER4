@@ -292,4 +292,15 @@ YAMLEOF
         cite genemark_etp "$REPORT_DIR" || true
         cite genemarks_t "$REPORT_DIR" || true
         cite braker3 "$REPORT_DIR" || true
+
+        # Remove GeneMark-ETP internal working files and etp_data/ BAM copies.
+        # Tracked outputs kept: genemark.gtf, training.gtf, hc.gff,
+        # rnaseq/stringtie/transcripts_merged.gff (etp_hints.gff is outside outdir).
+        find $OUTDIR_ABS -mindepth 1 -type f \
+            ! -name 'genemark.gtf' \
+            ! -name 'training.gtf' \
+            ! -name 'hc.gff' \
+            ! -path '*/rnaseq/stringtie/transcripts_merged.gff' \
+            -delete 2>/dev/null || true
+        find $OUTDIR_ABS -mindepth 1 -type d -empty -delete 2>/dev/null || true
         """
