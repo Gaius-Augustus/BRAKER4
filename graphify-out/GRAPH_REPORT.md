@@ -1,7 +1,7 @@
 # Graph Report - /home/katharina/git/BRAKER4  (2026-07-27)
 
 ## Corpus Check
-- 20 files · ~1,031,371 words
+- 20 files · ~1,106,916 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary

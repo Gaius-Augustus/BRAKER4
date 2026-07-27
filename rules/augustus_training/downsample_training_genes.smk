@@ -154,4 +154,9 @@ rule downsample_training_genes:
 
         echo "[INFO] Downsampling completed successfully"
         echo "[INFO] Output: {output.gb_downsampled}"
+
+        rm -f "{params.output_dir}/clean_genes.lst" \
+              "{params.output_dir}/downsampled_transcripts.lst" \
+              "{params.output_dir}/gene_to_locus.lst" \
+              "{params.output_dir}/downsampled.loci.lst" 2>/dev/null || true
         """

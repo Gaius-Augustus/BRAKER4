@@ -76,4 +76,9 @@ rule merge_isoseq_bams:
         samtools merge -@ {threads} {output.bam} {input.bams} 2>> {log}
         samtools index -@ {threads} {output.bam} 2>> {log}
         echo "Merged IsoSeq BAM: $(samtools view -c {output.bam}) reads" >> {log}
+
+        # Remove per-FASTQ sorted BAMs once merged (can be 1-20 GB each).
+        for _bam in {input.bams}; do
+            rm -f "$_bam" "$_bam.bai" 2>/dev/null || true
+        done
         """
