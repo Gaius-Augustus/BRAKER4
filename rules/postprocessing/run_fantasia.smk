@@ -89,6 +89,8 @@ rule fantasia_annotate:
         echo "[$(date)] Running FANTASIA-Lite on $PROTEINS" >  {log}
         nProteins=$(grep -c '^>' "$PROTEINS" || echo 0)
         echo "[$(date)] Input proteins: $nProteins" >> {log}
+        echo "[$(date)] CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-<not set>}  SLURM_JOB_GPUS=${SLURM_JOB_GPUS:-<not set>}" >> {log}
+        nvidia-smi --query-gpu=index,memory.free,memory.used --format=csv >> {log} 2>&1 || true
 
         # Validated invocation mirroring EukAssembly-Bin (BOUDICCA) V1 and
         # Nextflow_Tiberius_FANTASIA V1.  The lookup bundle is no longer baked

@@ -432,6 +432,71 @@ def check_dir(dir):
         print("ERROR: Directory not found: " + dir)
         sys.exit(1)
 
+def remove_internal_stop_genes(getanno_bin, genome_file, gtf_path, tmp_dir):
+    """Remove genes with internal stop codons from gtf_path in place.
+
+    Runs getAnnoFastaFromJoingenes.py without -s so bad_genes.lst is written,
+    then removes every gene that has at least one transcript with an internal
+    in-frame stop.  This mirrors what filter_internal_stop_codons does later in
+    the pipeline, so TSEBRA never receives genes that would be discarded there.
+    """
+    if not os.path.isfile(gtf_path) or os.stat(gtf_path).st_size == 0:
+        return
+    check_stem = gtf_path + "_stopcheck"
+    bad_genes_lst = os.path.join(tmp_dir, "bad_genes.lst")
+    if os.path.isfile(bad_genes_lst):
+        os.remove(bad_genes_lst)
+    cmd = [getanno_bin, '-g', genome_file, '-f', gtf_path,
+           '-o', check_stem, '-d', tmp_dir]
+    try:
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                       check=False)
+    except Exception:
+        return
+    finally:
+        for ext in ('.aa', '.codingseq'):
+            f = check_stem + ext
+            if os.path.isfile(f):
+                os.remove(f)
+    if not os.path.isfile(bad_genes_lst):
+        return
+    bad_tx_ids = set()
+    with open(bad_genes_lst) as f:
+        for line in f:
+            if line.startswith('#'):
+                continue
+            tx = line.strip().split('\t')[0]
+            if tx:
+                bad_tx_ids.add(tx)
+    os.remove(bad_genes_lst)
+    if not bad_tx_ids:
+        return
+    bad_gene_ids = set()
+    with open(gtf_path) as fin:
+        for line in fin:
+            if line.startswith('#'):
+                continue
+            gm = re.search(r'gene_id "([^"]+)"', line)
+            tm = re.search(r'transcript_id "([^"]+)"', line)
+            if gm and tm and tm.group(1) in bad_tx_ids:
+                bad_gene_ids.add(gm.group(1))
+    if not bad_gene_ids:
+        return
+    print("INFO: Removing " + str(len(bad_gene_ids)) +
+          " gene(s) with internal stop codons from " + os.path.basename(gtf_path))
+    filtered = gtf_path + ".filtered"
+    with open(gtf_path) as fin, open(filtered, 'w') as fout:
+        for line in fin:
+            if line.startswith('#'):
+                fout.write(line)
+                continue
+            gm = re.search(r'gene_id "([^"]+)"', line)
+            if gm and gm.group(1) in bad_gene_ids:
+                continue
+            fout.write(line)
+    shutil.move(filtered, gtf_path)
+
+
 def write_busco_keep_gtf(tx_dict, in_file, out_file):
     """
     Filters and writes GTF lines based on transcript IDs.
@@ -545,10 +610,12 @@ def main():
     hmmoutdir = os.path.join(args.tmp_dir, "augustus", args.busco_db + "_hmmsearch_output")
     keep_aug_dict = parse_hmmsearch_output(hmmoutdir, score_dict, length_dict)
     write_busco_keep_gtf(keep_aug_dict, file_paths["augustus_gtf"], args.tmp_dir + "/augustus_keep.gtf")
+    remove_internal_stop_genes(args.getanno, args.genome, args.tmp_dir + "/augustus_keep.gtf", args.tmp_dir)
     # find the BUSCOs in genemark.gtf
     hmmoutdir = os.path.join(args.tmp_dir, "genemark", args.busco_db + "_hmmsearch_output")
     keep_gm_dict = parse_hmmsearch_output(hmmoutdir, score_dict, length_dict)
     write_busco_keep_gtf(keep_gm_dict, file_paths["genemark_gtf"], args.tmp_dir + "/genemark_keep.gtf")
+    remove_internal_stop_genes(args.getanno, args.genome, args.tmp_dir + "/genemark_keep.gtf", args.tmp_dir)
     # concatenate the two keep gtf files
     try:
         with open(args.tmp_dir + "/augustus_keep.gtf", 'r') as fin, open(args.tmp_dir + "/genemark_keep.gtf", 'r') as fin2, open(args.tmp_dir + "/augustus_genemark_keep.gtf", 'w') as fout:
