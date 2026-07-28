@@ -80,11 +80,14 @@ rule fantasia_annotate:
         OUTDIR=$(readlink -f {params.outdir})
         PROTEINS=$(readlink -f {input.proteins})
 
-        # FANTASIA-Lite ships an offline ProtT5 cache; force the HuggingFace
-        # libraries to use it and never reach out to the network.
+        # ProtT5-XL weights live on NFS ({params.hf_cache}).  Memory-mapping NFS
+        # files and faulting pages during GPU transfer causes SIGBUS on this
+        # cluster.  SAFETENSORS_NO_MMAP=1 switches the safetensors loader to
+        # plain read() calls, avoiding mmap entirely — no data copy needed.
         export HF_HOME="{params.hf_cache}"
         export TRANSFORMERS_OFFLINE=1
         export HF_HUB_OFFLINE=1
+        export SAFETENSORS_NO_MMAP=1
 
         echo "[$(date)] Running FANTASIA-Lite on $PROTEINS" >  {log}
         nProteins=$(grep -c '^>' "$PROTEINS" || echo 0)
@@ -94,7 +97,8 @@ rule fantasia_annotate:
         # On clusters where it sets SLURM_JOB_GPUS instead, copy it into CVD so
         # the container targets the correct allocated GPU rather than defaulting to 0.
         # Capture into plain bash vars. Snakemake's format engine only touches
-        # single-brace tokens, so plain $VAR refs are safe; ${{VAR}} becomes ${VAR}.
+        # single-brace tokens, so plain $VAR refs are safe; double-brace expansions
+        # become single-brace after Snakemake formatting, which bash then expands.
         CVD=${{CUDA_VISIBLE_DEVICES:-}}
         JOB_GPUS=${{SLURM_JOB_GPUS:-}}
         if [ -n "$JOB_GPUS" ] && [ -z "$CVD" ]; then
