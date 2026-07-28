@@ -68,6 +68,48 @@ rule convert_gtf_to_gff3:
             -o {output.gff3} \
             > {log} 2>&1
 
+        # Rename transcript → mRNA for all CDS-containing features.
+        # AGAT inconsistently promotes some but not all protein-coding
+        # transcripts to mRNA; this pass makes the output homogeneous.
+        # ncRNA transcripts (no CDS children) are left unchanged.
+        python3 - "{output.gff3}" <<'PYEOF'
+import sys, os
+
+gff3 = sys.argv[1]
+tmp  = gff3 + ".tmp"
+
+cds_parents = set()
+with open(gff3) as fh:
+    for line in fh:
+        if line.startswith('#'):
+            continue
+        fields = line.split('\t')
+        if len(fields) < 9 or fields[2] != 'CDS':
+            continue
+        for attr in fields[8].split(';'):
+            attr = attr.strip()
+            if attr.startswith('Parent='):
+                for pid in attr[7:].split(','):
+                    cds_parents.add(pid.strip())
+
+with open(gff3) as fh, open(tmp, 'w') as out:
+    for line in fh:
+        if line.startswith('#'):
+            out.write(line)
+            continue
+        fields = line.split('\t')
+        if len(fields) >= 9 and fields[2] == 'transcript':
+            for attr in fields[8].split(';'):
+                attr = attr.strip()
+                if attr.startswith('ID='):
+                    if attr[3:].strip() in cds_parents:
+                        fields[2] = 'mRNA'
+                    break
+        out.write('\t'.join(fields))
+
+os.replace(tmp, gff3)
+PYEOF
+
         # Record software version (LC_ALL=C avoids locale warnings in biocontainer)
         VERSIONS_FILE=output/{wildcards.sample}/software_versions.tsv
         AGAT_VER=$(LC_ALL=C agat --version 2>&1 | head -1 || true)
