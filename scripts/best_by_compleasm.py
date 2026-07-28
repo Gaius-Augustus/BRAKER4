@@ -111,7 +111,7 @@ def parse_hmmsearch_output(hmm_out_dir, score_cutoff_dict, length_cutoff_dict): 
                             continue
                         line = line.strip().split()
                         target_name = line[0]
-                        query_name = line[3]
+                        query_name = line[3].split("at")[0]
                         hmm_score = float(line[7])
                         hmm_from = int(line[15])
                         hmm_to = int(line[16])
@@ -243,6 +243,9 @@ def run_compleasm(protein_files, threads, busco_db, tmp_dir):
         SystemExit: If there is an error in execting compleasm.
 
     """
+    lineage_name, _, odb = busco_db.partition("_")
+    odb = odb or "odb12"
+
     # Determine BUSCO library directory.
     # If library_path is provided, use the pre-downloaded data instead of downloading.
     if args.library_path is not None:
@@ -253,9 +256,7 @@ def run_compleasm(protein_files, threads, busco_db, tmp_dir):
     else:
         lineage_dir = "mb_downloads/" + args.busco_db
         if not os.path.exists(lineage_dir):
-            # Strip any _odbNN suffix before requesting download
-            db_for_download = re.sub(r'_odb\d+$', '', busco_db)
-            compleasm_cmd = [args.compleasm_bin, "download", db_for_download]
+            compleasm_cmd = [args.compleasm_bin, "download", lineage_name, "--odb", odb]
             run_simple_process(compleasm_cmd)
 
     # read key data of BUSCO lineage
@@ -273,7 +274,7 @@ def run_compleasm(protein_files, threads, busco_db, tmp_dir):
         # create a tool-specific output subdirectory
         tool = re.search(r'^([^.]+)\.', os.path.basename(protein_file)).group(1)
         tool_out_dir = args.tmp_dir + "/" + tool
-        compleasm_cmd = [args.compleasm_bin, "protein", "-p", protein_file, "-l", busco_db, "-t", str(args.threads), "-o", tool_out_dir]
+        compleasm_cmd = [args.compleasm_bin, "protein", "-p", protein_file, "-l", lineage_name, "--odb", odb, "-t", str(args.threads), "-o", tool_out_dir]
         if args.library_path is not None:
             compleasm_cmd.extend(["--library_path", args.library_path])
         run_simple_process(compleasm_cmd)
@@ -475,7 +476,7 @@ def main():
     """
     # Step 0: complete the busco lineage name if necessary
     # Accept any _odbNN suffix; default to _odb12 if no suffix is given.
-    if not re.search(r'_odb\d+$', args.busco_db):
+    if not re.search(r'_odb[\d.]+$', args.busco_db):
         args.busco_db = args.busco_db + "_odb12"
     
     # Step 1: Find all input files
