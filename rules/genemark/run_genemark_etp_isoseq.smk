@@ -114,6 +114,34 @@ YAMLEOF
 
         if [ ! -f $OUTDIR_ABS/genemark.gtf ]; then
             echo "ERROR: GeneMark-ETP (isoseq) failed (exit=$ETP_EXIT)" >> {log}
+            if grep -q "Illegal division by zero" $WORKDIR/{log} 2>/dev/null; then
+                N_TRAIN=$(grep "genes found for training:" $WORKDIR/{log} | tail -1 | awk '{{print $NF}}' 2>/dev/null || echo "unknown")
+                echo "HINT: GeneMark-ETP crashed in model training (parse_set.pl / train_super.pl division by zero)." >> {log}
+                echo "  Training genes found: $N_TRAIN (minimum needed: ~100 multi-exon genes)." >> {log}
+                echo "  Likely causes:" >> {log}
+                echo "    1. Fungal organism: add 'fungus: true' to config.yaml" >> {log}
+                echo "    2. Low IsoSeq coverage: too few reads to build reliable gene models" >> {log}
+                echo "    3. Protein database too distant: ProtHint yields too few HC introns" >> {log}
+                echo "  See https://github.com/gatech-genemark/GeneMark-ETP/issues" >> {log}
+            else
+                TSEQ=$OUTDIR_ABS/rnaseq/stringtie/transcripts_merged.fasta
+                if [ -f "$TSEQ" ]; then
+                    TSEQ_SIZE=$(wc -c < "$TSEQ")
+                    echo "DIAGNOSTIC: transcripts_merged.fasta size: $TSEQ_SIZE bytes" >> {log}
+                    if [ "$TSEQ_SIZE" -eq 0 ]; then
+                        echo "HINT: transcripts_merged.fasta is empty -- StringTie produced no transcripts from the IsoSeq BAM. Check alignment quality and coverage." >> {log}
+                    else
+                        echo "HINT: exit 139 = segfault in gmhmmp (internal GeneMark binary). This is a known issue when the transcript set is very large. Try subsampling the IsoSeq BAM and rerunning." >> {log}
+                    fi
+                else
+                    echo "DIAGNOSTIC: transcripts_merged.fasta not found -- GeneMark-ETP likely crashed before StringTie completed." >> {log}
+                fi
+            fi
+            GMS_LOG=$(find $OUTDIR_ABS -name "gms.log" | head -1)
+            if [ -n "$GMS_LOG" ]; then
+                echo "DIAGNOSTIC: last lines of gms.log ($GMS_LOG):" >> {log}
+                tail -10 "$GMS_LOG" >> {log}
+            fi
             exit 1
         fi
 
