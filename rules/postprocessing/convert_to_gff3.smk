@@ -72,43 +72,41 @@ rule convert_gtf_to_gff3:
         # AGAT inconsistently promotes some but not all protein-coding
         # transcripts to mRNA; this pass makes the output homogeneous.
         # ncRNA transcripts (no CDS children) are left unchanged.
-        python3 - "{output.gff3}" <<'PYEOF'
-import sys, os
-
-gff3 = sys.argv[1]
-tmp  = gff3 + ".tmp"
-
-cds_parents = set()
-with open(gff3) as fh:
-    for line in fh:
-        if line.startswith('#'):
-            continue
-        fields = line.split('\t')
-        if len(fields) < 9 or fields[2] != 'CDS':
-            continue
-        for attr in fields[8].split(';'):
-            attr = attr.strip()
-            if attr.startswith('Parent='):
-                for pid in attr[7:].split(','):
-                    cds_parents.add(pid.strip())
-
-with open(gff3) as fh, open(tmp, 'w') as out:
-    for line in fh:
-        if line.startswith('#'):
-            out.write(line)
-            continue
-        fields = line.split('\t')
-        if len(fields) >= 9 and fields[2] == 'transcript':
-            for attr in fields[8].split(';'):
-                attr = attr.strip()
-                if attr.startswith('ID='):
-                    if attr[3:].strip() in cds_parents:
-                        fields[2] = 'mRNA'
-                    break
-        out.write('\t'.join(fields))
-
-os.replace(tmp, gff3)
-PYEOF
+        # Two-pass awk: pass 1 collects IDs of CDS parents; pass 2 renames.
+        _TMP="{output.gff3}.tmp"
+        awk 'BEGIN{{FS="\t";OFS="\t"}}
+        NR==FNR{{
+          if($3=="CDS"){{
+            n=split($9,a,";")
+            for(i=1;i<=n;i++){{
+              gsub(/^[[:space:]]+|[[:space:]]+$/,"",a[i])
+              if(a[i]~/^Parent=/){{
+                m=split(substr(a[i],8),p,",")
+                for(j=1;j<=m;j++){{
+                  gsub(/^[[:space:]]+|[[:space:]]+$/,"",p[j])
+                  seen[p[j]]=1
+                }}
+              }}
+            }}
+          }}
+          next
+        }}
+        /^#/{{print;next}}
+        {{
+          if($3=="transcript"){{
+            n=split($9,a,";")
+            for(i=1;i<=n;i++){{
+              gsub(/^[[:space:]]+|[[:space:]]+$/,"",a[i])
+              if(a[i]~/^ID=/){{
+                fid=substr(a[i],4)
+                gsub(/^[[:space:]]+|[[:space:]]+$/,"",fid)
+                if(fid in seen){{$3="mRNA"}}
+                break
+              }}
+            }}
+          }}
+          print
+        }}' "{output.gff3}" "{output.gff3}" > "$_TMP" && mv "$_TMP" "{output.gff3}"
 
         # Record software version (LC_ALL=C avoids locale warnings in biocontainer)
         VERSIONS_FILE=output/{wildcards.sample}/software_versions.tsv

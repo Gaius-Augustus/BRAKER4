@@ -775,63 +775,63 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L291",
-      "id": "best_by_compleasm_rationale_291",
       "community": 0,
-      "norm_label": "run the getannofastafromjoingenes.py tool to process the genemark gtf file and g"
+      "norm_label": "run the getannofastafromjoingenes.py tool to process the genemark gtf file and g",
+      "id": "best_by_compleasm_rationale_291"
     },
     {
       "label": "Execute a subprocess command with the provided arguments.      Args:         arg",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L307",
-      "id": "best_by_compleasm_rationale_307",
       "community": 0,
-      "norm_label": "execute a subprocess command with the provided arguments.      args:         arg"
+      "norm_label": "execute a subprocess command with the provided arguments.      args:         arg",
+      "id": "best_by_compleasm_rationale_307"
     },
     {
       "label": "Check if the provided binary is executable or available in the system's PATH.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L342",
-      "id": "best_by_compleasm_rationale_342",
       "community": 0,
-      "norm_label": "check if the provided binary is executable or available in the system's path."
+      "norm_label": "check if the provided binary is executable or available in the system's path.",
+      "id": "best_by_compleasm_rationale_342"
     },
     {
       "label": "Check if the specified file exists.      Args:         file (str): Path to the f",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L378",
-      "id": "best_by_compleasm_rationale_378",
       "community": 0,
-      "norm_label": "check if the specified file exists.      args:         file (str): path to the f"
+      "norm_label": "check if the specified file exists.      args:         file (str): path to the f",
+      "id": "best_by_compleasm_rationale_378"
     },
     {
       "label": "Determine whether BRAKER run, and whether the files are complete.      Args:",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L395",
-      "id": "best_by_compleasm_rationale_395",
       "community": 0,
-      "norm_label": "determine whether braker run, and whether the files are complete.      args:"
+      "norm_label": "determine whether braker run, and whether the files are complete.      args:",
+      "id": "best_by_compleasm_rationale_395"
     },
     {
       "label": "Check if the specified directory exists.      Returns:         str: Path to the",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L419",
-      "id": "best_by_compleasm_rationale_419",
       "community": 0,
-      "norm_label": "check if the specified directory exists.      returns:         str: path to the"
+      "norm_label": "check if the specified directory exists.      returns:         str: path to the",
+      "id": "best_by_compleasm_rationale_419"
     },
     {
       "label": "Filters and writes GTF lines based on transcript IDs.      This function reads a",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L436",
-      "id": "best_by_compleasm_rationale_436",
       "community": 0,
-      "norm_label": "filters and writes gtf lines based on transcript ids.      this function reads a"
+      "norm_label": "filters and writes gtf lines based on transcript ids.      this function reads a",
+      "id": "best_by_compleasm_rationale_436"
     },
     {
       "label": "training_summary.py",
