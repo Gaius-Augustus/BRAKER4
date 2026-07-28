@@ -93,8 +93,8 @@ rule fantasia_annotate:
         # SLURM sets CUDA_VISIBLE_DEVICES when the gres binding plugin is active.
         # On clusters where it sets SLURM_JOB_GPUS instead, copy it into CVD so
         # the container targets the correct allocated GPU rather than defaulting to 0.
-        # Capture into plain bash vars — Snakemake's format engine only touches {…},
-        # so $VAR references are safe; ${{…}} expansions become ${…} after formatting.
+        # Capture into plain bash vars. Snakemake's format engine only touches
+        # single-brace tokens, so plain $VAR refs are safe; ${{VAR}} becomes ${VAR}.
         CVD=${{CUDA_VISIBLE_DEVICES:-}}
         JOB_GPUS=${{SLURM_JOB_GPUS:-}}
         if [ -n "$JOB_GPUS" ] && [ -z "$CVD" ]; then

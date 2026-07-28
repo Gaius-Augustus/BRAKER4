@@ -847,9 +847,9 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L501",
-      "id": "best_by_compleasm_rationale_501",
       "community": 0,
-      "norm_label": "filters and writes gtf lines based on transcript ids.      this function reads a"
+      "norm_label": "filters and writes gtf lines based on transcript ids.      this function reads a",
+      "id": "best_by_compleasm_rationale_501"
     },
     {
       "label": "training_summary.py",
