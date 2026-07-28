@@ -35,7 +35,6 @@ Contents
 -   [Installation](#installation)
     -   [Snakemake](#snakemake)
     -   [Singularity](#singularity)
-    -   [Python dependencies](#python-dependencies)
     -   [Version fragility warning](#version-fragility-warning)
 -   [Running BRAKER4](#running-braker4)
     -   [Preparing input files](#preparing-input-files)
@@ -266,6 +265,7 @@ We recommend installing Snakemake with `pip` into a virtual environment.
 python3 -m venv snakemake_env
 source snakemake_env/bin/activate
 pip install snakemake==8.18.2
+pip install pandas
 ```
 
 BRAKER4 supports SLURM as its HPC executor. For other schedulers (SGE, PBS, LSF) there are two options:
