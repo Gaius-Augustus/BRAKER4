@@ -1900,54 +1900,54 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L64",
-      "id": "normalize_gtf_rationale_64",
       "community": 9,
-      "norm_label": "parse gtf attribute string into dict."
+      "norm_label": "parse gtf attribute string into dict.",
+      "id": "normalize_gtf_rationale_64"
     },
     {
       "label": "Extract sequence from genome (1-based coords).",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L77",
-      "id": "normalize_gtf_rationale_77",
       "community": 9,
-      "norm_label": "extract sequence from genome (1-based coords)."
+      "norm_label": "extract sequence from genome (1-based coords).",
+      "id": "normalize_gtf_rationale_77"
     },
     {
       "label": "Get CDS features sorted by genomic position.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L87",
-      "id": "normalize_gtf_rationale_87",
       "community": 9,
-      "norm_label": "get cds features sorted by genomic position."
+      "norm_label": "get cds features sorted by genomic position.",
+      "id": "normalize_gtf_rationale_87"
     },
     {
       "label": "Normalize CDS boundaries for a transcript.      Returns (normalized_features, is",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L94",
-      "id": "normalize_gtf_rationale_94",
       "community": 9,
-      "norm_label": "normalize cds boundaries for a transcript.      returns (normalized_features, is"
+      "norm_label": "normalize cds boundaries for a transcript.      returns (normalized_features, is",
+      "id": "normalize_gtf_rationale_94"
     },
     {
       "label": "Update gene and transcript boundaries to match their features.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L180",
-      "id": "normalize_gtf_rationale_180",
       "community": 9,
-      "norm_label": "update gene and transcript boundaries to match their features."
+      "norm_label": "update gene and transcript boundaries to match their features.",
+      "id": "normalize_gtf_rationale_180"
     },
     {
       "label": "Write normalized GTF, preserving gene/transcript/feature order.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L202",
-      "id": "normalize_gtf_rationale_202",
       "community": 9,
-      "norm_label": "write normalized gtf, preserving gene/transcript/feature order."
+      "norm_label": "write normalized gtf, preserving gene/transcript/feature order.",
+      "id": "normalize_gtf_rationale_202"
     },
     {
       "label": "gene_set_statistics.py",
