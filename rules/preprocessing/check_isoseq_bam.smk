@@ -42,7 +42,7 @@ rule check_isoseq_bam:
         BAM_ABS=$(readlink -f {input.bam})
 
         echo "Sorting IsoSeq BAM file {wildcards.isoseq_id}..." > {log}
-        samtools sort -@ {threads} -o {output.bam} "$BAM_ABS" 2>> {log}
+        samtools sort -@ {threads} -T {resources.tmpdir}/{wildcards.sample}_{wildcards.isoseq_id} -o {output.bam} "$BAM_ABS" 2>> {log}
         echo "Sorting complete" >> {log}
 
         samtools index -@ {threads} {output.bam} 2>> {log}
