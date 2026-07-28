@@ -181,7 +181,13 @@ YAMLEOF
                     TSEQ_SIZE=$(wc -c < "$TSEQ")
                     echo "DIAGNOSTIC: transcripts_merged.fasta size: $TSEQ_SIZE bytes" >> {log}
                     if [ "$TSEQ_SIZE" -eq 0 ]; then
-                        echo "HINT: transcripts_merged.fasta is empty -- StringTie produced no transcripts from the RNA-Seq BAM. Check alignment quality and coverage." >> {log}
+                        echo "HINT: transcripts_merged.fasta is empty. Individual per-library GFFs were produced by StringTie, but gffread extracted no sequences." >> {log}
+                        echo "  Most likely causes:" >> {log}
+                        echo "    1. Chromosome name mismatch: contig names in the BAM/GFF differ from those in the genome FASTA." >> {log}
+                        echo "       Check: samtools view -H <bam> | grep ^@SQ  vs  grep '>' <genome> | head" >> {log}
+                        echo "    2. StringTie merge filtered all transcripts (low coverage/FPKM across libraries)." >> {log}
+                        echo "  File an issue at https://github.com/gatech-genemark/GeneMark-ETP/issues with this log." >> {log}
+                        echo "  Fallback: use ET mode (RNA-Seq only) or EP mode (protein only) instead of ETP." >> {log}
                     else
                         echo "HINT: exit 139 = segfault in gmhmmp (internal GeneMark binary). This is a known issue when the transcript set is very large. Try subsampling the RNA-Seq BAM and rerunning." >> {log}
                     fi
