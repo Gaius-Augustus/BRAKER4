@@ -80,14 +80,20 @@ rule fantasia_annotate:
         OUTDIR=$(readlink -f {params.outdir})
         PROTEINS=$(readlink -f {input.proteins})
 
-        # ProtT5-XL weights live on NFS ({params.hf_cache}).  Memory-mapping NFS
-        # files and faulting pages during GPU transfer causes SIGBUS on this
-        # cluster.  SAFETENSORS_NO_MMAP=1 switches the safetensors loader to
-        # plain read() calls, avoiding mmap entirely — no data copy needed.
-        export HF_HOME="{params.hf_cache}"
+        # ProtT5-XL weights live on NFS ({params.hf_cache}) and are stored as
+        # symlinked blobs (HF cache structure).  Memory-mapping NFS files and
+        # faulting pages during GPU transfer causes SIGBUS on this cluster.
+        # Copy the entire cache to node-local storage first (cp -rL to dereference
+        # symlinks so no path points back to NFS), then point HF_HOME at the
+        # local copy. /tmp on vision nodes is a local 879 GB NVMe so 22 GB fits.
+        LOCAL_HF=${{TMPDIR:-/tmp}}/fantasia_hf_$$
+        echo "[$(date)] Copying HF cache to node-local storage: $LOCAL_HF" >> {log}
+        cp -rL "{params.hf_cache}" "$LOCAL_HF"
+        echo "[$(date)] HF cache copy done ($(du -sh $LOCAL_HF | cut -f1))" >> {log}
+
+        export HF_HOME="$LOCAL_HF"
         export TRANSFORMERS_OFFLINE=1
         export HF_HUB_OFFLINE=1
-        export SAFETENSORS_NO_MMAP=1
 
         echo "[$(date)] Running FANTASIA-Lite on $PROTEINS" >  {log}
         nProteins=$(grep -c '^>' "$PROTEINS" || echo 0)
@@ -133,7 +139,7 @@ rule fantasia_annotate:
         # no host-side venv creation or pip workarounds are needed.
         singularity exec --nv \
             -B "$PWD":"$PWD" \
-            -B "{params.hf_cache}":"{params.hf_cache}" \
+            -B "$LOCAL_HF":"$LOCAL_HF" \
             -B "{params.lookup_dir}":"{params.lookup_dir}" \
             "{params.sif}" \
             python3 /opt/fantasia-lite/src/fantasia_pipeline.py \
@@ -172,6 +178,7 @@ rule fantasia_annotate:
         # and topgo/ are kept (copied by collect_results and read by downstream rules).
         rm -rf "$OUTDIR/tmp" 2>/dev/null || true
         rm -f  "$OUTDIR/query_embeddings.npz" 2>/dev/null || true
+        rm -rf "$LOCAL_HF" 2>/dev/null || true
         """
 
 
