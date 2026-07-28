@@ -136,12 +136,12 @@ rule merge_hints:
             | join_mult_hints.pl \
             > "$TMP_JOINED"
         JOIN_EXIT=$?
-        set -e
-        set -o pipefail
         if [ -s "$TMP_MERGE" ] && [ ! -s "$TMP_JOINED" ]; then
             echo "[ERROR] join_mult_hints.pl produced no output (exit=$JOIN_EXIT) from $N_MERGE_IN merge candidates" | tee -a {output.hints_stats}
             exit 1
         fi
+        set -e
+        set -o pipefail
         N_JOINED_OUT=$(wc -l < "$TMP_JOINED")
         echo "[INFO] join_mult_hints.pl: $N_MERGE_IN -> $N_JOINED_OUT collapsed hints" | tee -a {output.hints_stats}
 
