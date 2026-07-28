@@ -259,13 +259,13 @@ BIBEOF
             echo "Tegenfeldt, F., Kuznetsov, D., Manni, M., Berkeley, M., Zdobnov, E. M., & Kriventseva, E. V. (2025). OrthoDB and BUSCO update: Annotation of orthologs with wider sampling of genomes. Nucleic Acids Research, 53(D1), D516–D522. doi:10.1093/nar/gkae987" >> "$txt_file"
             cat >> "$bib_file" << 'BIBEOF'
 @article{busco,
-  author = {Tegenfeldt, Fredrik and Kuznetsov, Dmitry and Manni, Mosè and Berkeley, Matthew and Zdobnov, Evgeny M and Kriventseva, Evgenia V},
+  author = {Tegenfeldt, Fredrik and Kuznetsov, Dmitry and Manni, Mosè and Berkeley, Matthew and Zdobnov, Evgeny M. and Kriventseva, Evgenia V.},
   title = {{OrthoDB} and {BUSCO} update: annotation of orthologs with wider sampling of genomes},
   journal = {Nucleic Acids Research},
   volume = {53},
   number = {D1},
   pages = {D516--D522},
-  year    = {2025},
+  year = {2025},
   doi = {10.1093/nar/gkae987}
 }
 BIBEOF
