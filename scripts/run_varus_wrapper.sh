@@ -198,7 +198,7 @@ samtools sort -@ "$THREADS" -o "$OUTPUT_BAM_ABS" "$VARUS_BAM" 2>> "$LOGFILE_ABS"
 
 # Index the sorted BAM
 echo "[INFO] Indexing BAM..." >> "$LOGFILE_ABS"
-samtools index -@ "$THREADS" "$OUTPUT_BAM_ABS" 2>> "$LOGFILE_ABS"
+samtools index -c -@ "$THREADS" "$OUTPUT_BAM_ABS" 2>> "$LOGFILE_ABS"
 
 # Extract VARUS run list: which SRA experiments were downloaded and how many reads
 RUNLIST_FILE="$(dirname "$OUTPUT_BAM_ABS")/varus_runlist.tsv"

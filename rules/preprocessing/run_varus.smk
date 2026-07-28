@@ -39,7 +39,7 @@ rule run_varus:
         genome=lambda wildcards: get_genome(wildcards.sample)
     output:
         bam="output/{sample}/varus/varus.sorted.bam",
-        bai="output/{sample}/varus/varus.sorted.bam.bai"
+        csi="output/{sample}/varus/varus.sorted.bam.csi"
     log:
         "logs/{sample}/varus/varus.log"
     benchmark:
