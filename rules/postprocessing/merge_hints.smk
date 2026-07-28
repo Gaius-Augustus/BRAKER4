@@ -120,7 +120,14 @@ rule merge_hints:
         # Sort key order matches braker.pl sub join_mult_hints
         # (scripts/braker.pl line 4820): coordinate-based, then stable-sorted
         # by type, then by chromosome.
+        # join_mult_hints.pl can exit non-zero even when it succeeds and
+        # writes valid output (same flaky behavior documented in
+        # run_genemark_etp.smk and README.md for prothint.py/get_etp_hints.py).
+        # Snakemake 8's SLURM executor re-enables -e/pipefail, so disable both
+        # around the pipe and validate the output ourselves afterwards.
         TMP_JOINED={output.hintsfile}.joined
+        set +e
+        set +o pipefail
         cat "$TMP_MERGE" \
             | sort -n -k 4,4 \
             | sort -s -n -k 5,5 \
@@ -128,6 +135,13 @@ rule merge_hints:
             | sort -s -k 1,1 \
             | join_mult_hints.pl \
             > "$TMP_JOINED"
+        JOIN_EXIT=$?
+        set -e
+        set -o pipefail
+        if [ -s "$TMP_MERGE" ] && [ ! -s "$TMP_JOINED" ]; then
+            echo "[ERROR] join_mult_hints.pl produced no output (exit=$JOIN_EXIT) from $N_MERGE_IN merge candidates" | tee -a {output.hints_stats}
+            exit 1
+        fi
         N_JOINED_OUT=$(wc -l < "$TMP_JOINED")
         echo "[INFO] join_mult_hints.pl: $N_MERGE_IN -> $N_JOINED_OUT collapsed hints" | tee -a {output.hints_stats}
 
