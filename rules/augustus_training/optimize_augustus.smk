@@ -344,6 +344,12 @@ SUMMARY
 
         echo "[INFO] Training gene summary written to {output.training_summary}" | tee -a {output.optimize_log}
 
+        # Remove optimize_augustus.pl bucket dirs (disk mode only).
+        # In /dev/shm mode the EXIT trap already removes $OPTIMIZE_TMP entirely.
+        if [ "{params.use_dev_shm}" != "True" ]; then
+            rm -rf "$OPTIMIZE_TMP"/bucket_* 2>/dev/null || true
+        fi
+
         # Citations
         REPORT_DIR=output/{wildcards.sample}
         source {script_dir}/report_citations.sh

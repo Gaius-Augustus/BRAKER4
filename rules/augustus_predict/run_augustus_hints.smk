@@ -296,6 +296,12 @@ rule run_augustus_hints:
         AUG_COMMIT=$(grep 'refs/remotes/origin/master' /opt/Augustus/.git/packed-refs 2>/dev/null | awk '{{print substr($1,1,7)}}' || true)
         ( flock 9; printf "AUGUSTUS\t%s (commit %s)\n" "$AUG_VER" "$AUG_COMMIT" >> "$VERSIONS_FILE" ) 9>"$VERSIONS_FILE.lock"
 
+        # Remove genome_split/ and augustus_tmp/ working dirs (disk mode).
+        # In /dev/shm mode the EXIT trap already handles cleanup of $TMP_DIR.
+        if [ "{params.use_dev_shm}" != "True" ]; then
+            rm -rf "$GENOME_SPLIT_TMP" "$AUGUSTUS_TMP" 2>/dev/null || true
+        fi
+
         # Report
         REPORT_DIR=output/{wildcards.sample}
         source {script_dir}/report_citations.sh
