@@ -372,7 +372,7 @@ We want to be transparent about version sensitivity. Snakemake, the SLURM execut
 --singularity-args "-B /home -B /scratch -B /data"
 ```
 
-**HPC scratch / `TMPDIR`:** Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation, and several BRAKER4 rules — most notably `merge_hints`, which chains four `sort` calls over the merged hints file — spill intermediate data to `$TMPDIR` when the data exceeds memory. If that path is not user-writable, or is not bound into the Singularity container, the rule fails with a permission error on `/local/scratch/...`.
+**HPC scratch / `TMPDIR`:** Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation, and several BRAKER4 rules spill intermediate data to `$TMPDIR`: `merge_hints` (four GNU `sort` passes over the merged hints file) and all `samtools sort` calls (`hisat2_align`, `check_bam_sorted`, `check_isoseq_bam`, `minimap2_isoseq_align`, `add_utr`). If that path is not user-writable, or is not bound into the Singularity container, affected rules fail with a permission error on `/local/scratch/...`.
 
 To work around this, pick a writable directory and set it as the default `tmpdir` resource in your SLURM profile, and add the same path to `--singularity-args`:
 
