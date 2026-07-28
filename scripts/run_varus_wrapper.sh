@@ -203,19 +203,39 @@ samtools index -c -@ "$THREADS" "$OUTPUT_BAM_ABS" 2>> "$LOGFILE_ABS"
 # Extract VARUS run list: which SRA experiments were downloaded and how many reads
 RUNLIST_FILE="$(dirname "$OUTPUT_BAM_ABS")/varus_runlist.tsv"
 echo -e "SRA_accession\treads_downloaded\tstatus" > "$RUNLIST_FILE"
-if [ -d "$VARUS_DIR_ABS/$SPECIES_DIR" ]; then
-    for sra_dir in "$VARUS_DIR_ABS/$SPECIES_DIR"/SRR* "$VARUS_DIR_ABS/$SPECIES_DIR"/ERR* "$VARUS_DIR_ABS/$SPECIES_DIR"/DRR*; do
+VARUS_BATCHES_DIR="$VARUS_DIR_ABS/$SPECIES_DIR/batches"
+if [ -d "$VARUS_BATCHES_DIR" ]; then
+    SRA_SEARCH_DIR="$VARUS_BATCHES_DIR"
+else
+    SRA_SEARCH_DIR="$VARUS_DIR_ABS/$SPECIES_DIR"
+fi
+if [ -d "$SRA_SEARCH_DIR" ]; then
+    for sra_dir in "$SRA_SEARCH_DIR"/SRR* "$SRA_SEARCH_DIR"/ERR* "$SRA_SEARCH_DIR"/DRR*; do
         if [ -d "$sra_dir" ]; then
             accession=$(basename "$sra_dir")
-            # Count FASTQ reads if available
             n_reads=0
-            for fq in "$sra_dir"/*.fastq "$sra_dir"/*.fq "$sra_dir"/*.fastq.gz; do
+            # Reads may sit in a subdirectory (e.g. N...X...) within each accession dir
+            for fq in "$sra_dir"/*.fastq "$sra_dir"/*.fq "$sra_dir"/*.fastq.gz \
+                      "$sra_dir"/*/*.fastq "$sra_dir"/*/*.fq "$sra_dir"/*/*.fastq.gz; do
                 if [ -f "$fq" ]; then
                     if [[ "$fq" == *.gz ]]; then
                         n_reads=$((n_reads + $(zcat "$fq" 2>/dev/null | wc -l) / 4))
                     else
                         n_reads=$((n_reads + $(wc -l < "$fq") / 4))
                     fi
+                fi
+            done
+            # Also handle wrapped FASTA format (count > header lines, not line/4)
+            for fa in "$sra_dir"/*.fasta "$sra_dir"/*.fa \
+                      "$sra_dir"/*/*.fasta "$sra_dir"/*/*.fa; do
+                if [ -f "$fa" ]; then
+                    n_reads=$((n_reads + $(grep -c '^>' "$fa" 2>/dev/null || echo 0)))
+                fi
+            done
+            for fagz in "$sra_dir"/*.fasta.gz "$sra_dir"/*.fa.gz \
+                        "$sra_dir"/*/*.fasta.gz "$sra_dir"/*/*.fa.gz; do
+                if [ -f "$fagz" ]; then
+                    n_reads=$((n_reads + $(zcat "$fagz" 2>/dev/null | grep -c '^>' || echo 0)))
                 fi
             done
             echo -e "${accession}\t${n_reads}\tdownloaded" >> "$RUNLIST_FILE"
