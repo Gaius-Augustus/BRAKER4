@@ -7,7 +7,7 @@ GeneMark-ET and AUGUSTUS gene prediction.
 
 Input:
     - Coordinate-sorted BAM file
-    - BAM index (.bai)
+    - BAM index (.csi)
 
 Output:
     - GFF file with intron hints
