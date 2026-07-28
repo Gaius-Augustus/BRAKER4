@@ -89,8 +89,38 @@ rule fantasia_annotate:
         echo "[$(date)] Running FANTASIA-Lite on $PROTEINS" >  {log}
         nProteins=$(grep -c '^>' "$PROTEINS" || echo 0)
         echo "[$(date)] Input proteins: $nProteins" >> {log}
-        echo "[$(date)] CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-<not set>}  SLURM_JOB_GPUS=${SLURM_JOB_GPUS:-<not set>}" >> {log}
+
+        # SLURM sets CUDA_VISIBLE_DEVICES when the gres binding plugin is active.
+        # On clusters where it sets SLURM_JOB_GPUS instead, copy it into CVD so
+        # the container targets the correct allocated GPU rather than defaulting to 0.
+        # Capture into plain bash vars — Snakemake's format engine only touches {…},
+        # so $VAR references are safe; ${{…}} expansions become ${…} after formatting.
+        CVD=${{CUDA_VISIBLE_DEVICES:-}}
+        JOB_GPUS=${{SLURM_JOB_GPUS:-}}
+        if [ -n "$JOB_GPUS" ] && [ -z "$CVD" ]; then
+            export CUDA_VISIBLE_DEVICES=$JOB_GPUS
+            CVD=$JOB_GPUS
+            echo "[$(date)] Derived CUDA_VISIBLE_DEVICES=$CVD from SLURM_JOB_GPUS" >> {log}
+        fi
+        echo "[$(date)] CUDA_VISIBLE_DEVICES=$CVD  SLURM_JOB_GPUS=$JOB_GPUS" >> {log}
         nvidia-smi --query-gpu=index,memory.free,memory.used --format=csv >> {log} 2>&1 || true
+
+        # ProtT5-XL needs ~14 GB VRAM.  Fail fast if the assigned GPU
+        # (first index in CVD, or 0 if unset) is too full.
+        if [ -n "$CVD" ]; then
+            GPU_IDX=$(echo "$CVD" | cut -d, -f1)
+        else
+            GPU_IDX=0
+        fi
+        FREE_MIB=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits \
+            -i "$GPU_IDX" 2>/dev/null | tr -d ' ' || echo 0)
+        echo "[$(date)] Physical GPU $GPU_IDX (cuda:0): $FREE_MIB MiB free" >> {log}
+        if [ "$FREE_MIB" -lt 15000 ] 2>/dev/null; then
+            echo "[ERROR] GPU $GPU_IDX has only $FREE_MIB MiB free; ProtT5-XL needs >=15000 MiB." >&2
+            echo "[ERROR] SLURM_JOB_GPUS=$JOB_GPUS  CUDA_VISIBLE_DEVICES=$CVD" >&2
+            echo "[ERROR] Resubmit or ask cluster admin to enable GPU cgroup isolation." >&2
+            exit 1
+        fi
 
         # Validated invocation mirroring EukAssembly-Bin (BOUDICCA) V1 and
         # Nextflow_Tiberius_FANTASIA V1.  The lookup bundle is no longer baked

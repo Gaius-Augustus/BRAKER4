@@ -1,11 +1,11 @@
 # Graph Report - /home/katharina/git/BRAKER4  (2026-07-28)
 
 ## Corpus Check
-- 20 files · ~1,030,701 words
+- 20 files · ~1,030,942 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 471 nodes · 640 edges · 68 communities detected
+- 473 nodes · 643 edges · 68 communities detected
 - Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 52 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
@@ -84,7 +84,7 @@
 2. `BRAKER4 pipeline overview diagram` - 19 edges
 3. `main()` - 16 edges
 4. `README.md (BRAKER4)` - 15 edges
-5. `main()` - 12 edges
+5. `main()` - 13 edges
 6. `main()` - 12 edges
 7. `BRAKER4 pipeline overview diagram (SVG, Graphviz-generated)` - 12 edges
 8. `test_data/genome.fa (A. thaliana chr5 fragment, 8 contigs)` - 10 edges
@@ -118,7 +118,7 @@
 
 ### Community 0 - "Community 0"
 Cohesion: 0.06
-Nodes (41): check_binary(), check_dir(), check_file(), determine_mode(), find_genemark_gtf(), find_input_files(), load_length_cutoff(), load_score_cutoff() (+33 more)
+Nodes (43): check_binary(), check_dir(), check_file(), determine_mode(), find_genemark_gtf(), find_input_files(), load_length_cutoff(), load_score_cutoff() (+35 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.07
@@ -389,7 +389,7 @@ Cohesion: 1.0
 Nodes (1): samples.csv + config.ini input specification
 
 ## Knowledge Gaps
-- **183 isolated node(s):** `Parse BUSCO summary for genome and proteome scores.`, `Parse compleasm summary.txt.`, `Generate horizontal stacked bar chart.`, `Parse hintsfile.gff and return a set of (chrom, start, end, strand) for intron h`, `Parse a GTF and return per-transcript CDS intron chains.      Returns:         c` (+178 more)
+- **184 isolated node(s):** `Parse BUSCO summary for genome and proteome scores.`, `Parse compleasm summary.txt.`, `Generate horizontal stacked bar chart.`, `Parse hintsfile.gff and return a set of (chrom, start, end, strand) for intron h`, `Parse a GTF and return per-transcript CDS intron chains.      Returns:         c` (+179 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **Thin community `Community 22`** (2 nodes): `Translation table validation (codes 1, 6, 29 only)`, `Rationale: restrict translation_table to {1,6,29} because gmes_petap.pl rejects others`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -490,7 +490,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `merge_features()` connect `Community 8` to `Community 3`?**
   _High betweenness centrality (0.006) - this node is a cross-community bridge._
 - **What connects `Parse BUSCO summary for genome and proteome scores.`, `Parse compleasm summary.txt.`, `Generate horizontal stacked bar chart.` to the rest of the system?**
-  _183 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _184 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.06 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
