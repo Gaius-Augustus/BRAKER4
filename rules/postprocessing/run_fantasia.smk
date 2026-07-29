@@ -80,22 +80,44 @@ rule fantasia_annotate:
         OUTDIR=$(readlink -f {params.outdir})
         PROTEINS=$(readlink -f {input.proteins})
 
-        # ProtT5-XL weights live on NFS ({params.hf_cache}) and are stored as
-        # symlinked blobs (HF cache structure).  Memory-mapping NFS files and
-        # faulting pages during GPU transfer causes SIGBUS on this cluster.
-        # Copy the entire cache to node-local storage first (cp -rL to dereference
-        # symlinks so no path points back to NFS), then point HF_HOME at the
-        # local copy. /tmp on vision nodes is a local 879 GB NVMe so 22 GB fits.
-        LOCAL_HF=${{TMPDIR:-/tmp}}/fantasia_hf_$$
-        echo "[$(date)] Copying HF cache to node-local storage: $LOCAL_HF" >> {log}
-        cp -rL "{params.hf_cache}" "$LOCAL_HF"
-        echo "[$(date)] HF cache copy done ($(du -sh $LOCAL_HF | cut -f1))" >> {log}
+        # SIGBUS root cause: safetensors mmap's the model file; CUDA async H2D
+        # copies from mmap-backed pages fail with SIGBUS when the kernel refuses
+        # to pin them inside the Singularity cgroup (reproducible on PyTorch 2.11,
+        # safetensors 0.7.0, regardless of whether the file is on NFS or /dev/shm).
+        #
+        # Fix (mirrors the working BOUDICCA / Nextflow_Tiberius_FANTASIA approach):
+        # load from the snapshot that contains pytorch_model.bin.  torch.load()
+        # uses buffered Python file I/O → data lands in anonymous heap RAM → no
+        # mmap → CUDA DMA works without issue.  We bypass HF Hub cache-lookup
+        # entirely by pointing our patched generate_embeddings.py at the snapshot
+        # directory via BRAKER4_HF_MODEL_PATH (see scripts/generate_embeddings.py).
+        # This also sidesteps the SINGULARITYENV_* propagation problems seen with
+        # HF_HOME on this cluster.
 
-        export HF_HOME="$LOCAL_HF"
-        export TRANSFORMERS_OFFLINE=1
-        export HF_HUB_OFFLINE=1
+        HF_SRC="{params.hf_cache}/hub/models--Rostlab--prot_t5_xl_uniref50"
 
-        echo "[$(date)] Running FANTASIA-Lite on $PROTEINS" >  {log}
+        # Prefer the snapshot that carries pytorch_model.bin (torch.load, no mmap).
+        # Fall back to refs/main only when no pytorch snapshot exists (safetensors-
+        # only caches may trigger SIGBUS on some cluster/Singularity configs).
+        SNAPSHOT_DIR=$(find "$HF_SRC/snapshots" -maxdepth 2 \
+            -name "pytorch_model.bin" 2>/dev/null \
+            | head -1 | xargs -r dirname)
+
+        if [ -n "$SNAPSHOT_DIR" ]; then
+            echo "[$(date)] Using pytorch format: $SNAPSHOT_DIR" >> {log}
+        else
+            PYTORCH_REV=$(cat "$HF_SRC/refs/main" 2>/dev/null | tr -d '[:space:]')
+            if [ -z "$PYTORCH_REV" ]; then
+                echo "[$(date)] FATAL: no pytorch_model.bin and no refs/main in $HF_SRC" >> {log}
+                exit 1
+            fi
+            SNAPSHOT_DIR="$HF_SRC/snapshots/$PYTORCH_REV"
+            echo "[$(date)] WARNING: no pytorch_model.bin found; falling back to safetensors in $(basename "$SNAPSHOT_DIR")" >> {log}
+        fi
+        echo "[$(date)] BRAKER4_HF_MODEL_PATH=$SNAPSHOT_DIR" >> {log}
+        ls "$SNAPSHOT_DIR" >> {log} 2>&1
+
+        echo "[$(date)] Running FANTASIA-Lite on $PROTEINS" >> {log}
         nProteins=$(grep -c '^>' "$PROTEINS" || echo 0)
         echo "[$(date)] Input proteins: $nProteins" >> {log}
 
@@ -132,16 +154,25 @@ rule fantasia_annotate:
             exit 1
         fi
 
-        # Validated invocation mirroring EukAssembly-Bin (BOUDICCA) V1 and
-        # Nextflow_Tiberius_FANTASIA V1.  The lookup bundle is no longer baked
-        # into the container; it is bind-mounted from params.lookup_dir.
-        # All packages are pre-installed in /opt/venv inside the container --
-        # no host-side venv creation or pip workarounds are needed.
+        # Bind-mount patched generate_embeddings.py (scripts/generate_embeddings.py)
+        # over the container's copy.  The patch reads BRAKER4_HF_MODEL_PATH and
+        # passes it directly to AutoTokenizer/AutoModel.from_pretrained(), bypassing
+        # all HF Hub cache-lookup machinery.  The env command inside the container
+        # guarantees the variable is set for the Python process regardless of how the
+        # cluster admin has configured SINGULARITYENV_* propagation.
+        # Also bind-mount the entire hf_cache directory so the symlinks in the
+        # snapshot (which resolve to ../../blobs/…) are accessible inside the container.
+        PATCHED_EMBED="{script_dir}/generate_embeddings.py"
         singularity exec --nv \
             -B "$PWD":"$PWD" \
-            -B "$LOCAL_HF":"$LOCAL_HF" \
+            -B "{params.hf_cache}":"{params.hf_cache}":ro \
             -B "{params.lookup_dir}":"{params.lookup_dir}" \
+            -B "$PATCHED_EMBED":/opt/fantasia-lite/src/generate_embeddings.py:ro \
             "{params.sif}" \
+            env \
+                BRAKER4_HF_MODEL_PATH="$SNAPSHOT_DIR" \
+                TRANSFORMERS_OFFLINE=1 \
+                HF_HUB_OFFLINE=1 \
             python3 /opt/fantasia-lite/src/fantasia_pipeline.py \
                 --serial-models \
                 --embed-models prot_t5 \
@@ -178,7 +209,6 @@ rule fantasia_annotate:
         # and topgo/ are kept (copied by collect_results and read by downstream rules).
         rm -rf "$OUTDIR/tmp" 2>/dev/null || true
         rm -f  "$OUTDIR/query_embeddings.npz" 2>/dev/null || true
-        rm -rf "$LOCAL_HF" 2>/dev/null || true
         """
 
 
