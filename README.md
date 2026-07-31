@@ -35,7 +35,6 @@ Contents
 -   [Installation](#installation)
     -   [Snakemake](#snakemake)
     -   [Singularity](#singularity)
-    -   [Python dependencies](#python-dependencies)
     -   [Version fragility warning](#version-fragility-warning)
 -   [Running BRAKER4](#running-braker4)
     -   [Preparing input files](#preparing-input-files)
@@ -266,6 +265,7 @@ We recommend installing Snakemake with `pip` into a virtual environment.
 python3 -m venv snakemake_env
 source snakemake_env/bin/activate
 pip install snakemake==8.18.2
+pip install pandas
 ```
 
 BRAKER4 supports SLURM as its HPC executor. For other schedulers (SGE, PBS, LSF) there are two options:
@@ -326,7 +326,7 @@ Consult your HPC administrator if Singularity is not available. BRAKER4 will aut
 
 | Container | Image | Size | Used for |
 | --- | --- | --- | --- |
-| Main BRAKER | `teambraker/braker3:v3.1.0` | 2.4 GB | GeneMark-ES/ET/EP/ETP, AUGUSTUS, ProtHint, DIAMOND, TSEBRA, compleasm, HISAT2, samtools, SRA toolkit, minimap2, getAnnoFastaFromJoingenes — most rules in the pipeline |
+| Main BRAKER | `teambraker/braker3:v3.1.1` | 2.4 GB | GeneMark-ES/ET/EP/ETP, AUGUSTUS, ProtHint, DIAMOND, TSEBRA, compleasm, HISAT2, samtools, SRA toolkit, minimap2, getAnnoFastaFromJoingenes — most rules in the pipeline |
 | IsoSeq BRAKER | `teambraker/braker3:isoseq` | 3.0 GB | GeneMark-ETP IsoSeq variant (only when an IsoSeq sample is present) |
 | RepeatModeler/Masker | `dfam/tetools:latest` | 727 MB | RepeatModeler2 + RepeatMasker + TRF (only when `masking_tool = repeatmasker`, default) |
 | Red | `quay.io/biocontainers/red:2018.09.10--h9948957_3` | 13 MB | Red repeat detector (only when `masking_tool = red`) |
@@ -372,7 +372,7 @@ We want to be transparent about version sensitivity. Snakemake, the SLURM execut
 --singularity-args "-B /home -B /scratch -B /data"
 ```
 
-**HPC scratch / `TMPDIR`:** Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation, and several BRAKER4 rules — most notably `merge_hints`, which chains four `sort` calls over the merged hints file — spill intermediate data to `$TMPDIR` when the data exceeds memory. If that path is not user-writable, or is not bound into the Singularity container, the rule fails with a permission error on `/local/scratch/...`.
+**HPC scratch / `TMPDIR`:** Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation, and several BRAKER4 rules spill intermediate data to `$TMPDIR`: `merge_hints` (four GNU `sort` passes over the merged hints file) and all `samtools sort` calls (`hisat2_align`, `check_bam_sorted`, `check_isoseq_bam`, `minimap2_isoseq_align`, `add_utr`). If that path is not user-writable, or is not bound into the Singularity container, affected rules fail with a permission error on `/local/scratch/...`.
 
 To work around this, pick a writable directory and set it as the default `tmpdir` resource in your SLURM profile, and add the same path to `--singularity-args`:
 
@@ -472,7 +472,7 @@ augustus_config_path = augustus_config
 [containers]
 # Replace any docker:// URI with an absolute path to a local .sif file to
 # avoid pulling the image at runtime. All keys are optional (defaults shown).
-braker3_image = docker://teambraker/braker3:v3.1.0
+braker3_image = docker://teambraker/braker3:v3.1.1
 isoseq_image = docker://teambraker/braker3:isoseq
 minimap2_image = docker://katharinahoff/minimap-minisplice:v0.1
 minisplice_image = docker://katharinahoff/minimap-minisplice:v0.1
@@ -531,6 +531,7 @@ enable = 0
 cpus_per_task = 48
 mem_of_node = 120000                # memory in MB
 max_runtime = 4320                  # runtime in minutes (72 hours)
+skip_mem_request = 0                # set to 1 if your cluster does not support requesting memory
 ```
 
 Every value in `[PARAMS]` and `[SLURM_ARGS]` can also be overridden via an environment variable named `BRAKER4_<KEY_UPPER>`, e.g. `BRAKER4_MAX_RUNTIME=240` or `BRAKER4_RUN_NCRNA=1`. Environment variables win over the file. The path of the file itself can be overridden with `BRAKER4_CONFIG=/path/to/another.ini`, which makes it easy to share a single config across multiple runs.
@@ -717,7 +718,7 @@ The BAM file must contain spliced alignments to the genome. You can generate it 
 
 ```
 minimap2 -t 48 -ax splice:hq -uf genome.fa isoseq.fa | samtools sort -@ 48 -o isoseq.bam
-samtools index isoseq.bam
+samtools index -c isoseq.bam
 ```
 
 **Unaligned IsoSeq FASTA/FASTQ:**

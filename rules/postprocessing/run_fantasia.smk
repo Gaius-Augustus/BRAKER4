@@ -82,26 +82,99 @@ rule fantasia_annotate:
         OUTDIR=$(readlink -f {params.outdir})
         PROTEINS=$(readlink -f {input.proteins})
 
-        # FANTASIA-Lite ships an offline ProtT5 cache; force the HuggingFace
-        # libraries to use it and never reach out to the network.
-        export HF_HOME="{params.hf_cache}"
-        export TRANSFORMERS_OFFLINE=1
-        export HF_HUB_OFFLINE=1
+        # SIGBUS root cause: safetensors mmap's the model file; CUDA async H2D
+        # copies from mmap-backed pages fail with SIGBUS when the kernel refuses
+        # to pin them inside the Singularity cgroup (reproducible on PyTorch 2.11,
+        # safetensors 0.7.0, regardless of whether the file is on NFS or /dev/shm).
+        #
+        # Fix (mirrors the working BOUDICCA / Nextflow_Tiberius_FANTASIA approach):
+        # load from the snapshot that contains pytorch_model.bin.  torch.load()
+        # uses buffered Python file I/O → data lands in anonymous heap RAM → no
+        # mmap → CUDA DMA works without issue.  We bypass HF Hub cache-lookup
+        # entirely by pointing our patched generate_embeddings.py at the snapshot
+        # directory via BRAKER4_HF_MODEL_PATH (see scripts/generate_embeddings.py).
+        # This also sidesteps the SINGULARITYENV_* propagation problems seen with
+        # HF_HOME on this cluster.
 
-        echo "[$(date)] Running FANTASIA-Lite on $PROTEINS" >  {log}
+        HF_SRC="{params.hf_cache}/hub/models--Rostlab--prot_t5_xl_uniref50"
+
+        # Prefer the snapshot that carries pytorch_model.bin (torch.load, no mmap).
+        # Fall back to refs/main only when no pytorch snapshot exists (safetensors-
+        # only caches may trigger SIGBUS on some cluster/Singularity configs).
+        SNAPSHOT_DIR=$(find "$HF_SRC/snapshots" -maxdepth 2 \
+            -name "pytorch_model.bin" 2>/dev/null \
+            | head -1 | xargs -r dirname)
+
+        if [ -n "$SNAPSHOT_DIR" ]; then
+            echo "[$(date)] Using pytorch format: $SNAPSHOT_DIR" >> {log}
+        else
+            PYTORCH_REV=$(cat "$HF_SRC/refs/main" 2>/dev/null | tr -d '[:space:]')
+            if [ -z "$PYTORCH_REV" ]; then
+                echo "[$(date)] FATAL: no pytorch_model.bin and no refs/main in $HF_SRC" >> {log}
+                exit 1
+            fi
+            SNAPSHOT_DIR="$HF_SRC/snapshots/$PYTORCH_REV"
+            echo "[$(date)] WARNING: no pytorch_model.bin found; falling back to safetensors in $(basename "$SNAPSHOT_DIR")" >> {log}
+        fi
+        echo "[$(date)] BRAKER4_HF_MODEL_PATH=$SNAPSHOT_DIR" >> {log}
+        ls "$SNAPSHOT_DIR" >> {log} 2>&1
+
+        echo "[$(date)] Running FANTASIA-Lite on $PROTEINS" >> {log}
         nProteins=$(grep -c '^>' "$PROTEINS" || echo 0)
         echo "[$(date)] Input proteins: $nProteins" >> {log}
 
-        # Validated invocation mirroring EukAssembly-Bin (BOUDICCA) V1 and
-        # Nextflow_Tiberius_FANTASIA V1.  The lookup bundle is no longer baked
-        # into the container; it is bind-mounted from params.lookup_dir.
-        # All packages are pre-installed in /opt/venv inside the container --
-        # no host-side venv creation or pip workarounds are needed.
+        # SLURM sets CUDA_VISIBLE_DEVICES when the gres binding plugin is active.
+        # On clusters where it sets SLURM_JOB_GPUS instead, copy it into CVD so
+        # the container targets the correct allocated GPU rather than defaulting to 0.
+        # Capture into plain bash vars. Snakemake's format engine only touches
+        # single-brace tokens, so plain $VAR refs are safe; double-brace expansions
+        # become single-brace after Snakemake formatting, which bash then expands.
+        CVD=${{CUDA_VISIBLE_DEVICES:-}}
+        JOB_GPUS=${{SLURM_JOB_GPUS:-}}
+        if [ -n "$JOB_GPUS" ] && [ -z "$CVD" ]; then
+            export CUDA_VISIBLE_DEVICES=$JOB_GPUS
+            CVD=$JOB_GPUS
+            echo "[$(date)] Derived CUDA_VISIBLE_DEVICES=$CVD from SLURM_JOB_GPUS" >> {log}
+        fi
+        echo "[$(date)] CUDA_VISIBLE_DEVICES=$CVD  SLURM_JOB_GPUS=$JOB_GPUS" >> {log}
+        nvidia-smi --query-gpu=index,memory.free,memory.used --format=csv >> {log} 2>&1 || true
+
+        # ProtT5-XL needs ~14 GB VRAM.  Fail fast if the assigned GPU
+        # (first index in CVD, or 0 if unset) is too full.
+        if [ -n "$CVD" ]; then
+            GPU_IDX=$(echo "$CVD" | cut -d, -f1)
+        else
+            GPU_IDX=0
+        fi
+        FREE_MIB=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits \
+            -i "$GPU_IDX" 2>/dev/null | tr -d ' ' || echo 0)
+        echo "[$(date)] Physical GPU $GPU_IDX (cuda:0): $FREE_MIB MiB free" >> {log}
+        if [ "$FREE_MIB" -lt 15000 ] 2>/dev/null; then
+            echo "[ERROR] GPU $GPU_IDX has only $FREE_MIB MiB free; ProtT5-XL needs >=15000 MiB." >&2
+            echo "[ERROR] SLURM_JOB_GPUS=$JOB_GPUS  CUDA_VISIBLE_DEVICES=$CVD" >&2
+            echo "[ERROR] Resubmit or ask cluster admin to enable GPU cgroup isolation." >&2
+            exit 1
+        fi
+
+        # Bind-mount patched generate_embeddings.py (scripts/generate_embeddings.py)
+        # over the container's copy.  The patch reads BRAKER4_HF_MODEL_PATH and
+        # passes it directly to AutoTokenizer/AutoModel.from_pretrained(), bypassing
+        # all HF Hub cache-lookup machinery.  The env command inside the container
+        # guarantees the variable is set for the Python process regardless of how the
+        # cluster admin has configured SINGULARITYENV_* propagation.
+        # Also bind-mount the entire hf_cache directory so the symlinks in the
+        # snapshot (which resolve to ../../blobs/…) are accessible inside the container.
+        PATCHED_EMBED="{script_dir}/generate_embeddings.py"
         singularity exec --nv \
             -B "$PWD":"$PWD" \
-            -B "{params.hf_cache}":"{params.hf_cache}" \
+            -B "{params.hf_cache}":"{params.hf_cache}":ro \
             -B "{params.lookup_dir}":"{params.lookup_dir}" \
+            -B "$PATCHED_EMBED":/opt/fantasia-lite/src/generate_embeddings.py:ro \
             "{params.sif}" \
+            env \
+                BRAKER4_HF_MODEL_PATH="$SNAPSHOT_DIR" \
+                TRANSFORMERS_OFFLINE=1 \
+                HF_HUB_OFFLINE=1 \
             python3 /opt/fantasia-lite/src/fantasia_pipeline.py \
                 --serial-models \
                 --embed-models prot_t5 \
@@ -133,6 +206,11 @@ rule fantasia_annotate:
         source {script_dir}/report_citations.sh
         cite fantasia "$REPORT_DIR"
         cite fantasia_methods "$REPORT_DIR"
+
+        # Remove chunk working dirs and the full embedding matrix; results.csv
+        # and topgo/ are kept (copied by collect_results and read by downstream rules).
+        rm -rf "$OUTDIR/tmp" 2>/dev/null || true
+        rm -f  "$OUTDIR/query_embeddings.npz" 2>/dev/null || true
         """
 
 

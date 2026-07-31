@@ -4,12 +4,14 @@ singularity-args: '--no-mount resolv-conf -B /home --env "PREPEND_PATH=/opt/cond
 # Cluster-specific SLURM directives (uncomment and adjust as needed).
 # slurm_account and slurm_qos are recognized by snakemake-executor-plugin-slurm
 # and translate to #SBATCH --account / #SBATCH --qos in every submitted job.
-# tmpdir overrides $TMPDIR for all rules. Some BRAKER4 rules (notably
-# merge_hints, which chains four `sort` passes) spill intermediates to
-# $TMPDIR. Many SLURM clusters set TMPDIR=/local/scratch/$USER per
-# allocation, and that path is often not user-writable or not bound into
-# the Singularity container. Point tmpdir at a directory you can write,
-# and add that same path to the -B list in singularity-args above.
+# tmpdir overrides $TMPDIR for all rules. Several BRAKER4 rules spill
+# intermediates to $TMPDIR: merge_hints (four GNU sort passes) and all
+# samtools sort calls (hisat2_align, check_bam_sorted, check_isoseq_bam,
+# minimap2_isoseq_align, add_utr). Many SLURM clusters set
+# TMPDIR=/local/scratch/$USER per allocation, and that path is often not
+# user-writable or not bound into the Singularity container. Point tmpdir
+# at a directory you can write, and add that same path to the -B list in
+# singularity-args above.
 # default-resources:
 #   slurm_account: "your_account"
 #   slurm_qos: "standby"

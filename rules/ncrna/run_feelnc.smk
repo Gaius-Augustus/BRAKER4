@@ -11,11 +11,6 @@ ES and EP modes have no StringTie assembly and skip this step.
 Container: quay.io/biocontainers/feelnc:0.2.1--pl5321hdfd78af_0
 """
 
-FEELNC_CONTAINER = config.get(
-    "feelnc_image",
-    "docker://quay.io/biocontainers/feelnc:0.2--pl526_0"
-)
-
 
 def _get_feelnc_stringtie_gtf(wildcards):
     """Get StringTie GTF for FEELnc, routing by mode."""

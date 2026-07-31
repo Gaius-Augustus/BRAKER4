@@ -395,17 +395,17 @@ def get_rnaseq_bam(wildcards):
     if bam_id in get_bam_ids(sample):
         return {
             "bam": f"output/{sample}/bam_sorted/{bam_id}.sorted.bam",
-            "bai": f"output/{sample}/bam_sorted/{bam_id}.sorted.bam.bai"
+            "csi": f"output/{sample}/bam_sorted/{bam_id}.sorted.bam.csi"
         }
     elif bam_id in get_sra_ids(sample) or bam_id in get_fastq_ids(sample):
         return {
             "bam": f"output/{sample}/hisat2_aligned/{bam_id}.sorted.bam",
-            "bai": f"output/{sample}/hisat2_aligned/{bam_id}.sorted.bam.bai"
+            "csi": f"output/{sample}/hisat2_aligned/{bam_id}.sorted.bam.csi"
         }
     elif bam_id in get_varus_ids(sample):
         return {
             "bam": f"output/{sample}/varus/varus.sorted.bam",
-            "bai": f"output/{sample}/varus/varus.sorted.bam.bai"
+            "csi": f"output/{sample}/varus/varus.sorted.bam.csi"
         }
     else:
         raise ValueError(f"Unknown RNA-seq ID: {bam_id} for sample {sample}")
@@ -591,10 +591,13 @@ RED_CONTAINER = config.get("red_image", "docker://quay.io/biocontainers/red:2018
 GFFCOMPARE_CONTAINER = config.get("gffcompare_image", "docker://quay.io/biocontainers/gffcompare:0.12.6--h9f5acd7_1")
 AGAT_CONTAINER = config.get("agat_image", "docker://quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0")
 BARRNAP_CONTAINER = config.get("pybarrnap_image", "docker://quay.io/biocontainers/pybarrnap:0.5.1--pyhdfd78af_0")
-BUSCO_CONTAINER = config.get("busco_image", "docker://ezlabgva/busco:v6.0.0_cv1")
+BUSCO_CONTAINER = config.get("busco_image", "docker://ezlabgva/busco:v6.1.0_cv2")
 OMARK_CONTAINER = config.get("omark_image", "docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0")
 TETOOLS_CONTAINER = config.get("tetools_image", "docker://dfam/tetools:latest")
 VARUS_CONTAINER = config.get("varus_image", "docker://katharinahoff/varus-notebook:v0.0.6")
+TRNASCAN_CONTAINER = config.get("trnascan_image", "docker://quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0")
+FEELNC_CONTAINER = config.get("feelnc_image", "docker://quay.io/biocontainers/feelnc:0.2--pl526_0")
+INFERNAL_CONTAINER = config.get("infernal_image", "docker://quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2")
 
 # GeneMark-ETP container: uses IsoSeq container when any sample is in IsoSeq mode
 # (the IsoSeq container has a GeneMark-ETP build that handles long-read evidence)

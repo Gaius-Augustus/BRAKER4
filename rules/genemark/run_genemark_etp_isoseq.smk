@@ -61,7 +61,8 @@ rule run_genemark_etp_isoseq:
     params:
         outdir="output/{sample}/GeneMark-ETP-isoseq",
         species_name=lambda wildcards: get_species_name(wildcards),
-        fungus="--fungus" if config.get("fungus", False) else ""
+        fungus="--fungus" if config.get("fungus", False) else "",
+        translation_table=config.get("translation_table", 1)
     container:
         BRAKER3_CONTAINER
     shell:
@@ -120,6 +121,8 @@ genome_path: $GENOME_ABS
 protdb_path: $(readlink -f $PROT_FILE)
 rnaseq_sets: [$BAM_IDS]
 species: {params.species_name}_isoseq
+translation_table: {params.translation_table}
+gcode: {params.translation_table}
 YAMLEOF
 
         echo "YAML config created with rnaseq_sets: [$BAM_IDS]" >> {log}
@@ -127,7 +130,7 @@ YAMLEOF
         GMES_CORES={threads}
         # Step 4: Run GeneMark-ETP with isoseq container
         cd $OUTDIR_ABS
-        
+
         if gmetp.pl \
             --cfg $OUTDIR_ABS/etp_config.yaml \
             --workdir $OUTDIR_ABS \
@@ -178,7 +181,7 @@ YAMLEOF
             exit 1
         fi
 
-        n_genes=$(awk '$3=="gene"{{c++}}END{{print c+0}}' $OUTDIR_ABS/genemark.gtf)
+        n_genes=$(grep -c $'\\tgene\\t' $OUTDIR_ABS/genemark.gtf || echo "0")
         echo "GeneMark-ETP (isoseq) predicted $n_genes genes (exit=$ETP_EXIT)" >> {log}
 
         # Step 5: Find and copy training genes and HC genes
@@ -249,4 +252,15 @@ YAMLEOF
         cite genemarks_t "$REPORT_DIR" || true
         cite braker3 "$REPORT_DIR" || true
         cite braker_book "$REPORT_DIR" || true
+
+        # Remove GeneMark-ETP-isoseq internal working files and etp_data/ BAM copies.
+        # Tracked outputs kept: genemark.gtf, training.gtf, hc.gff,
+        # rnaseq/stringtie/transcripts_merged.gff (etp_hints_isoseq.gff is outside outdir).
+        find $OUTDIR_ABS -mindepth 1 -type f \
+            ! -name 'genemark.gtf' \
+            ! -name 'training.gtf' \
+            ! -name 'hc.gff' \
+            ! -path '*/rnaseq/stringtie/transcripts_merged.gff' \
+            -delete 2>/dev/null || true
+        find $OUTDIR_ABS -mindepth 1 -type d -empty -delete 2>/dev/null || true
         """

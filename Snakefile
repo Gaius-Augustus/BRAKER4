@@ -8,11 +8,11 @@ Dynamic workflow supporting all BRAKER modes:
 - IsoSeq: PacBio long-read + Proteins
 
 Authors: Henning Krall, Katharina J. Hoff
-Version: 0.4.0-beta
+Version: 0.5.0-beta
 """
 
 __author__ = "Henning Krall,Katharina J. Hoff"
-__version__ = "0.4.0-beta"
+__version__ = "0.5.0-beta"
 
 import pandas as pd
 import configparser
@@ -107,10 +107,13 @@ _container_defaults = {
     'gffcompare_image':'docker://quay.io/biocontainers/gffcompare:0.12.6--h9f5acd7_1',
     'agat_image':      'docker://quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0',
     'pybarrnap_image': 'docker://quay.io/biocontainers/pybarrnap:0.5.1--pyhdfd78af_0',
-    'busco_image':     'docker://ezlabgva/busco:v6.0.0_cv1',
+    'busco_image':     'docker://ezlabgva/busco:v6.1.0_cv2',
     'omark_image':     'docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0',
     'tetools_image':   'docker://dfam/tetools:latest',
     'varus_image':     'docker://katharinahoff/varus-notebook:v0.0.6',
+    'trnascan_image': 'docker://quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0',
+    'feelnc_image': 'docker://quay.io/biocontainers/feelnc:0.2--pl526_0',
+    'infernal_image': 'docker://quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2',
 }
 for _img_key, _img_default in _container_defaults.items():
     config[_img_key] = config_parser.get('containers', _img_key, fallback=_img_default)
@@ -641,6 +644,7 @@ if GLOBAL_DATA_TYPES['needs_masking']:
 #   - lncRNA via FEELnc (only when transcript evidence is available)
 # All ncRNA predictions are merged into braker_with_ncRNA.gff3.
 RUN_NCRNA = config.get('run_ncrna', False)
+
 if RUN_NCRNA:
     include: "rules/ncrna/run_barrnap.smk"
     include: "rules/ncrna/run_trnascan.smk"

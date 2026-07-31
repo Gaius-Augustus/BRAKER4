@@ -176,7 +176,7 @@ rule run_tsebra_etp_per_run:
         fi
         echo "[INFO] TSEBRA config: $TSEBRA_CFG" | tee -a {output.log_file}
 
-        GENOME_SIZE=$(awk '{{sum+=$2}}END{{print sum+0}}' {input.genome_fai})
+        GENOME_SIZE=$(awk '{{sum+=$2}} END {{printf "%.0f\n", sum+0}}' {input.genome_fai})
         FILTER_SE_ARG=""
         if [ "$GENOME_SIZE" -gt 300000000 ]; then
             FILTER_SE_ARG="--filter_single_exon_genes"
@@ -241,7 +241,7 @@ rule run_tsebra:
         fi
         echo "[INFO] TSEBRA config: $TSEBRA_CFG" | tee -a {output.tsebra_log}
 
-        GENOME_SIZE=$(awk '{{sum+=$2}}END{{print sum+0}}' {input.genome_fai})
+        GENOME_SIZE=$(awk '{{sum+=$2}} END {{printf "%.0f\n", sum+0}}' {input.genome_fai})
         FILTER_SE_ARG=""
         if [ "$GENOME_SIZE" -gt 300000000 ]; then
             FILTER_SE_ARG="--filter_single_exon_genes"

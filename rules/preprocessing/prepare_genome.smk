@@ -24,6 +24,8 @@ rule prepare_genome:
         runtime=int(config['slurm_args']['max_runtime'])
     params:
         pipeline_version=config['pipeline_version']
+    container:
+        BRAKER3_CONTAINER
     shell:
         r"""
         set -euo pipefail

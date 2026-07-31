@@ -68,6 +68,46 @@ rule convert_gtf_to_gff3:
             -o {output.gff3} \
             > {log} 2>&1
 
+        # Rename transcript → mRNA for all CDS-containing features.
+        # AGAT inconsistently promotes some but not all protein-coding
+        # transcripts to mRNA; this pass makes the output homogeneous.
+        # ncRNA transcripts (no CDS children) are left unchanged.
+        # Two-pass awk: pass 1 collects IDs of CDS parents; pass 2 renames.
+        _TMP="{output.gff3}.tmp"
+        awk 'BEGIN{{FS="\t";OFS="\t"}}
+        NR==FNR{{
+          if($3=="CDS"){{
+            n=split($9,a,";")
+            for(i=1;i<=n;i++){{
+              gsub(/^[[:space:]]+|[[:space:]]+$/,"",a[i])
+              if(a[i]~/^Parent=/){{
+                m=split(substr(a[i],8),p,",")
+                for(j=1;j<=m;j++){{
+                  gsub(/^[[:space:]]+|[[:space:]]+$/,"",p[j])
+                  seen[p[j]]=1
+                }}
+              }}
+            }}
+          }}
+          next
+        }}
+        /^#/{{print;next}}
+        {{
+          if($3=="transcript"){{
+            n=split($9,a,";")
+            for(i=1;i<=n;i++){{
+              gsub(/^[[:space:]]+|[[:space:]]+$/,"",a[i])
+              if(a[i]~/^ID=/){{
+                fid=substr(a[i],4)
+                gsub(/^[[:space:]]+|[[:space:]]+$/,"",fid)
+                if(fid in seen){{$3="mRNA"}}
+                break
+              }}
+            }}
+          }}
+          print
+        }}' "{output.gff3}" "{output.gff3}" > "$_TMP" && mv "$_TMP" "{output.gff3}"
+
         # Record software version (LC_ALL=C avoids locale warnings in biocontainer)
         VERSIONS_FILE=output/{wildcards.sample}/software_versions.tsv
         AGAT_VER=$(LC_ALL=C agat --version 2>&1 | head -1 || true)

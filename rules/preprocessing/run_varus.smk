@@ -39,7 +39,7 @@ rule run_varus:
         genome=lambda wildcards: get_genome(wildcards.sample)
     output:
         bam="output/{sample}/varus/varus.sorted.bam",
-        bai="output/{sample}/varus/varus.sorted.bam.bai"
+        csi="output/{sample}/varus/varus.sorted.bam.csi"
     log:
         "logs/{sample}/varus/varus.log"
     benchmark:
@@ -75,4 +75,11 @@ rule run_varus:
         REPORT_DIR=output/{wildcards.sample}
         source {script_dir}/report_citations.sh
         cite varus "$REPORT_DIR"
+
+        # Remove VARUS working directory: SRA FASTQs, per-accession BAMs, HISAT2 index.
+        # Keep: varus.sorted.bam, .bai, varus_stats.txt, varus_runlist.tsv (all at dir root).
+        VARUS_DIR_ABS=$(readlink -f output/{wildcards.sample}/varus)
+        rm -rf "$VARUS_DIR_ABS/{params.genus}_{params.species}" 2>/dev/null || true
+        rm -f  "$VARUS_DIR_ABS/genome.fa" \
+               "$VARUS_DIR_ABS/VARUSparameters.txt" 2>/dev/null || true
         """

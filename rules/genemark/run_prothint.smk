@@ -90,4 +90,13 @@ rule run_prothint:
         cite prothint "$REPORT_DIR" || true
         cite diamond "$REPORT_DIR" || true
         cite spaln "$REPORT_DIR" || true
+
+        # Remove ProTHint working files (DIAMOND databases, intermediate files).
+        # Keep: prothint.gff (Snakemake output) and Spaln/spaln.gff (reused by
+        # run_prothint_iter2 via --prevSpalnGff to avoid re-running Spaln).
+        find {params.outdir} -mindepth 1 -type f \
+            ! -name 'prothint.gff' \
+            ! -path '*/Spaln/spaln.gff' \
+            -delete 2>/dev/null || true
+        find {params.outdir} -mindepth 1 -type d -empty -delete 2>/dev/null || true
         """
