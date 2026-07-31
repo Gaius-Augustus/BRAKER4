@@ -1,23 +1,12 @@
 """
-Run VARUS to automatically select and download RNA-Seq data from SRA.
+Run pyVARUS to automatically select and download RNA-Seq data from SRA.
 
-VARUS automatically:
-1. Searches SRA for RNA-Seq data matching the species
-2. Downloads and aligns complementary RNA-Seq reads
-3. Produces BAM file for use in gene prediction
+pyVARUS:
+1. Searches NCBI SRA for RNA-Seq data matching the species
+2. Iteratively downloads and aligns complementary RNA-Seq reads
+3. Produces a coordinate-sorted BAM file for use in gene prediction
 
-Important: VARUS internally changes directories (chdir), which conflicts
-with Snakemake's working directory management. Therefore, VARUS must be
-invoked from a wrapper script that resolves all paths to absolute paths
-before cd-ing into the VARUS working directory.
-
-Input:
-    - Genome FASTA file
-
-Output:
-    - Coordinate-sorted BAM file with index
-
-Container: katharinahoff/varus-notebook:v0.0.5
+Container: katharinahoff/pyvarus:v1.0.0
 """
 
 
@@ -69,17 +58,17 @@ rule run_varus:
 
         # Record software version
         VERSIONS_FILE=output/{wildcards.sample}/software_versions.tsv
-        ( flock 9; printf "VARUS\tcontainer v0.0.6\n" >> "$VERSIONS_FILE" ) 9>"$VERSIONS_FILE.lock"
+        ( flock 9; printf "pyVARUS\tv1.0.0\n" >> "$VERSIONS_FILE" ) 9>"$VERSIONS_FILE.lock"
 
         # Report
         REPORT_DIR=output/{wildcards.sample}
         source {script_dir}/report_citations.sh
         cite varus "$REPORT_DIR"
 
-        # Remove VARUS working directory: SRA FASTQs, per-accession BAMs, HISAT2 index.
-        # Keep: varus.sorted.bam, .bai, varus_stats.txt, varus_runlist.tsv (all at dir root).
+        # Remove pyVARUS working files: HISAT2 index and unsorted BAM.
+        # Keep: varus.sorted.bam, .csi, varus_stats.txt, varus_runlist.tsv
         VARUS_DIR_ABS=$(readlink -f output/{wildcards.sample}/varus)
-        rm -rf "$VARUS_DIR_ABS/{params.genus}_{params.species}" 2>/dev/null || true
-        rm -f  "$VARUS_DIR_ABS/genome.fa" \
-               "$VARUS_DIR_ABS/VARUSparameters.txt" 2>/dev/null || true
+        rm -rf "$VARUS_DIR_ABS/genome"     2>/dev/null || true
+        rm -f  "$VARUS_DIR_ABS/VARUS.bam"  2>/dev/null || true
+        rm -f  "$VARUS_DIR_ABS/Runlist.tsv" 2>/dev/null || true
         """

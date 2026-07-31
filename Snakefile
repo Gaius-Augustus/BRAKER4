@@ -110,7 +110,7 @@ _container_defaults = {
     'busco_image':     'docker://ezlabgva/busco:v6.1.0_cv2',
     'omark_image':     'docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0',
     'tetools_image':   'docker://dfam/tetools:latest',
-    'varus_image':     'docker://katharinahoff/varus-notebook:v0.0.6',
+    'varus_image':     'docker://katharinahoff/pyvarus:v1.0.0',
     'trnascan_image': 'docker://quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0',
     'feelnc_image': 'docker://quay.io/biocontainers/feelnc:0.2--pl526_0',
     'infernal_image': 'docker://quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2',
