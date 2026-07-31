@@ -1180,135 +1180,135 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L120",
-      "id": "generate_embeddings_rationale_120",
       "community": 2,
-      "norm_label": "parse a fasta file and return sequence ids and sequences.      parameters     --"
+      "norm_label": "parse a fasta file and return sequence ids and sequences.      parameters     --",
+      "id": "generate_embeddings_rationale_120"
     },
     {
       "label": "Apply upstream-compatible pre-embedding length filtering.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L221",
-      "id": "generate_embeddings_rationale_221",
       "community": 2,
-      "norm_label": "apply upstream-compatible pre-embedding length filtering."
+      "norm_label": "apply upstream-compatible pre-embedding length filtering.",
+      "id": "generate_embeddings_rationale_221"
     },
     {
       "label": "Format the raw FASTA sequence for the requested model.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L229",
-      "id": "generate_embeddings_rationale_229",
       "community": 2,
-      "norm_label": "format the raw fasta sequence for the requested model."
+      "norm_label": "format the raw fasta sequence for the requested model.",
+      "id": "generate_embeddings_rationale_229"
     },
     {
       "label": "Pool token-level hidden states into one embedding per sequence.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L256",
-      "id": "generate_embeddings_rationale_256",
       "community": 2,
-      "norm_label": "pool token-level hidden states into one embedding per sequence."
+      "norm_label": "pool token-level hidden states into one embedding per sequence.",
+      "id": "generate_embeddings_rationale_256"
     },
     {
       "label": "Return the last hidden state plus a normalized layer-index mapping.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L274",
-      "id": "generate_embeddings_rationale_274",
       "community": 2,
-      "norm_label": "return the last hidden state plus a normalized layer-index mapping."
+      "norm_label": "return the last hidden state plus a normalized layer-index mapping.",
+      "id": "generate_embeddings_rationale_274"
     },
     {
       "label": "Resolve the final set of layer indices to export.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L300",
-      "id": "generate_embeddings_rationale_300",
       "community": 2,
-      "norm_label": "resolve the final set of layer indices to export."
+      "norm_label": "resolve the final set of layer indices to export.",
+      "id": "generate_embeddings_rationale_300"
     },
     {
       "label": "Compute mean pooled embeddings for a batch of sequences.      This function toke",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L323",
-      "id": "generate_embeddings_rationale_323",
       "community": 2,
-      "norm_label": "compute mean pooled embeddings for a batch of sequences.      this function toke"
+      "norm_label": "compute mean pooled embeddings for a batch of sequences.      this function toke",
+      "id": "generate_embeddings_rationale_323"
     },
     {
       "label": "Backward-compatible single-sequence wrapper around batch inference.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L399",
-      "id": "generate_embeddings_rationale_399",
       "community": 2,
-      "norm_label": "backward-compatible single-sequence wrapper around batch inference."
+      "norm_label": "backward-compatible single-sequence wrapper around batch inference.",
+      "id": "generate_embeddings_rationale_399"
     },
     {
       "label": "Return a short category string if the error is recoverable.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L413",
-      "id": "generate_embeddings_rationale_413",
       "community": 2,
-      "norm_label": "return a short category string if the error is recoverable."
+      "norm_label": "return a short category string if the error is recoverable.",
+      "id": "generate_embeddings_rationale_413"
     },
     {
       "label": "Best-effort extraction of the model's embedding dimensionality.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L434",
-      "id": "generate_embeddings_rationale_434",
       "community": 2,
-      "norm_label": "best-effort extraction of the model's embedding dimensionality."
+      "norm_label": "best-effort extraction of the model's embedding dimensionality.",
+      "id": "generate_embeddings_rationale_434"
     },
     {
       "label": "Yield batches of similar-length prepared sequences.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L452",
-      "id": "generate_embeddings_rationale_452",
       "community": 2,
-      "norm_label": "yield batches of similar-length prepared sequences."
+      "norm_label": "yield batches of similar-length prepared sequences.",
+      "id": "generate_embeddings_rationale_452"
     },
     {
       "label": "Yield upstream-style queue packages before model forward batching.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L484",
-      "id": "generate_embeddings_rationale_484",
       "community": 2,
-      "norm_label": "yield upstream-style queue packages before model forward batching."
+      "norm_label": "yield upstream-style queue packages before model forward batching.",
+      "id": "generate_embeddings_rationale_484"
     },
     {
       "label": "Load tokenizer and model for ``model_name`` and move to ``device``.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L494",
-      "id": "generate_embeddings_rationale_494",
       "community": 2,
-      "norm_label": "load tokenizer and model for ``model_name`` and move to ``device``."
+      "norm_label": "load tokenizer and model for ``model_name`` and move to ``device``.",
+      "id": "generate_embeddings_rationale_494"
     },
     {
       "label": "Compute embeddings for all sequences using a given model.      Parameters     --",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L532",
-      "id": "generate_embeddings_rationale_532",
       "community": 2,
-      "norm_label": "compute embeddings for all sequences using a given model.      parameters     --"
+      "norm_label": "compute embeddings for all sequences using a given model.      parameters     --",
+      "id": "generate_embeddings_rationale_532"
     },
     {
       "label": "Write a CSV report describing sequences that were skipped.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L668",
-      "id": "generate_embeddings_rationale_668",
       "community": 2,
-      "norm_label": "write a csv report describing sequences that were skipped."
+      "norm_label": "write a csv report describing sequences that were skipped.",
+      "id": "generate_embeddings_rationale_668"
     },
     {
       "label": "stringtie2utr.py",
@@ -7477,8 +7477,8 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L229",
       "weight": 1.0,
-      "_src": "gene_set_statistics_generate_plots",
-      "_tgt": "generate_embeddings_tqdmshim_close",
+      "_src": "generate_embeddings_tqdmshim_close",
+      "_tgt": "gene_set_statistics_generate_plots",
       "source": "generate_embeddings_tqdmshim_close",
       "target": "gene_set_statistics_generate_plots"
     },
@@ -7489,8 +7489,8 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L400",
       "weight": 1.0,
-      "_src": "fantasia_summary_write_categories_pie",
-      "_tgt": "generate_embeddings_tqdmshim_close",
+      "_src": "generate_embeddings_tqdmshim_close",
+      "_tgt": "fantasia_summary_write_categories_pie",
       "source": "generate_embeddings_tqdmshim_close",
       "target": "fantasia_summary_write_categories_pie"
     },
