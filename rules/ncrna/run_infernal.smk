@@ -103,7 +103,7 @@ rule convert_infernal_to_gff3:
     threads: 1
     resources:
         mem_mb=0 if config['slurm_args'].get('skip_mem') else 4000,
-        runtime=30
+        runtime=int(config['slurm_args']['max_runtime'])
     shell:
         r"""
         set -euo pipefail

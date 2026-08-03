@@ -239,7 +239,7 @@ rule fantasia_decorate_gff3:
     threads: 1
     resources:
         mem_mb=0 if config['slurm_args'].get('skip_mem') else 2000,
-        runtime=10
+        runtime=720
     container:
         BRAKER3_CONTAINER
     shell:
@@ -275,7 +275,7 @@ rule fantasia_summarize:
     threads: 1
     resources:
         mem_mb=0 if config['slurm_args'].get('skip_mem') else 2000,
-        runtime=10
+        runtime=720
     container:
         BRAKER3_CONTAINER
     shell:
