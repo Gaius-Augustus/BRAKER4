@@ -1311,6 +1311,15 @@
       "id": "generate_embeddings_rationale_668"
     },
     {
+      "label": "filter_gtf.py",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/filter_gtf.py",
+      "source_location": "L1",
+      "id": "home_katharina_git_braker4_scripts_filter_gtf_py",
+      "community": 25,
+      "norm_label": "filter_gtf.py"
+    },
+    {
       "label": "stringtie2utr.py",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
@@ -2594,7 +2603,7 @@
       "source_file": "scripts/getAnnoFastaFromJoingenes.py",
       "source_location": "L1",
       "id": "scripts_getannofastafromjoingenes_py",
-      "community": 25,
+      "community": 26,
       "norm_label": "getannofastafromjoingenes.py"
     },
     {
@@ -3088,7 +3097,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L290",
-      "community": 26,
+      "community": 27,
       "norm_label": "run the getannofastafromjoingenes.py tool to process the genemark gtf file and g",
       "id": "best_by_compleasm_rationale_290"
     },
@@ -3097,7 +3106,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L306",
-      "community": 27,
+      "community": 28,
       "norm_label": "execute a subprocess command with the provided arguments.      args:         arg",
       "id": "best_by_compleasm_rationale_306"
     },
@@ -3106,7 +3115,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L341",
-      "community": 28,
+      "community": 29,
       "norm_label": "check if the provided binary is executable or available in the system's path.",
       "id": "best_by_compleasm_rationale_341"
     },
@@ -3115,7 +3124,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L377",
-      "community": 29,
+      "community": 30,
       "norm_label": "check if the specified file exists.      args:         file (str): path to the f",
       "id": "best_by_compleasm_rationale_377"
     },
@@ -3124,7 +3133,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L394",
-      "community": 30,
+      "community": 31,
       "norm_label": "determine whether braker run, and whether the files are complete.      args:",
       "id": "best_by_compleasm_rationale_394"
     },
@@ -3133,7 +3142,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L418",
-      "community": 31,
+      "community": 32,
       "norm_label": "check if the specified directory exists.      returns:         str: path to the",
       "id": "best_by_compleasm_rationale_418"
     },
@@ -3142,7 +3151,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L435",
-      "community": 32,
+      "community": 33,
       "norm_label": "filters and writes gtf lines based on transcript ids.      this function reads a",
       "id": "best_by_compleasm_rationale_435"
     },
@@ -3151,7 +3160,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L59",
-      "community": 33,
+      "community": 34,
       "norm_label": "parse gtf attribute string into dict.",
       "id": "normalize_gtf_rationale_59"
     },
@@ -3160,7 +3169,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L72",
-      "community": 34,
+      "community": 35,
       "norm_label": "extract sequence from genome (1-based coords).",
       "id": "normalize_gtf_rationale_72"
     },
@@ -3169,7 +3178,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L82",
-      "community": 35,
+      "community": 36,
       "norm_label": "get cds features sorted by genomic position.",
       "id": "normalize_gtf_rationale_82"
     },
@@ -3178,7 +3187,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L89",
-      "community": 36,
+      "community": 37,
       "norm_label": "normalize cds boundaries for a transcript.      returns (normalized_features, is",
       "id": "normalize_gtf_rationale_89"
     },
@@ -3187,7 +3196,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L175",
-      "community": 37,
+      "community": 38,
       "norm_label": "update gene and transcript boundaries to match their features.",
       "id": "normalize_gtf_rationale_175"
     },
@@ -3196,7 +3205,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L197",
-      "community": 38,
+      "community": 39,
       "norm_label": "write normalized gtf, preserving gene/transcript/feature order.",
       "id": "normalize_gtf_rationale_197"
     },
@@ -3205,7 +3214,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L321",
-      "community": 39,
+      "community": 40,
       "norm_label": "create a utr feature line with explicit start/end coordinates.      avoids the s",
       "id": "stringtie2utr_rationale_321"
     },
@@ -3214,7 +3223,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L446",
-      "community": 40,
+      "community": 41,
       "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers",
       "id": "stringtie2utr_rationale_446"
     },
@@ -3223,7 +3232,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L510",
-      "community": 41,
+      "community": 42,
       "norm_label": "print gtf lines based on gene_dict and gtf_dict.          args:     - filename (",
       "id": "stringtie2utr_rationale_510"
     },
@@ -3232,7 +3241,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L557",
-      "community": 42,
+      "community": 43,
       "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi",
       "id": "stringtie2utr_rationale_557"
     },
@@ -3241,7 +3250,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L565",
-      "community": 43,
+      "community": 44,
       "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
       "id": "stringtie2utr_rationale_565"
     },
@@ -3250,7 +3259,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L594",
-      "community": 44,
+      "community": 45,
       "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
       "id": "stringtie2utr_rationale_594"
     },
@@ -3259,7 +3268,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L627",
-      "community": 45,
+      "community": 46,
       "norm_label": "find transcripts that overlap with genes.",
       "id": "stringtie2utr_rationale_627"
     },
@@ -3268,7 +3277,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L646",
-      "community": 46,
+      "community": 47,
       "norm_label": "extract introns directly from stringtie_tx_dict.",
       "id": "stringtie2utr_rationale_646"
     },
@@ -3277,7 +3286,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L655",
-      "community": 47,
+      "community": 48,
       "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in",
       "id": "stringtie2utr_rationale_655"
     },
@@ -3286,7 +3295,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L312",
-      "community": 48,
+      "community": 49,
       "norm_label": "create a utr feature line with explicit start/end coordinates.      avoids the s",
       "id": "stringtie2utr_rationale_312"
     },
@@ -3295,7 +3304,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L330",
-      "community": 49,
+      "community": 50,
       "norm_label": "compute the utr features for each transcript in tsebra_gtf based on strand infor",
       "id": "stringtie2utr_rationale_330"
     },
@@ -3304,7 +3313,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L437",
-      "community": 50,
+      "community": 51,
       "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers",
       "id": "stringtie2utr_rationale_437"
     },
@@ -3313,7 +3322,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L493",
-      "community": 51,
+      "community": 52,
       "norm_label": "print gtf lines based on gene_dict and gtf_dict.          args:     - filename (",
       "id": "stringtie2utr_rationale_493"
     },
@@ -3322,7 +3331,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L540",
-      "community": 52,
+      "community": 53,
       "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi",
       "id": "stringtie2utr_rationale_540"
     },
@@ -3331,7 +3340,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L548",
-      "community": 53,
+      "community": 54,
       "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
       "id": "stringtie2utr_rationale_548"
     },
@@ -3340,7 +3349,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L577",
-      "community": 54,
+      "community": 55,
       "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
       "id": "stringtie2utr_rationale_577"
     },
@@ -3349,7 +3358,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L610",
-      "community": 55,
+      "community": 56,
       "norm_label": "find transcripts that overlap with genes.",
       "id": "stringtie2utr_rationale_610"
     },
@@ -3358,7 +3367,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L629",
-      "community": 56,
+      "community": 57,
       "norm_label": "extract introns directly from stringtie_tx_dict.",
       "id": "stringtie2utr_rationale_629"
     },
@@ -3367,7 +3376,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L638",
-      "community": 57,
+      "community": 58,
       "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in",
       "id": "stringtie2utr_rationale_638"
     },
@@ -3376,7 +3385,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L300",
-      "community": 58,
+      "community": 59,
       "norm_label": "create a utr feature line with explicit start/end coordinates.      avoids the s",
       "id": "stringtie2utr_rationale_300"
     },
@@ -3385,7 +3394,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L318",
-      "community": 59,
+      "community": 60,
       "norm_label": "compute the utr features for each transcript in tsebra_gtf based on strand infor",
       "id": "stringtie2utr_rationale_318"
     },
@@ -3394,7 +3403,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L425",
-      "community": 60,
+      "community": 61,
       "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers",
       "id": "stringtie2utr_rationale_425"
     },
@@ -3403,7 +3412,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L481",
-      "community": 61,
+      "community": 62,
       "norm_label": "print gtf lines based on gene_dict and gtf_dict.          args:     - filename (",
       "id": "stringtie2utr_rationale_481"
     },
@@ -3412,7 +3421,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L528",
-      "community": 62,
+      "community": 63,
       "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi",
       "id": "stringtie2utr_rationale_528"
     },
@@ -3421,7 +3430,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L598",
-      "community": 63,
+      "community": 64,
       "norm_label": "find transcripts that overlap with genes.",
       "id": "stringtie2utr_rationale_598"
     },
@@ -3430,7 +3439,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L617",
-      "community": 64,
+      "community": 65,
       "norm_label": "extract introns directly from stringtie_tx_dict.",
       "id": "stringtie2utr_rationale_617"
     },
@@ -3439,7 +3448,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L626",
-      "community": 65,
+      "community": 66,
       "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in",
       "id": "stringtie2utr_rationale_626"
     },
@@ -3452,7 +3461,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 66,
+      "community": 67,
       "norm_label": ".gitignore (braker4)",
       "id": "gitignore_braker4"
     },
@@ -3465,7 +3474,7 @@
       "captured_at": null,
       "author": "Katharina Hoff",
       "contributor": null,
-      "community": 67,
+      "community": 68,
       "norm_label": "mit license (braker4)",
       "id": "license_mit"
     },
@@ -3647,7 +3656,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 68,
+      "community": 69,
       "norm_label": "samples.csv + config.ini input specification",
       "id": "concept_samples_csv_config"
     },

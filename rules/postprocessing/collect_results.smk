@@ -321,7 +321,7 @@ rule collect_results:
             echo "[INFO] Removing intermediate files..."
             for item in "$OUTDIR"/*; do
                 basename=$(basename "$item")
-                if [ "$basename" = "results" ]; then
+                if [ "$basename" = "results" ] || [ "$basename" = "varus" ]; then
                     continue
                 fi
                 rm -rf "$item"
