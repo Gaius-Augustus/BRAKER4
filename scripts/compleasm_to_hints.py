@@ -128,17 +128,14 @@ def main():
         if not os.access(args.compleasm, os.X_OK):
             raise FileNotFoundError("compleasm is not executable")
 
-    # Ensure database uses _odb12 suffix (compleasm only supports odb12).
-    # Convert e.g. eukaryota_odb12 -> eukaryota_odb12, or add _odb12 if missing.
-    if re.search(r'_odb\d+$', args.database):
-        args.database = re.sub(r'_odb\d+$', '_odb12', args.database)
-    else:
-        args.database = args.database + "_odb12"
+    lineage_name, _, odb = args.database.partition("_")
+    odb = odb or "odb12"
+    args.database = lineage_name + "_" + odb
 
     # apply compleasm to genome file with run_subprocess and the database
     if args.scratch_dir is None:
         args.scratch_dir = "compleasm_genome_out"
-    compleasm_cmd = [args.compleasm, 'run', '-l', args.database, '-a', args.genome, '-t', str(args.threads), '-o', args.scratch_dir]
+    compleasm_cmd = [args.compleasm, 'run', '-l', lineage_name, '--odb', odb, '-a', args.genome, '-t', str(args.threads), '-o', args.scratch_dir]
     if args.library_path is not None:
         compleasm_cmd.extend(['--library_path', args.library_path])
     run_simple_process(compleasm_cmd)
@@ -150,7 +147,7 @@ def main():
     if not os.path.isdir(actual_lineage_dir):
         # Search for any _odb* directory in scratch_dir
         import glob
-        lineage_base = re.sub(r'_odb\d+$', '', args.database)
+        lineage_base = re.sub(r'_odb[\d.]+$', '', args.database)
         candidates = sorted(glob.glob(os.path.join(args.scratch_dir, lineage_base + '_odb*')))
         if candidates:
             actual_lineage_dir = candidates[-1]  # pick highest version

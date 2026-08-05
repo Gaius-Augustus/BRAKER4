@@ -35,7 +35,6 @@ Contents
 -   [Installation](#installation)
     -   [Snakemake](#snakemake)
     -   [Singularity](#singularity)
-    -   [Python dependencies](#python-dependencies)
     -   [Version fragility warning](#version-fragility-warning)
 -   [Running BRAKER4](#running-braker4)
     -   [Preparing input files](#preparing-input-files)
@@ -266,6 +265,7 @@ We recommend installing Snakemake with `pip` into a virtual environment.
 python3 -m venv snakemake_env
 source snakemake_env/bin/activate
 pip install snakemake==8.18.2
+pip install pandas
 ```
 
 BRAKER4 supports SLURM as its HPC executor. For other schedulers (SGE, PBS, LSF) there are two options:
@@ -372,7 +372,7 @@ We want to be transparent about version sensitivity. Snakemake, the SLURM execut
 --singularity-args "-B /home -B /scratch -B /data"
 ```
 
-**HPC scratch / `TMPDIR`:** Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation, and several BRAKER4 rules — most notably `merge_hints`, which chains four `sort` calls over the merged hints file — spill intermediate data to `$TMPDIR` when the data exceeds memory. If that path is not user-writable, or is not bound into the Singularity container, the rule fails with a permission error on `/local/scratch/...`.
+**HPC scratch / `TMPDIR`:** Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation, and several BRAKER4 rules spill intermediate data to `$TMPDIR`: `merge_hints` (four GNU `sort` passes over the merged hints file) and all `samtools sort` calls (`hisat2_align`, `check_bam_sorted`, `check_isoseq_bam`, `minimap2_isoseq_align`, `add_utr`). If that path is not user-writable, or is not bound into the Singularity container, affected rules fail with a permission error on `/local/scratch/...`.
 
 To work around this, pick a writable directory and set it as the default `tmpdir` resource in your SLURM profile, and add the same path to `--singularity-args`:
 
@@ -718,7 +718,7 @@ The BAM file must contain spliced alignments to the genome. You can generate it 
 
 ```
 minimap2 -t 48 -ax splice:hq -uf genome.fa isoseq.fa | samtools sort -@ 48 -o isoseq.bam
-samtools index isoseq.bam
+samtools index -c isoseq.bam
 ```
 
 **Unaligned IsoSeq FASTA/FASTQ:**

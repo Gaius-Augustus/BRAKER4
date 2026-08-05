@@ -57,7 +57,7 @@ rule run_compleasm:
         # Log whether a pre-downloaded lineage is already in place.
         # compleasm uses a flat layout at {{library_path}}/{{lineage}}/.
         # If present, compleasm will reuse it instead of contacting busco-data.ezlab.org.
-        COMPLEASM_LINEAGE=$(echo "{params.busco_lineage}" | sed 's/_odb[0-9]*$/_odb12/')
+        COMPLEASM_LINEAGE="{params.busco_lineage}"
         if [ -d "{params.library_path}/$COMPLEASM_LINEAGE" ]; then
             echo "[INFO] Found pre-downloaded compleasm lineage at {params.library_path}/$COMPLEASM_LINEAGE" >> {log}
         else

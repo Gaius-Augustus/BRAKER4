@@ -22,7 +22,7 @@ rule check_isoseq_bam:
         bam=get_input_isoseq_bam_by_id
     output:
         bam=temp("output/{sample}/isoseq_sorted/{isoseq_id}.sorted.bam"),
-        bai=temp("output/{sample}/isoseq_sorted/{isoseq_id}.sorted.bam.bai")
+        csi=temp("output/{sample}/isoseq_sorted/{isoseq_id}.sorted.bam.csi")
     log:
         "logs/{sample}/check_isoseq_bam/{isoseq_id}.log"
     benchmark:
@@ -42,10 +42,10 @@ rule check_isoseq_bam:
         BAM_ABS=$(readlink -f {input.bam})
 
         echo "Sorting IsoSeq BAM file {wildcards.isoseq_id}..." > {log}
-        samtools sort -@ {threads} -o {output.bam} "$BAM_ABS" 2>> {log}
+        samtools sort -@ {threads} -T {resources.tmpdir}/{wildcards.sample}_{wildcards.isoseq_id} -o {output.bam} "$BAM_ABS" 2>> {log}
         echo "Sorting complete" >> {log}
 
-        samtools index -@ {threads} {output.bam} 2>> {log}
+        samtools index -c -@ {threads} {output.bam} 2>> {log}
         echo "Indexing complete" >> {log}
         """
 
@@ -56,7 +56,7 @@ rule merge_isoseq_bams:
         bams=lambda wildcards: get_isoseq_sorted_bams(wildcards.sample)
     output:
         bam="output/{sample}/isoseq_merged/isoseq.merged.bam",
-        bai="output/{sample}/isoseq_merged/isoseq.merged.bam.bai"
+        csi="output/{sample}/isoseq_merged/isoseq.merged.bam.csi"
     log:
         "logs/{sample}/merge_isoseq_bams/merge.log"
     benchmark:
@@ -74,7 +74,7 @@ rule merge_isoseq_bams:
 
         echo "Merging $(echo {input.bams} | wc -w) IsoSeq BAMs..." > {log}
         samtools merge -@ {threads} {output.bam} {input.bams} 2>> {log}
-        samtools index -@ {threads} {output.bam} 2>> {log}
+        samtools index -c -@ {threads} {output.bam} 2>> {log}
         echo "Merged IsoSeq BAM: $(samtools view -c {output.bam}) reads" >> {log}
 
         # Remove per-FASTQ sorted BAMs once merged (can be 1-20 GB each).

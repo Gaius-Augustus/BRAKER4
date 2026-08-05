@@ -185,15 +185,18 @@ rule assess_completeness:
         mkdir -p {params.compleasm_outdir}
         mkdir -p {params.library_path}
 
-        # compleasm only supports odb12; convert e.g. eukaryota_odb12 -> eukaryota_odb12
-        COMPLEASM_LINEAGE=$(echo "{params.busco_lineage}" | sed 's/_odb[0-9]*$/_odb12/')
+        COMPLEASM_LINEAGE="{params.busco_lineage}"
+        COMPLEASM_NAME="${{COMPLEASM_LINEAGE%%_*}}"
+        COMPLEASM_ODB="${{COMPLEASM_LINEAGE#*_}}"
+        if [ "$COMPLEASM_ODB" = "$COMPLEASM_LINEAGE" ]; then COMPLEASM_ODB="odb12"; fi
         echo "[INFO] Running compleasm in protein mode..." | tee -a {output.compleasm_log}
         echo "[INFO] Library path: {params.library_path}" | tee -a {output.compleasm_log}
-        echo "[INFO] Lineage (odb12): $COMPLEASM_LINEAGE" | tee -a {output.compleasm_log}
+        echo "[INFO] Lineage: $COMPLEASM_NAME --odb $COMPLEASM_ODB" | tee -a {output.compleasm_log}
 
         compleasm.py protein \
             -p {input.braker_aa} \
-            -l $COMPLEASM_LINEAGE \
+            -l $COMPLEASM_NAME \
+            --odb $COMPLEASM_ODB \
             -t {threads} \
             -o {params.compleasm_outdir} \
             -L {params.library_path} \

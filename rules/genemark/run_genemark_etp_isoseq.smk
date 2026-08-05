@@ -42,7 +42,8 @@ rule run_genemark_etp_isoseq:
     params:
         outdir=lambda wildcards: f"output/{wildcards.sample}/GeneMark-ETP-isoseq",
         species_name=lambda wildcards: get_species_name(wildcards),
-        fungus="--fungus" if config.get("fungus", False) else ""
+        fungus="--fungus" if config.get("fungus", False) else "",
+        translation_table=config.get("translation_table", 1)
     container:
         ISOSEQ_CONTAINER
     shell:
@@ -86,11 +87,11 @@ genome_path: $GENOME_ABS
 protdb_path: $(readlink -f $PROT_FILE)
 rnaseq_sets: [$BAM_IDS]
 species: {params.species_name}_isoseq
+translation_table: {params.translation_table}
+gcode: {params.translation_table}
 YAMLEOF
 
         echo "YAML config created with rnaseq_sets: [$BAM_IDS]" >> {log}
-
-        GMES_CORES=$(python3 -c "txt=open('/proc/cpuinfo').read(); c=[l.split(':')[-1].strip() for l in txt.splitlines() if l.startswith('cpu cores')]; s=set(l.split(':')[-1].strip() for l in txt.splitlines() if l.startswith('physical id')); total=int(c[0])*max(1,len(s)) if c else 0; print(min({threads},total) if 0<total<{threads} else {threads})" 2>/dev/null || echo {threads})
 
         # Step 4: Run GeneMark-ETP with isoseq container
         cd $OUTDIR_ABS
@@ -99,7 +100,7 @@ YAMLEOF
             --cfg $OUTDIR_ABS/etp_config.yaml \
             --workdir $OUTDIR_ABS \
             --bam $OUTDIR_ABS/etp_data/ \
-            --cores $GMES_CORES \
+            --cores {threads} \
             --softmask \
             {params.fungus} \
             >> $WORKDIR/{log} 2>&1
@@ -144,7 +145,7 @@ YAMLEOF
             exit 1
         fi
 
-        n_genes=$(awk '$3=="gene"{{c++}}END{{print c+0}}' $OUTDIR_ABS/genemark.gtf)
+        n_genes=$(grep -c $'\\tgene\\t' $OUTDIR_ABS/genemark.gtf || echo "0")
         echo "GeneMark-ETP (isoseq) predicted $n_genes genes (exit=$ETP_EXIT)" >> {log}
 
         # Step 5: Find and copy training genes and HC genes

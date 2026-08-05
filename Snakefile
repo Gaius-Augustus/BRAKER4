@@ -108,7 +108,7 @@ _container_defaults = {
     'gffcompare_image':'docker://quay.io/biocontainers/gffcompare:0.12.6--h9f5acd7_1',
     'agat_image':      'docker://quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0',
     'pybarrnap_image': 'docker://quay.io/biocontainers/pybarrnap:0.5.1--pyhdfd78af_0',
-    'busco_image':     'docker://ezlabgva/busco:v6.0.0_cv1',
+    'busco_image':     'docker://ezlabgva/busco:v6.1.0_cv2',
     'omark_image':     'docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0',
     'tetools_image':   'docker://dfam/tetools:latest',
     'varus_image':     'docker://katharinahoff/varus-notebook:v0.0.6',

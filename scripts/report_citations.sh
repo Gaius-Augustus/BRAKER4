@@ -256,17 +256,17 @@ BIBEOF
 BIBEOF
             ;;
         busco)
-            echo "Manni, M., Berkeley, M. R., Seppey, M., Simao, F. A., & Zdobnov, E. M. (2021). BUSCO Update: Novel and Streamlined Workflows along with Broader and Deeper Phylogenetic Coverage for Scoring of Eukaryotic, Prokaryotic, and Viral Genomes. Molecular Biology and Evolution, 38(10), 4647-4654. doi:10.1093/molbev/msab199" >> "$txt_file"
+            echo "Tegenfeldt, F., Kuznetsov, D., Manni, M., Berkeley, M., Zdobnov, E. M., & Kriventseva, E. V. (2025). OrthoDB and BUSCO update: Annotation of orthologs with wider sampling of genomes. Nucleic Acids Research, 53(D1), D516–D522. doi:10.1093/nar/gkae987" >> "$txt_file"
             cat >> "$bib_file" << 'BIBEOF'
 @article{busco,
-  author  = {Manni, Mosè and Berkeley, Matthew R. and Seppey, Mathieu and Simão, Felipe A. and Zdobnov, Evgeny M.},
-  title   = {{BUSCO} Update: Novel and Streamlined Workflows along with Broader and Deeper Phylogenetic Coverage for Scoring of Eukaryotic, Prokaryotic, and Viral Genomes},
-  journal = {Molecular Biology and Evolution},
-  volume  = {38},
-  number  = {10},
-  pages   = {4647--4654},
-  year    = {2021},
-  doi     = {10.1093/molbev/msab199}
+  author = {Tegenfeldt, Fredrik and Kuznetsov, Dmitry and Manni, Mosè and Berkeley, Matthew and Zdobnov, Evgeny M. and Kriventseva, Evgenia V.},
+  title = {{OrthoDB} and {BUSCO} update: annotation of orthologs with wider sampling of genomes},
+  journal = {Nucleic Acids Research},
+  volume = {53},
+  number = {D1},
+  pages = {D516--D522},
+  year = {2025},
+  doi = {10.1093/nar/gkae987}
 }
 BIBEOF
             ;;

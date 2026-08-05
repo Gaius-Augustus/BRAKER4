@@ -717,7 +717,7 @@ def generate_methods_text(workdir, mode):
     # --- QC ---
     qc_parts = []
     if os.path.isdir(os.path.join(d, "busco")):
-        qc_parts.append("BUSCO (Manni et al., 2021)")
+        qc_parts.append("BUSCO (Tegenfeldt et al., 2025)")
     if os.path.isdir(os.path.join(d, "compleasm_proteins")) or os.path.isdir(os.path.join(d, "compleasm_genome_out")):
         qc_parts.append("compleasm (Huang & Li, 2023) with miniprot (Li, 2023)")
     if os.path.isdir(os.path.join(d, "omark")):

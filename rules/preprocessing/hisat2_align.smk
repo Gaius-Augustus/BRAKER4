@@ -84,7 +84,7 @@ rule hisat2_align:
         deps=_get_align_deps
     output:
         bam="output/{sample}/hisat2_aligned/{align_id}.sorted.bam",
-        bai="output/{sample}/hisat2_aligned/{align_id}.sorted.bam.bai"
+        csi="output/{sample}/hisat2_aligned/{align_id}.sorted.bam.csi"
     log:
         "logs/{sample}/hisat2/{align_id}.log"
     benchmark:
@@ -119,14 +119,14 @@ rule hisat2_align:
                     -2 {params.sra_dir}/{wildcards.align_id}_2.fastq \
                     --dta -p {params.hisat2_threads} \
                     2>> {log} | \
-                    samtools sort -@ {params.sort_threads} -o {output.bam}
+                    samtools sort -@ {params.sort_threads} -T {resources.tmpdir}/{wildcards.sample}_{wildcards.align_id} -o {output.bam}
             elif [ -f "{params.sra_dir}/{wildcards.align_id}.fastq" ]; then
                 echo "Single-end SRA alignment" >> {log}
                 hisat2 -x {params.index_prefix} \
                     -U {params.sra_dir}/{wildcards.align_id}.fastq \
                     --dta -p {params.hisat2_threads} \
                     2>> {log} | \
-                    samtools sort -@ {params.sort_threads} -o {output.bam}
+                    samtools sort -@ {params.sort_threads} -T {resources.tmpdir}/{wildcards.sample}_{wildcards.align_id} -o {output.bam}
             else
                 echo "ERROR: No FASTQ files found for SRA ID {wildcards.align_id}" >> {log}
                 ls -la {params.sra_dir}/ >> {log} 2>&1 || true
@@ -140,11 +140,11 @@ rule hisat2_align:
                 -2 {params.r2} \
                 --dta -p {params.hisat2_threads} \
                 2>> {log} | \
-                samtools sort -@ {params.sort_threads} -o {output.bam}
+                samtools sort -@ {params.sort_threads} -T {resources.tmpdir}/{wildcards.sample}_{wildcards.align_id} -o {output.bam}
         fi
 
         # Index the BAM
-        samtools index -@ {threads} {output.bam} 2>> {log}
+        samtools index -c -@ {threads} {output.bam} 2>> {log}
 
         N_READS=$(samtools view -c {output.bam})
         echo "Alignment complete: $N_READS reads mapped" >> {log}
