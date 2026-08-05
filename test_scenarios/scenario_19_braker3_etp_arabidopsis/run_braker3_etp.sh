@@ -59,7 +59,6 @@ singularity exec \
         --workingdir="$WORKDIR" \
         --threads=$THREADS \
         --skipOptimize \
-        --etpmode
 
 echo "[INFO] braker.pl finished. Evaluating with gffcompare..."
 

@@ -57,7 +57,7 @@ singularity exec \
         --bam="$BAM" \
         --species=ath_braker3_et \
         --workingdir="$WORKDIR" \
-        --cores=$THREADS \
+        --threads=$THREADS \
         --skipOptimize
 
 echo "[INFO] braker.pl finished. Evaluating with gffcompare..."
