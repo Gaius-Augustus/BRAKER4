@@ -252,8 +252,8 @@ rule run_tsebra:
 
         TSEBRA_TMP={output.braker_merged_gtf}.tmp
 
-        # case "{params.mode}" in
-        #     etp|isoseq)
+        case "{params.mode}" in
+            etp|isoseq|dual)
                 # Single ETP-style merge: AUGUSTUS + raw GeneMark predictions
                 # are CANDIDATES (filtered against the hints), HC training
                 # genes are FORCED via --keep_gtf. Mirrors braker.pl ETP.
@@ -269,76 +269,30 @@ rule run_tsebra:
                     $FILTER_SE_ARG \
                     --cfg $TSEBRA_CFG \
                     --out $TSEBRA_TMP 2>&1 | tee -a {output.tsebra_log}
-                # ;;
+                ;;
 
-        #     dual)
-        #         # Stage C — final merge for dual mode. Stages A and B are
-        #         # already on disk as braker_etp_{{sr,iso}}.tsebra.gtf side
-        #         # outputs from rule run_tsebra_etp_per_run. They're listed
-        #         # as inputs purely to enforce execution order.
-        #         echo "[INFO] Per-run stages already complete:" | tee -a {output.tsebra_log}
-        #         echo "[INFO]   stage A (sr):  {input.braker_etp_sr}" | tee -a {output.tsebra_log}
-        #         echo "[INFO]   stage B (iso): {input.braker_etp_iso}" | tee -a {output.tsebra_log}
-        #
-        #         # GeneMark and training files use MSTRG.* IDs from
-        #         # StringTie which collide between the two ETP runs. Prefix
-        #         # them before passing to TSEBRA so the IDs are disjoint.
-        #         GM_SR_PFX=$OUT_DIR/_dual_gm_sr.gtf
-        #         GM_ISO_PFX=$OUT_DIR/_dual_gm_iso.gtf
-        #         TR_SR_PFX=$OUT_DIR/_dual_train_sr.gtf
-        #         TR_ISO_PFX=$OUT_DIR/_dual_train_iso.gtf
-        #
-        #         sed 's/gene_id "\([^"]*\)"/gene_id "sr_\1"/g; s/transcript_id "\([^"]*\)"/transcript_id "sr_\1"/g'  {input.genemark_sr}  > $GM_SR_PFX
-        #         sed 's/gene_id "\([^"]*\)"/gene_id "iso_\1"/g; s/transcript_id "\([^"]*\)"/transcript_id "iso_\1"/g' {input.genemark_iso} > $GM_ISO_PFX
-        #         sed 's/gene_id "\([^"]*\)"/gene_id "sr_\1"/g; s/transcript_id "\([^"]*\)"/transcript_id "sr_\1"/g'  {input.training_sr}  > $TR_SR_PFX
-        #         sed 's/gene_id "\([^"]*\)"/gene_id "iso_\1"/g; s/transcript_id "\([^"]*\)"/transcript_id "iso_\1"/g' {input.training_iso} > $TR_ISO_PFX
-        #
-        #         AUG_GENES=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {input.augustus_gtf})
-        #         GM_SR_GENES=$(awk -F'\t' '$3=="CDS"' $GM_SR_PFX | grep -oE 'gene_id "[^"]+"' | sort -u | wc -l)
-        #         GM_ISO_GENES=$(awk -F'\t' '$3=="CDS"' $GM_ISO_PFX | grep -oE 'gene_id "[^"]+"' | sort -u | wc -l)
-        #         TR_SR_GENES=$(grep -oE 'gene_id "[^"]+"' $TR_SR_PFX | sort -u | wc -l)
-        #         TR_ISO_GENES=$(grep -oE 'gene_id "[^"]+"' $TR_ISO_PFX | sort -u | wc -l)
-        #         echo "[INFO] Stage C inputs:" | tee -a {output.tsebra_log}
-        #         echo "[INFO]   AUGUSTUS=$AUG_GENES (candidate)" | tee -a {output.tsebra_log}
-        #         echo "[INFO]   GeneMark sr=$GM_SR_GENES iso=$GM_ISO_GENES (candidates)" | tee -a {output.tsebra_log}
-        #         echo "[INFO]   training sr=$TR_SR_GENES iso=$TR_ISO_GENES (forced)" | tee -a {output.tsebra_log}
-        #
-        #         # TSEBRA's --hintfiles takes ONE comma-separated argument,
-        #         # not multiple space-separated values (matches braker.pl
-        #         # sub merge_transcript_sets_with_tsebra at scripts/braker.pl
-        #         # line 8456: join(',', @hintfiles)).
-        #         tsebra.py \
-        #             --gtf {input.augustus_gtf},$GM_SR_PFX,$GM_ISO_PFX \
-        #             --keep_gtf $TR_SR_PFX,$TR_ISO_PFX \
-        #             --hintfiles {input.hintsfile_sr},{input.hintsfile_iso} \
-        #             $FILTER_SE_ARG \
-        #             --cfg $TSEBRA_CFG \
-        #             --out $TSEBRA_TMP 2>&1 | tee -a {output.tsebra_log}
-        #
-        #         rm -f $GM_SR_PFX $GM_ISO_PFX $TR_SR_PFX $TR_ISO_PFX
-        #         ;;
-        #
-        #     *)
-        #         # ES / EP / ET — keep-everything (matches braker.pl). For ES,
-        #         # genemark.f.good.gtf is the unfiltered sorted set; for EP/ET
-        #         # it's the filterGenemark.pl-filtered "good" set.
-        #         AUG_GENES=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {input.augustus_gtf})
-        #         KEEP_GENES=$(grep -oE 'gene_id "[^"]+"' {input.keep_genes} | sort -u | wc -l)
-        #         echo "[INFO] Inputs: AUGUSTUS=$AUG_GENES, GeneMark good=$KEEP_GENES (both forced)" | tee -a {output.tsebra_log}
-        #
-        #         # ES has no hints — only pass --hintfiles if non-empty.
-        #         HINTS_ARG=""
-        #         if [ -s {input.hintsfile} ]; then
-        #             HINTS_ARG="--hintfiles {input.hintsfile}"
-        #         fi
-        #
-        #         tsebra.py \
-        #             --keep_gtf {input.augustus_gtf},{input.keep_genes} \
-        #             $HINTS_ARG \
-        #             --cfg $TSEBRA_CFG \
-        #             --out $TSEBRA_TMP 2>&1 | tee -a {output.tsebra_log}
-        #         ;;
-        # esac
+            *)
+                # ES / EP / ET — keep-everything (matches braker.pl). For ES,
+                # genemark.f.good.gtf is the unfiltered sorted set; for EP/ET
+                # it's the filterGenemark.pl-filtered "good" set.
+                AUG_GENES=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {input.augustus_gtf})
+                KEEP_GENES=$(grep -oE 'gene_id "[^"]+"' {input.keep_genes} | sort -u | wc -l)
+                echo "[INFO] Inputs: AUGUSTUS=$AUG_GENES, GeneMark good=$KEEP_GENES (both forced)" | tee -a {output.tsebra_log}
+
+                # ES has no hints — only pass --hintfiles if non-empty.
+                HINTS_ARG=""
+                if [ -s {input.hintsfile} ]; then
+                    HINTS_ARG="--hintfiles {input.hintsfile}"
+                fi
+
+                tsebra.py \
+                    --keep_gtf {input.augustus_gtf},{input.keep_genes} \
+                    $HINTS_ARG \
+                    $FILTER_SE_ARG \
+                    --cfg $TSEBRA_CFG \
+                    --out $TSEBRA_TMP 2>&1 | tee -a {output.tsebra_log}
+                ;;
+        esac
 
         echo "[INFO] Renaming gene and transcript IDs..." | tee -a {output.tsebra_log}
         /opt/TSEBRA/bin/rename_gtf.py \

@@ -473,7 +473,7 @@ if 'et' in _MODES:
 if _MODES & {'etp', 'isoseq', 'dual'}:
     print("  ✓ GeneMark-ETP (combined transcript + protein training)")
 if 'dual' in _MODES:
-    print("  ✓ Dual-ETP mode (separate short-read + IsoSeq GeneMark-ETP runs)")
+    print("  ✓ Dual-ETP mode (combined short-read + IsoSeq GeneMark-ETP run)")
 if 'ep' in _MODES:
     print("  ✓ Protein hints generation (ProtHint)")
     print("  ✓ GeneMark-ES (ab initio seeds)")

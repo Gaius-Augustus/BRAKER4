@@ -1,11 +1,9 @@
 """
-Run GeneMark-ETP for IsoSeq evidence in dual mode.
+Run GeneMark-ETP for dual mode (short-read + IsoSeq combined).
 
 In dual mode (short-read RNA-Seq + IsoSeq + proteins), GeneMark-ETP is run
-twice: once with short-read BAMs (braker3:latest) and once with IsoSeq BAMs
-(braker3:isoseq). This rule handles the IsoSeq run.
-
-Output goes to GeneMark-ETP-isoseq/ to avoid conflict with the short-read run.
+ONCE with both short-read BAMs (via --bam) and the IsoSeq BAM (via --long_bam).
+This single combined run outputs to GeneMark-ETP-isoseq/.
 
 Container: teambraker/braker3:isoseq (GeneMark-ETP build for long-read evidence)
 """

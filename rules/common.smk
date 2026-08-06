@@ -62,7 +62,7 @@ def get_braker_mode(sample):
     - EP: Proteins only (no RNA-Seq)
     - ETP: RNA-Seq + Proteins (standard BRAKER3)
     - IsoSeq: PacBio long-read + Proteins (no short-read RNA-Seq)
-    - dual: Short-read RNA-Seq + IsoSeq + Proteins (two ETP runs, then merge)
+    - dual: Short-read RNA-Seq + IsoSeq + Proteins (one combined ETP run with both)
     """
     types = detect_data_types(sample)
 
