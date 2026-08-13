@@ -20,7 +20,9 @@ def _both_agree_genemark_input(wildcards):
         return f"output/{sample}/GeneMark-EP/genemark.gtf"
     elif mode == 'et':
         return f"output/{sample}/genemark/genemark.gtf"
-    else:  # etp, isoseq, dual
+    elif mode == 'dual':
+        return f"output/{sample}/GeneMark-ETP-isoseq/genemark.gtf"
+    else:  # etp, isoseq
         return f"output/{sample}/GeneMark-ETP/genemark.gtf"
 
 

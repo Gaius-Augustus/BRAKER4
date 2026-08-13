@@ -104,21 +104,23 @@ rule filter_genemark:
         # Clean up the temporary sorted file
         rm -f "$SORTED_GTF"
 
-        # Calculate statistics from the (now correctly filtered) outputs
-        n_good=$(awk -F'\t' '$3=="gene"' {output.good_gtf} | wc -l)
+        # Calculate statistics from the (now correctly filtered) outputs.
+        # filterGenemark.pl writes CDS/start_codon/stop_codon rows only (no
+        # "gene" feature rows) for ET/EP mode — count unique gene_ids instead.
+        n_good=$(grep -oE 'gene_id "[^"]+"' {output.good_gtf} | sort -u | wc -l)
         n_bad=$((n_total - n_good))
 
         echo "Total GeneMark genes: $n_total" >> {log}
         echo "Good genes for training: $n_good" >> {log}
         echo "Filtered out: $n_bad" >> {log}
 
-        # Calculate average gene length
+        # Average gene length: computed from "gene" feature rows (present in ES
+        # mode). ET/EP mode has CDS-only output, so length defaults to 0 (the
+        # downstream pipeline does not use this value for any decision).
         total_length=0
         count=0
-        while read line; do
-            if [ "$(echo "$line" | cut -f3)" = "gene" ]; then
-                start=$(echo "$line" | cut -f4)
-                end=$(echo "$line" | cut -f5)
+        while IFS=$'\t' read -r chr src feat start end score strand frame attrs; do
+            if [ "$feat" = "gene" ]; then
                 length=$((end - start + 1))
                 total_length=$((total_length + length))
                 count=$((count + 1))
@@ -129,9 +131,13 @@ rule filter_genemark:
             avg=$((total_length / count))
             echo "$avg" > {output.stats}
             echo "Average gene length: $avg bp" >> {log}
+        elif [ "$n_good" -gt 0 ]; then
+            # ET/EP mode: CDS-only output, skip length (no gene feature rows)
+            echo "0" > {output.stats}
+            echo "Average gene length: N/A (CDS-only output, ET/EP mode)" >> {log}
         else
             echo "0" > {output.stats}
-            echo "WARNING: No good genes found!" >> {log}
+            echo "WARNING: No good genes found in {output.good_gtf}!" >> {log}
         fi
 
         # Report

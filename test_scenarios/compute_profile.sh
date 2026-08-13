@@ -31,7 +31,7 @@ export USE_SLURM="${USE_SLURM:-true}"
 # whatever is in the shared config.ini.
 export BRAKER4_CPUS_PER_TASK="${BRAKER4_CPUS_PER_TASK:-48}"
 export BRAKER4_MEM_OF_NODE="${BRAKER4_MEM_OF_NODE:-120000}"
-export BRAKER4_MAX_RUNTIME="${BRAKER4_MAX_RUNTIME:-120}"
+export BRAKER4_MAX_RUNTIME="${BRAKER4_MAX_RUNTIME:-4320}"
 
 # Maximum mem_mb that snakemake will request as a default-resource per job.
 # This bounds the SLURM --mem request when a rule does not specify mem_mb.

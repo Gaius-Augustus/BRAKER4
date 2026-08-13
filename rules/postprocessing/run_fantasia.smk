@@ -50,6 +50,8 @@ rule fantasia_annotate:
         lookup_dir=FANTASIA_LOOKUP_DIR,
         add_params=FANTASIA_ADD_PARAMS,
         outdir=lambda wc: f"output/{wc.sample}/fantasia"
+    conda:
+        envs/singularity.yaml
     threads:
         int(config['fantasia'].get('cpus_per_task', config['slurm_args']['cpus_per_task']))
     resources:
@@ -237,7 +239,7 @@ rule fantasia_decorate_gff3:
     threads: 1
     resources:
         mem_mb=0 if config['slurm_args'].get('skip_mem') else 2000,
-        runtime=10
+        runtime=720
     container:
         BRAKER3_CONTAINER
     shell:
@@ -273,7 +275,7 @@ rule fantasia_summarize:
     threads: 1
     resources:
         mem_mb=0 if config['slurm_args'].get('skip_mem') else 2000,
-        runtime=10
+        runtime=720
     container:
         BRAKER3_CONTAINER
     shell:

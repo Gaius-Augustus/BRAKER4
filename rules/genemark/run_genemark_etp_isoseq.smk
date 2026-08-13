@@ -1,11 +1,9 @@
 """
-Run GeneMark-ETP for IsoSeq evidence in dual mode.
+Run GeneMark-ETP for dual mode (short-read + IsoSeq combined).
 
 In dual mode (short-read RNA-Seq + IsoSeq + proteins), GeneMark-ETP is run
-twice: once with short-read BAMs (braker3:latest) and once with IsoSeq BAMs
-(braker3:isoseq). This rule handles the IsoSeq run.
-
-Output goes to GeneMark-ETP-isoseq/ to avoid conflict with the short-read run.
+ONCE with both short-read BAMs (via --bam) and the IsoSeq BAM (via --long_bam).
+This single combined run outputs to GeneMark-ETP-isoseq/.
 
 Container: teambraker/braker3:isoseq (GeneMark-ETP build for long-read evidence)
 """
@@ -19,12 +17,31 @@ def _get_etp_isoseq_bam_files(wildcards):
         return [isoseq_bam]
     return []
 
+def _get_etp_bam_files(wildcards):
+    """Get sorted short-read BAM files for GeneMark-ETP.
+    """
+    sample = wildcards.sample
+    mode = get_braker_mode(sample)
+    bams = []
+
+    for bid in get_bam_ids(sample):
+        bams.append(f"output/{sample}/bam_sorted/{bid}.sorted.bam")
+    for sid in get_sra_ids(sample):
+        bams.append(f"output/{sample}/hisat2_aligned/{sid}.sorted.bam")
+    for fid in get_fastq_ids(sample):
+        bams.append(f"output/{sample}/hisat2_aligned/{fid}.sorted.bam")
+    for vid in get_varus_ids(sample):
+        bams.append(f"output/{sample}/varus/{vid}.sorted.bam")
+
+    return bams
+
 
 rule run_genemark_etp_isoseq:
     input:
         genome=lambda wildcards: get_masked_genome(wildcards.sample),
         proteins=lambda wildcards: get_protein_fasta(wildcards.sample),
-        bams=_get_etp_isoseq_bam_files
+        bams=_get_etp_isoseq_bam_files,
+        sr_bams=_get_etp_bam_files
     output:
         gtf="output/{sample}/GeneMark-ETP-isoseq/genemark.gtf",
         training="output/{sample}/GeneMark-ETP-isoseq/training.gtf",
@@ -40,12 +57,12 @@ rule run_genemark_etp_isoseq:
         mem_mb=int(config['slurm_args']['mem_of_node']),
         runtime=int(config['slurm_args']['max_runtime'])
     params:
-        outdir=lambda wildcards: f"output/{wildcards.sample}/GeneMark-ETP-isoseq",
+        outdir="output/{sample}/GeneMark-ETP-isoseq",
         species_name=lambda wildcards: get_species_name(wildcards),
         fungus="--fungus" if config.get("fungus", False) else "",
         translation_table=config.get("translation_table", 1)
     container:
-        ISOSEQ_CONTAINER
+        BRAKER3_CONTAINER
     shell:
         r"""
         # Disable set -e and pipefail: gmetp.pl, get_etp_hints.py, and
@@ -53,19 +70,34 @@ rule run_genemark_etp_isoseq:
         set +e
         set +o pipefail
         WORKDIR=$(pwd)
-        mkdir -p {params.outdir}/etp_data
+        mkdir -p {params.outdir}/etp_lr_data # isoseq reads
+        mkdir -p {params.outdir}/etp_sr_data # short reads
 
         OUTDIR_ABS=$(readlink -f {params.outdir})
         GENOME_ABS=$(readlink -f {input.genome})
         PROTEINS_ABS=$(readlink -f {input.proteins})
 
-        # Step 1: Copy IsoSeq BAM into etp_data/
+        # Step 1: Copy IsoSeq BAM into etp_lr_data/
         echo "Preparing IsoSeq BAM for GeneMark-ETP (isoseq)..." > {log}
         BAM_IDS=""
         for bam in {input.bams}; do
             BAM_ABS=$(readlink -f $bam)
+            LR_LIB=$(basename $bam .sorted.bam)
+            cp $BAM_ABS $OUTDIR_ABS/etp_lr_data/${{LR_LIB}}.bam
+            if [ -z "$BAM_IDS" ]; then
+                BAM_IDS="$LR_LIB"
+            else
+                BAM_IDS="$BAM_IDS,$LR_LIB"
+            fi
+            echo "  Prepared BAM: $LR_LIB" >> {log}
+        done
+
+        echo "Preparing SR BAM for GeneMark-ETP (isoseq)..." >> {log}
+        BAM_IDS=""
+        for bam in {input.sr_bams}; do
+            BAM_ABS=$(readlink -f $bam)
             LIB=$(basename $bam .sorted.bam)
-            cp $BAM_ABS $OUTDIR_ABS/etp_data/${{LIB}}.bam
+            cp $BAM_ABS $OUTDIR_ABS/etp_sr_data/${{LIB}}.bam
             if [ -z "$BAM_IDS" ]; then
                 BAM_IDS="$LIB"
             else
@@ -93,14 +125,16 @@ YAMLEOF
 
         echo "YAML config created with rnaseq_sets: [$BAM_IDS]" >> {log}
 
+        GMES_CORES={threads}
         # Step 4: Run GeneMark-ETP with isoseq container
         cd $OUTDIR_ABS
 
         if gmetp.pl \
             --cfg $OUTDIR_ABS/etp_config.yaml \
             --workdir $OUTDIR_ABS \
-            --bam $OUTDIR_ABS/etp_data/ \
-            --cores {threads} \
+            --long_bam $OUTDIR_ABS/etp_lr_data/${{LR_LIB}}.bam \
+            --bam $OUTDIR_ABS/etp_sr_data/ \
+            --cores $GMES_CORES \
             --softmask \
             {params.fungus} \
             >> $WORKDIR/{log} 2>&1

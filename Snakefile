@@ -101,7 +101,6 @@ config['fungus'] = config_parser.getboolean('PARAMS', 'fungus', fallback=False)
 config['min_contig'] = config_parser.getint('PARAMS', 'min_contig', fallback=10000)
 _container_defaults = {
     'braker3_image':   'docker://teambraker/braker3:v3.1.1',
-    'isoseq_image':    'docker://teambraker/braker3:isoseq',
     'minimap2_image':  'docker://katharinahoff/minimap-minisplice:v0.1',
     'minisplice_image':'docker://katharinahoff/minimap-minisplice:v0.1',
     'red_image':       'docker://quay.io/biocontainers/red:2018.09.10--h9948957_3',
@@ -111,7 +110,7 @@ _container_defaults = {
     'busco_image':     'docker://ezlabgva/busco:v6.1.0_cv2',
     'omark_image':     'docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0',
     'tetools_image':   'docker://dfam/tetools:latest',
-    'varus_image':     'docker://katharinahoff/varus-notebook:v0.0.6',
+    'varus_image':     'docker://katharinahoff/pyvarus:v1.0.0',
     'trnascan_image': 'docker://quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0',
     'feelnc_image': 'docker://quay.io/biocontainers/feelnc:0.2--pl526_0',
     'infernal_image': 'docker://quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2',
@@ -474,7 +473,7 @@ if 'et' in _MODES:
 if _MODES & {'etp', 'isoseq', 'dual'}:
     print("  ✓ GeneMark-ETP (combined transcript + protein training)")
 if 'dual' in _MODES:
-    print("  ✓ Dual-ETP mode (separate short-read + IsoSeq GeneMark-ETP runs)")
+    print("  ✓ Dual-ETP mode (combined short-read + IsoSeq GeneMark-ETP run)")
 if 'ep' in _MODES:
     print("  ✓ Protein hints generation (ProtHint)")
     print("  ✓ GeneMark-ES (ab initio seeds)")
