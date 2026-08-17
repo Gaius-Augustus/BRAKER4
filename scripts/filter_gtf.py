@@ -6,11 +6,11 @@ with open(sys.argv[1], 'r') as f:
     for line in f:
         bad_tx_ids.add(line.strip())
 
-print(f"[INFO] Loaded {{len(bad_tx_ids)}} bad transcript IDs to filter", file=sys.stderr)
+print(f"[INFO] Loaded {len(bad_tx_ids)} bad transcript IDs to filter", file=sys.stderr)
 
 # Read GTF and track which genes to keep
 # A gene is kept only if ALL its transcripts are clean
-gene_to_transcripts = {{}}  # gene_id -> set of transcript_ids
+gene_to_transcripts = {}  # gene_id -> set of transcript_ids
 bad_genes = set()
 
 # First pass: identify which genes have bad transcripts
@@ -23,7 +23,7 @@ with open(sys.argv[2], 'r') as f:
             continue
 
         # Parse attributes
-        attrs = {{}}
+        attrs = {}
         for attr in fields[8].split(';'):
             attr = attr.strip()
             if not attr:
@@ -44,7 +44,7 @@ with open(sys.argv[2], 'r') as f:
             if tx_id in bad_tx_ids:
                 bad_genes.add(gene_id)
 
-print(f"[INFO] Found {{len(bad_genes)}} genes with bad transcripts", file=sys.stderr)
+print(f"[INFO] Found {len(bad_genes)} genes with bad transcripts", file=sys.stderr)
 
 # Second pass: write clean GTF (skip bad genes entirely)
 filtered_count = 0
@@ -62,7 +62,7 @@ with open(sys.argv[2], 'r') as f_in, open(sys.argv[3], 'w') as f_out:
             continue
 
         # Parse attributes
-        attrs = {{}}
+        attrs = {}
         for attr in fields[8].split(';'):
             attr = attr.strip()
             if not attr:
@@ -81,5 +81,5 @@ with open(sys.argv[2], 'r') as f_in, open(sys.argv[3], 'w') as f_out:
         f_out.write(line)
         kept_count += 1
 
-print(f"[INFO] Filtered {{filtered_count}} lines", file=sys.stderr)
-print(f"[INFO] Kept {{kept_count}} lines", file=sys.stderr)
+print(f"[INFO] Filtered {filtered_count} lines", file=sys.stderr)
+print(f"[INFO] Kept {kept_count} lines", file=sys.stderr)
