@@ -59,6 +59,22 @@ rule busco_genome:
             $OFFLINE_FLAG \
             >> {log} 2>&1
 
+        # Remove the BUSCO working tree; keep only short_summary*.txt.
+        # busco_summary and collect_results locate the summaries via
+        # find -name 'short_summary*.txt'. Nothing downstream reads
+        # full_table.tsv, hmmer_output/, miniprot_output/ or
+        # busco_sequences/, which together run to several files per BUSCO
+        # in the lineage (~6k files for chlorophyta_odb12, both modes).
+        # Done here rather than in busco_summary so the tree is freed as
+        # soon as this mode finishes instead of surviving until the end of
+        # the sample, and so a failure further down the DAG does not leave
+        # it behind.
+        find "$OUTDIR_ABS/genome" -mindepth 1 \( -type f -o -type l \) \
+            ! -name 'short_summary*.txt' ! -name '.done' \
+            -delete 2>/dev/null || true
+        find "$OUTDIR_ABS/genome" -mindepth 1 -type d -empty \
+            -delete 2>/dev/null || true
+
         # Record software version
         VERSIONS_FILE=output/{wildcards.sample}/software_versions.tsv
         BUSCO_VER=$(busco --version 2>&1 | head -1 || echo "unknown")
@@ -174,6 +190,22 @@ rule busco_proteins:
             $OFFLINE_FLAG \
             >> {log} 2>&1
 
+        # Remove the BUSCO working tree; keep only short_summary*.txt.
+        # busco_summary and collect_results locate the summaries via
+        # find -name 'short_summary*.txt'. Nothing downstream reads
+        # full_table.tsv, hmmer_output/, miniprot_output/ or
+        # busco_sequences/, which together run to several files per BUSCO
+        # in the lineage (~6k files for chlorophyta_odb12, both modes).
+        # Done here rather than in busco_summary so the tree is freed as
+        # soon as this mode finishes instead of surviving until the end of
+        # the sample, and so a failure further down the DAG does not leave
+        # it behind.
+        find "$OUTDIR_ABS/proteins" -mindepth 1 \( -type f -o -type l \) \
+            ! -name 'short_summary*.txt' ! -name '.done' \
+            -delete 2>/dev/null || true
+        find "$OUTDIR_ABS/proteins" -mindepth 1 -type d -empty \
+            -delete 2>/dev/null || true
+
         touch {output.done}
 
         # Report
@@ -240,10 +272,12 @@ rule busco_summary:
             echo "Results not found" >> {output.summary}
         fi
 
-        # Remove BUSCO working directories; keep only short_summary*.txt per mode
-        # (collect_results locates them via find -name 'short_summary*.txt') and .done.
+        # Backstop only: busco_genome and busco_proteins each clean their own
+        # working tree as soon as they finish. This catches trees left by an
+        # older run whose .done files are still valid, so those rules do not
+        # re-execute.
         for bmode in genome proteins; do
-            find {params.busco_dir}/$bmode -mindepth 1 -type f \
+            find {params.busco_dir}/$bmode -mindepth 1 \( -type f -o -type l \) \
                 ! -name 'short_summary*.txt' ! -name '.done' \
                 -delete 2>/dev/null || true
             find {params.busco_dir}/$bmode -mindepth 1 -type d -empty \
