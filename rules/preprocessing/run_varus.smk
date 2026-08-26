@@ -65,10 +65,22 @@ rule run_varus:
         source {script_dir}/report_citations.sh
         cite varus "$REPORT_DIR"
 
-        # Remove pyVARUS working files: HISAT2 index and unsorted BAM.
-        # Keep: varus.sorted.bam, .csi, varus_stats.txt, varus_runlist.tsv
+        # Remove pyVARUS working files: per-batch tree, HISAT2 index, unsorted BAM.
+        #
+        # batches/<acc>/N<n>X<x>/ holds one directory per downloaded batch. pyVARUS
+        # unlinks the FASTAs after alignment and the BAMs after the final merge, but
+        # never removes the directories or the per-batch Log.final.out, so a default
+        # run (--max-batches 1000) leaves ~2000 inodes behind. Under the old C++ VARUS
+        # these lived inside <Genus>_<species>/ and were swallowed by that rm -rf; the
+        # pyVARUS switch moved them to the top level and they lost their coverage.
+        #
+        # Keep: varus.sorted.bam, .csi, varus_stats.txt, varus_runlist.tsv,
+        #       Coverage.csv, RunStatistics.csv, introns.gff (small, diagnostic).
         VARUS_DIR_ABS=$(readlink -f output/{wildcards.sample}/varus)
+        rm -rf "$VARUS_DIR_ABS/batches"    2>/dev/null || true
         rm -rf "$VARUS_DIR_ABS/genome"     2>/dev/null || true
         rm -f  "$VARUS_DIR_ABS/VARUS.bam"  2>/dev/null || true
         rm -f  "$VARUS_DIR_ABS/Runlist.tsv" 2>/dev/null || true
+        rm -f  "$VARUS_DIR_ABS/intronDB.splice_sites" \
+               "$VARUS_DIR_ABS/intronDB.junc.bed" 2>/dev/null || true
         """
