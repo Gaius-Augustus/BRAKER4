@@ -124,9 +124,6 @@ rule filter_internal_stop_codons:
         if [ "$BAD_TX_COUNT" -gt 0 ]; then
             echo "[INFO] Filtering out problematic transcripts..." | tee -a {output.filter_log}
 
-            # Create Python script to filter GTF by transcript ID
-            # what about we dont ???
-
             # Run the filtering script
             python3 {script_dir}/filter_gtf.py \
                 {params.output_dir}/bad_transcript_ids.txt \
@@ -158,7 +155,6 @@ rule filter_internal_stop_codons:
         rm -f "$STEM.aa" "$STEM.codingseq"
         rm -f {params.output_dir}/getAnnoFasta_check.stdout {params.output_dir}/getAnnoFasta_check.stderr
         rm -f {params.output_dir}/bad_transcript_ids.txt {params.output_dir}/bad_tx_count.txt
-        rm -f {params.output_dir}/filter_gtf.py
 
         # Cleanup bad_genes.lst if getAnnoFastaFromJoingenes.py created it
         # It should now be in the output directory, but check both locations for safety
@@ -177,7 +173,4 @@ rule filter_internal_stop_codons:
         }} || true
 
         echo "[INFO] Stop codon filtering completed successfully" | tee -a {output.filter_log}
-
-        # Report
-        REPORT_DIR=output/{wildcards.sample}
         """
