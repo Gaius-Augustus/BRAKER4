@@ -7,7 +7,7 @@ Runs BUSCO twice:
 
 Then generates a combined summary text and comparison bar plot.
 
-Container: ezlabgva/busco:v6.0.0_cv1
+Container: ezlabgva/busco:v6.1.0_cv2
 """
 
 
