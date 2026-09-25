@@ -26,7 +26,7 @@ rule run_genemark_es:
         "logs/{sample}/genemark_es/genemark_es.log"
     benchmark:
         "benchmarks/{sample}/genemark_es/genemark_es.txt"
-    threads: workflow.cores
+    threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
         runtime=int(config['slurm_args']['max_runtime'])

@@ -43,7 +43,7 @@ rule run_stringtie:
         "logs/{sample}/stringtie/stringtie.log"
     benchmark:
         "benchmarks/{sample}/stringtie/stringtie.txt"
-    threads: workflow.cores
+    threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
         runtime=int(config['slurm_args']['max_runtime'])

@@ -18,7 +18,7 @@ rule run_prothint:
         "benchmarks/{sample}/prothint/prothint.txt"
     params:
         outdir=lambda wildcards: f"output/{wildcards.sample}/prothint"
-    threads: workflow.cores
+    threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
         runtime=int(config['slurm_args']['max_runtime'])

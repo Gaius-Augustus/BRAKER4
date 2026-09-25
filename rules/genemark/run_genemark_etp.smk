@@ -82,7 +82,7 @@ rule run_genemark_etp:
         "logs/{sample}/genemark_etp/genemark_etp.log"
     benchmark:
         "benchmarks/{sample}/genemark_etp/genemark_etp.txt"
-    threads: workflow.cores
+    threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
         runtime=int(config['slurm_args']['max_runtime'])

@@ -17,6 +17,7 @@ __version__ = "0.5.0-beta"
 import pandas as pd
 import configparser
 import os
+import sys
 
 # ============================================================================
 # Configuration
@@ -123,16 +124,37 @@ for _img_key, _img_default in _container_defaults.items():
 # controls per-rule parallelism. Without this fallback, multithreaded rules
 # like run_augustus_hints would run single-threaded regardless of --cores.
 # See https://github.com/Gaius-Augustus/BRAKER4/issues/10.
+#
+# --cores is optional with --executor slurm, and workflow.cores raises when it
+# is unset, so read it defensively. Snakemake caps every job's threads at
+# --cores, SLURM jobs included: `--cores 1 --executor slurm` submits every
+# rule with one CPU (two hyperthreads on brain) whatever cpus_per_task says.
+try:
+    _cli_cores = workflow.cores
+except Exception:
+    _cli_cores = None
 _skip_mem = config_parser.getboolean('SLURM_ARGS', 'skip_mem_request', fallback=False)
 config['slurm_args'] = {
     'cpus_per_task': config_parser.getint('SLURM_ARGS', 'cpus_per_task',
-                                          fallback=workflow.cores or 1),
+                                          fallback=_cli_cores or 1),
     'mem_of_node': 0 if _skip_mem else config_parser.getint('SLURM_ARGS', 'mem_of_node', fallback=16000),
     'max_runtime': config_parser.getint('SLURM_ARGS', 'max_runtime', fallback=60),
     'skip_mem': _skip_mem,
 }
+# Warn only in the main process; SLURM job steps re-parse this file with the
+# job's own --cores.
+try:
+    _is_job_step = workflow.remote_exec
+except Exception:
+    _is_job_step = False
+if (not _is_job_step and _cli_cores is not None
+        and _cli_cores < config['slurm_args']['cpus_per_task']):
+    print(f"WARNING: --cores {_cli_cores} caps every rule at {_cli_cores} "
+          f"thread(s), SLURM jobs included, although cpus_per_task = "
+          f"{config['slurm_args']['cpus_per_task']}. With --executor slurm, "
+          f"omit --cores or set it to cpus_per_task.", file=sys.stderr)
 
-config['skip_optimize_augustus'] = config_parser.getboolean(
+config['skip_optimize_augustus'] =config_parser.getboolean(
     'PARAMS',
     'skip_optimize_augustus',
     fallback=False

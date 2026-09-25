@@ -575,6 +575,8 @@ snakemake \
 
 Adjust `slurm_partition`, `mem_mb`, `--cores`, and `--jobs` to your cluster configuration. The `--jobs` parameter controls how many SLURM jobs can be submitted simultaneously.
 
+Do not pass `--cores 1` with `--executor slurm`. Snakemake caps every rule's threads at `--cores`, SLURM jobs included. With `--cores 1`, each job is submitted with one CPU, and VARUS, GeneMark, AUGUSTUS etc. run with one or two threads whatever `[SLURM_ARGS] cpus_per_task` says. Either omit `--cores` or set it to at least `cpus_per_task`.
+
 We recommend running the Snakemake master process itself in a `screen` or `tmux` session, or submitting it as a long-running SLURM job, because the master process must stay alive for the entire duration of the pipeline.
 
 ### Multi-sample runs and the `--keep-going` flag
