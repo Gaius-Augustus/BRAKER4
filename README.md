@@ -333,7 +333,7 @@ Consult your HPC administrator if Singularity is not available. BRAKER4 will aut
 | BUSCO | `ezlabgva/busco:v6.1.0_cv2` | 801 MB | BUSCO completeness assessment |
 | AGAT | `quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0` | 370 MB | GTF↔GFF3 conversion, normalization |
 | OMArk | `quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0` | 455 MB | OMArk + OMAmer (optional, only when `run_omark = 1`) |
-| pyVARUS | `katharinahoff/pyvarus:v1.0.0` | 515 MB (compressed) | pyVARUS auto-download of RNA-Seq from SRA, plus HISAT2, minimap2, samtools, sra-tools (optional) |
+| pyVARUS | `gaiusaugustus/pyvarus:v2.0.0a0` | 458 MB (compressed) | pyVARUS auto-download of RNA-Seq from SRA (Logan pre-screen), plus HISAT2, minimap2, samtools, sra-tools, zstd (optional). Built from [pyVARUS/docker](https://github.com/Gaius-Augustus/pyVARUS/tree/main/docker) |
 | minimap2 + minisplice | `katharinahoff/minimap-minisplice:v0.1` | ~200 MB | minimap2 ≥ 2.29 splice:hq for IsoSeq alignment, plus the minisplice CNN splice-site scorer (only when an IsoSeq FASTA/FASTQ is provided unaligned; minisplice is used only when `use_minisplice = 1`) |
 | pybarrnap | `quay.io/biocontainers/pybarrnap:0.5.1--pyhdfd78af_0` | 115 MB | rRNA prediction (only when `run_ncrna = 1`) |
 | tRNAscan-SE | `quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0` | 32 MB | tRNA prediction (only when `run_ncrna = 1`) |
@@ -483,7 +483,7 @@ pybarrnap_image = docker://quay.io/biocontainers/pybarrnap:0.5.1--pyhdfd78af_0
 busco_image = docker://ezlabgva/busco:v6.1.0_cv2
 omark_image = docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0
 tetools_image = docker://dfam/tetools:latest
-varus_image = docker://katharinahoff/pyvarus:v1.0.0
+varus_image = docker://gaiusaugustus/pyvarus:v2.0.0a0
 
 [PARAMS]
 fungus = 0                          # set to 1 for fungal genomes

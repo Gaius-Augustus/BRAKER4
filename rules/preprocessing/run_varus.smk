@@ -6,7 +6,10 @@ pyVARUS:
 2. Iteratively downloads and aligns complementary RNA-Seq reads
 3. Produces a coordinate-sorted BAM file for use in gene prediction
 
-Container: katharinahoff/pyvarus:v1.0.0
+Container: gaiusaugustus/pyvarus:v2.0.0a0 (built from
+https://github.com/Gaius-Augustus/pyVARUS/tree/main/docker; BRAKER4 pins a
+version tag, bump it in Snakefile, rules/common.smk, config.ini.example and
+README.md together)
 """
 
 
@@ -58,7 +61,7 @@ rule run_varus:
 
         # Record software version
         VERSIONS_FILE=output/{wildcards.sample}/software_versions.tsv
-        ( flock 9; printf "pyVARUS\tv1.0.0\n" >> "$VERSIONS_FILE" ) 9>"$VERSIONS_FILE.lock"
+        ( flock 9; printf "pyVARUS\tv2.0.0a0\n" >> "$VERSIONS_FILE" ) 9>"$VERSIONS_FILE.lock"
 
         # Report
         REPORT_DIR=output/{wildcards.sample}
