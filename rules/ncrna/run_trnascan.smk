@@ -44,17 +44,15 @@ rule run_trnascan:
 
         # Ensure output exists even if no tRNAs found
         if [ -s {output.gff}.tmp ] && grep -qv '^#' {output.gff}.tmp; then
-            # Prefix tRNA IDs with sample name for uniqueness
+            # Prefix every ID and Parent with the sample name for uniqueness, so
+            # exons keep pointing to their tRNA (IDs and Parents change together).
             awk -F'\t' -v OFS='\t' -v p="{wildcards.sample}" '
-                BEGIN {{n=1}}
                 /^#/ {{print; next}}
                 {{
-                    if ($9 ~ /ID=/) {{
-                        gsub(/ID=[^;]+/, "ID=" p "-tRNA_" n, $9)
-                    }} else {{
-                        $9 = "ID=" p "-tRNA_" n ";" $9
-                    }}
-                    n++
+                    $9 = ";" $9
+                    gsub(/;[[:space:]]*ID=/, ";ID=" p "-", $9)
+                    gsub(/;[[:space:]]*Parent=/, ";Parent=" p "-", $9)
+                    $9 = substr($9, 2)
                     print
                 }}
             ' {output.gff}.tmp > {output.gff}

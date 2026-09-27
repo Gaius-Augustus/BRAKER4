@@ -122,19 +122,34 @@ rule run_feelnc:
                     > $OLDPWD/{output.classifier} \
                     2>> $OLDPWD/{log} || true
 
-                # Convert lncRNA GTF to GFF3 with proper IDs
+                # Convert lncRNA GTF to GFF3 with proper IDs: lnc_RNA + exons,
+                # exons linked by Parent via their transcript_id. POSIX awk
+                # (2-arg match) so it also runs under busybox.
                 awk -F'\t' -v OFS='\t' -v p="{params.sample}" '
+                    function tx_id(attrs) {{
+                        if (match(attrs, /transcript_id "[^"]+"/))
+                            return substr(attrs, RSTART + 15, RLENGTH - 16)
+                        return ""
+                    }}
+                    function new_id(tid) {{
+                        if (!(tid in id)) {{ id[tid] = p "-lncRNA_" n; n++ }}
+                        return id[tid]
+                    }}
                     BEGIN {{
                         print "##gff-version 3"
                         n=1
                     }}
                     /^#/ {{next}}
-                    $3 == "transcript" || $3 == "exon" {{
-                        if ($3 == "transcript") {{
-                            id = p "-lncRNA_" n
-                            $9 = "ID=" id ";Name=" id ";biotype=lncRNA"
-                            n++
-                        }}
+                    $3 == "transcript" {{
+                        lid = new_id(tx_id($9))
+                        $3 = "lnc_RNA"
+                        $9 = "ID=" lid ";Name=" lid ";biotype=lncRNA"
+                        print
+                    }}
+                    $3 == "exon" {{
+                        lid = new_id(tx_id($9))
+                        k[lid]++
+                        $9 = "ID=" lid ".exon" k[lid] ";Parent=" lid
                         print
                     }}
                 ' "$LNCRNA_GTF" > $OLDPWD/{output.lncrna_gff}

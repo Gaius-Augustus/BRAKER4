@@ -5,12 +5,68 @@ Convert Infernal cmscan --tblout output to GFF3 format.
 Parses the tabular output from cmscan (--fmt 2 --tblout) and produces
 GFF3 features for ncRNA hits that pass Rfam gathering thresholds.
 
+With --family-types (rfam_family_types.tsv, from Rfam family.txt), each hit
+gets the RNA type of its Rfam family (tRNA, snoRNA, miRNA, ...) and a
+gene_biotype; merge_ncrna_gff3.py then adds the gene feature. Hits to
+cis-regulatory families and self-splicing introns are not RNA genes and get
+an SO type without a gene_biotype. Without the table every hit is an ncRNA.
+
 Usage:
-    python3 infernal_to_gff3.py -i input.tblout -o output.gff3 [-p sample_prefix]
+    python3 infernal_to_gff3.py -i input.tblout -o output.gff3 [-p sample_prefix] \
+        [--family-types rfam_family_types.tsv]
 """
 
 import argparse
+import os
 import sys
+
+
+def load_family_types(path):
+    """Rfam accession -> Rfam type string (e.g. 'Gene; snRNA; snoRNA; CD-box;')."""
+    types = {}
+    if not path or not os.path.exists(path):
+        return types
+    with open(path) as fh:
+        for line in fh:
+            if line.startswith("#") or line.startswith("rfam_acc\t"):
+                continue
+            cols = line.rstrip("\n").split("\t")
+            if len(cols) >= 3:
+                types[cols[0]] = cols[2]
+    return types
+
+
+def rna_class(rfam_type):
+    """(GFF3 feature type, gene_biotype or None) for an Rfam type string.
+
+    Feature types and biotypes follow NCBI/Ensembl GFF3. gene_biotype None
+    means the hit is not an RNA gene (cis-regulatory element, intron).
+    """
+    parts = [p.strip() for p in rfam_type.split(";") if p.strip()]
+    if not parts:
+        return "ncRNA", "ncRNA"
+    if parts[0] == "Cis-reg":
+        if "riboswitch" in parts:
+            return "riboswitch", None
+        if "IRES" in parts:
+            return "internal_ribosome_entry_site", None
+        return "regulatory_region", None
+    if parts[0] == "Intron":
+        return "autocatalytically_spliced_intron", None
+    for key, feature, biotype in (
+        ("tRNA", "tRNA", "tRNA"),
+        ("rRNA", "rRNA", "rRNA"),
+        ("scaRNA", "scaRNA", "scaRNA"),
+        ("snoRNA", "snoRNA", "snoRNA"),
+        ("snRNA", "snRNA", "snRNA"),
+        ("miRNA", "miRNA", "miRNA"),
+        ("lncRNA", "lnc_RNA", "lncRNA"),
+        ("antisense", "antisense_RNA", "antisense_RNA"),
+        ("ribozyme", "ribozyme", "ribozyme"),
+    ):
+        if key in parts:
+            return feature, biotype
+    return "ncRNA", "ncRNA"
 
 
 def parse_tblout(tblout_file):
@@ -64,7 +120,6 @@ def parse_tblout(tblout_file):
             hits.append({
                 'seqid': seqid,
                 'source': 'Infernal',
-                'type': 'ncRNA',
                 'start': start,
                 'end': end,
                 'score': score,
@@ -77,12 +132,15 @@ def parse_tblout(tblout_file):
     return hits
 
 
-def write_gff3(hits, output_file, prefix=''):
+def write_gff3(hits, output_file, prefix='', family_types=None):
     """Write hits as GFF3."""
+    family_types = family_types or {}
     with open(output_file, 'w') as fh:
         fh.write('##gff-version 3\n')
         for i, hit in enumerate(hits, 1):
             feature_id = f"{prefix}ncRNA_{i}" if prefix else f"ncRNA_{i}"
+            rfam_type = family_types.get(hit['rfam_acc'], "")
+            feature_type, biotype = rna_class(rfam_type)
             attrs = (
                 f"ID={feature_id};"
                 f"Name={hit['rfam_name']};"
@@ -90,8 +148,14 @@ def write_gff3(hits, output_file, prefix=''):
                 f"evalue={hit['evalue']};"
                 f"note=Infernal cmscan hit to {hit['rfam_name']} ({hit['rfam_acc']})"
             )
+            if biotype:
+                attrs += f";gene_biotype={biotype}"
+            if rfam_type:
+                # ';' separates GFF3 attributes, so the type parts are comma-joined
+                attrs += ";rfam_type=" + ",".join(
+                    p.strip() for p in rfam_type.split(";") if p.strip())
             fh.write(
-                f"{hit['seqid']}\t{hit['source']}\t{hit['type']}\t"
+                f"{hit['seqid']}\t{hit['source']}\t{feature_type}\t"
                 f"{hit['start']}\t{hit['end']}\t{hit['score']}\t"
                 f"{hit['strand']}\t.\t{attrs}\n"
             )
@@ -107,10 +171,17 @@ def main():
                         help='Output GFF3 file')
     parser.add_argument('-p', '--prefix', default='',
                         help='Prefix for feature IDs (e.g. sample name)')
+    parser.add_argument('--family-types', default='',
+                        help='rfam_family_types.tsv (Rfam accession -> type)')
     args = parser.parse_args()
 
+    family_types = load_family_types(args.family_types)
+    if args.family_types and not family_types:
+        print(f"WARNING: no Rfam family types read from {args.family_types}; "
+              "all hits are written as ncRNA", file=sys.stderr)
     hits = parse_tblout(args.input)
-    write_gff3(hits, args.output, prefix=args.prefix + '-' if args.prefix else '')
+    write_gff3(hits, args.output, prefix=args.prefix + '-' if args.prefix else '',
+               family_types=family_types)
 
     print(f"Converted {len(hits)} Infernal hits to GFF3", file=sys.stderr)
 

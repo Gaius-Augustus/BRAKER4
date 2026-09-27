@@ -111,6 +111,7 @@ rule convert_infernal_to_gff3:
             -i {input.tblout} \
             -o {output.gff} \
             -p {params.sample} \
+            --family-types {script_dir}/rfam_family_types.tsv \
             2> {log}
 
         n_ncrna=$(grep -cv '^#' {output.gff} || echo 0)

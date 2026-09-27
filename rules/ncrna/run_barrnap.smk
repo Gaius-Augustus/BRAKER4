@@ -117,31 +117,21 @@ rule merge_rrna_into_gff3:
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']) // int(config['slurm_args']['cpus_per_task']),
         runtime=int(config['slurm_args']['max_runtime'])
+    params:
+        # highest priority first; lncRNA only when the sample has one
+        ncrna=lambda wildcards, input: [input.rrna, input.trna, input.infernal]
+            + ([input.lncrna] if "lncrna" in input.keys() else [])
     shell:
         """
         set -euo pipefail
-        # Copy the BRAKER GFF3 as base
-        cp {input.gff3} {output.merged}
-
-        # Append rRNA features (skip header lines from barrnap output)
-        grep -v '^#' {input.rrna} >> {output.merged} 2>/dev/null || true
-        n_rrna=$(grep -cv '^#' {input.rrna} || echo 0)
-        echo "Appended $n_rrna rRNA features" > {log}
-
-        # Append ncRNA features if run_ncrna is enabled
-        for ncrna_file in output/{wildcards.sample}/ncrna/tRNAs.gff3 \
-                          output/{wildcards.sample}/ncrna/ncRNAs_infernal.gff3 \
-                          output/{wildcards.sample}/ncrna/lncRNAs.gff3; do
-            if [ -f "$ncrna_file" ]; then
-                n_before=$(grep -cv '^#' {output.merged} || echo 0)
-                grep -v '^#' "$ncrna_file" >> {output.merged} 2>/dev/null || true
-                n_after=$(grep -cv '^#' {output.merged} || echo 0)
-                n_added=$((n_after - n_before))
-                echo "Appended $n_added features from $(basename $ncrna_file)" >> {log}
-            fi
-        done
-
-        n_braker=$(grep -cv '^#' {input.gff3} || echo 0)
-        n_total=$(grep -cv '^#' {output.merged} || echo 0)
-        echo "Total: $n_braker BRAKER + $((n_total - n_braker)) ncRNA = $n_total features" >> {log}
+        # Protein-coding genes unchanged, then ncRNA genes in priority order
+        # (rRNA > tRNA > Infernal > lncRNA). Each ncRNA becomes gene -> RNA ->
+        # exon with gene_biotype on the gene (NCBI/Ensembl GFF3, Annotrieve).
+        # ncRNA genes overlapping coding exons (>50%, same strand) or a
+        # higher-priority ncRNA gene (>50%, same strand) are dropped.
+        python3 {script_dir}/merge_ncrna_gff3.py \
+            --coding {input.gff3} \
+            --ncrna {params.ncrna} \
+            -o {output.merged} \
+            2> {log}
         """
