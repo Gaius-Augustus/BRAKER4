@@ -86,7 +86,7 @@ Key differences:
 
 -   **Automated RNA-Seq sampling.** If you do not have RNA-Seq data at hand, BRAKER4 can use VARUS to automatically select and download suitable RNA-Seq libraries from NCBI's SRA for your species. Just provide the genus and species name in `samples.csv`.
 
--   **Automatic UTR decoration.** If transcriptome data is provided, StringTie2 assembles transcripts and decorates all protein coding gene models that have support by evidence with UTRs if possible.
+-   **Automatic UTR decoration.** If transcriptome data is provided, StringTie2 assembles transcripts and decorates all protein coding gene models that have support by evidence with UTRs if possible. A UTR stops before the nearest gene on the same strand that has its own transcript support, so read-through assemblies do not turn a neighbouring gene into UTR. In dual mode (short reads + IsoSeq), the IsoSeq reads are also assembled on their own, and their UTRs take priority wherever they match a gene.
 
 -   **Integrated postprocessing and quality control.** GFF3 conversion (AGAT) is performed automatically. BUSCO completeness assessment (BUSCO & compleasm), OMArk scoring, and optional evaluation against a reference annotation (gffcompare) provide quality control.
 
