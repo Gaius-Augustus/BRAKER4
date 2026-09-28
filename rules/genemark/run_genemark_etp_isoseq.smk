@@ -5,6 +5,11 @@ In dual mode (short-read RNA-Seq + IsoSeq + proteins), GeneMark-ETP is run
 ONCE with both short-read BAMs (via --bam) and the IsoSeq BAM (via --long_bam).
 This single combined run outputs to GeneMark-ETP-isoseq/.
 
+As in run_genemark_etp, gmetp.pl is run from a shadow copy of the
+container's ProtHint bin tree (scripts/make_prothint_shadow.sh) with
+the Spaln dispatcher replaced by scripts/spaln_dispatcher.py, to avoid
+the Perl-threads dispatcher hang (issue #98).
+
 Container: teambraker/braker3:isoseq (GeneMark-ETP build for long-read evidence)
 """
 
@@ -132,11 +137,22 @@ YAMLEOF
 
         echo "YAML config created with rnaseq_sets: [$BAM_IDS]" >> {log}
 
+        # Spaln dispatcher fix for ProtHint inside gmetp.pl (#98), see
+        # run_genemark_etp.smk.
+        SHADOW_DIR=$OUTDIR_ABS.bin
+        if bash {script_dir}/make_prothint_shadow.sh $SHADOW_DIR >> {log} 2>&1 && [ -x $SHADOW_DIR/gmetp.pl ]; then
+            GMETP=$SHADOW_DIR/gmetp.pl
+            echo "[INFO] ProtHint will use the process-based Spaln dispatcher (#98)" >> {log}
+        else
+            GMETP=gmetp.pl
+            echo "[WARNING] could not install the Spaln dispatcher fix (#98), using the container's ProtHint" >> {log}
+        fi
+
         GMES_CORES={threads}
         # Step 4: Run GeneMark-ETP with isoseq container
         cd $OUTDIR_ABS
 
-        if gmetp.pl \
+        if $GMETP \
             --cfg $OUTDIR_ABS/etp_config.yaml \
             --workdir $OUTDIR_ABS \
             --long_bam $OUTDIR_ABS/etp_lr_data/${{LR_LIB}}.bam \
@@ -279,4 +295,5 @@ YAMLEOF
             ! -path '*/rnaseq/stringtie/transcripts_merged.gff' \
             -delete 2>/dev/null || true
         find $OUTDIR_ABS -mindepth 1 -type d -empty -delete 2>/dev/null || true
+        rm -rf $SHADOW_DIR
         """

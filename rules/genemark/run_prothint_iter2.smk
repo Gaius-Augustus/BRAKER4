@@ -9,6 +9,11 @@ previous GeneMark-ES seeds (--prevGeneSeeds) and Spaln alignments
 The updated hints replace the iteration 1 ProtHint hints in the
 hintsfile, then AUGUSTUS is re-run for the final prediction.
 
+Like run_prothint, this rule builds a shadow copy of the container's
+ProtHint bin tree (scripts/make_prothint_shadow.sh) with the Spaln
+dispatcher replaced by scripts/spaln_dispatcher.py, to avoid the
+Perl-threads dispatcher hang (issue #98).
+
 Mirrors braker.pl's run_prothint_iter2().
 
 Input:
@@ -92,11 +97,22 @@ rule run_prothint_iter2:
             echo "[WARNING] was invoked with --cleanup, or whether something deleted the file." >> $WORKDIR/{log}
         fi
 
+        # Same Spaln dispatcher fix as in run_prothint (#98).
+        SHADOW_DIR=$(readlink -f {params.outdir}).bin
+        SHADOW_MSG=$(bash {script_dir}/make_prothint_shadow.sh $SHADOW_DIR 2>&1) || true
+        if [ -x $SHADOW_DIR/gmes/ProtHint/bin/prothint.py ]; then
+            PROTHINT=$SHADOW_DIR/gmes/ProtHint/bin/prothint.py
+            SHADOW_MSG="[INFO] ProtHint run with the process-based Spaln dispatcher (#98)"
+        else
+            PROTHINT=prothint.py
+            SHADOW_MSG="[WARNING] could not install the Spaln dispatcher fix (#98), used the container's ProtHint: $SHADOW_MSG"
+        fi
+
         # Run ProtHint iteration 2 (briefly disable strict mode for prothint.py only)
         cd {params.outdir}
         set +e
         set +o pipefail
-        prothint.py \
+        $PROTHINT \
             --threads={threads} \
             --geneSeeds $AUGUSTUS_GTF_ABS \
             --prevGeneSeeds $GENEMARK_ES_ABS \
@@ -110,6 +126,7 @@ rule run_prothint_iter2:
         cd $WORKDIR
         mkdir -p $(dirname {log})
         cp {params.outdir}/prothint_iter2_run.log {log} 2>/dev/null || true
+        echo "$SHADOW_MSG" >> {log}
 
         if [ ! -f {params.outdir}/prothint_augustus.gff ]; then
             echo "ERROR: ProtHint iter2 failed (exit=$PROTHINT_EXIT)" >> {log}
@@ -147,7 +164,7 @@ rule run_prothint_iter2:
         cite prothint "$REPORT_DIR" || true
 
         # Remove iter2 working directory (not a Snakemake output).
-        rm -rf {params.outdir} 2>/dev/null || true
+        rm -rf {params.outdir} $SHADOW_DIR 2>/dev/null || true
         # Remove the Spaln output that iter1 preserved for us; iter2 is done with it.
         # Leave prothint.gff (Snakemake output from iter1) in place.
         PROTHINT1_DIR=$(dirname $(readlink -f {input.prothint_evidence}))

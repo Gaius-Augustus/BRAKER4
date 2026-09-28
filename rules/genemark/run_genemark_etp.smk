@@ -19,6 +19,12 @@ Key outputs:
 - proteins.fa/model/hc.gff: HC gene structures (used by TSEBRA)
 - hintsfile: Combined hints for AUGUSTUS (RNA-Seq + protein)
 
+The ProtHint step run internally by gmetp.pl uses the same Spaln
+dispatcher shadow tree as run_prothint (scripts/make_prothint_shadow.sh,
+scripts/spaln_dispatcher.py) to avoid the Perl-threads dispatcher hang
+(issue #98); gmetp.pl is invoked from the shadow tree instead of the
+container's own copy.
+
 Mirrors braker.pl's GeneMark_ETP() + get_etp_hints_for_Augustus().
 
 Input:
@@ -152,10 +158,23 @@ YAMLEOF
 
         echo "YAML config created with rnaseq_sets: [$BAM_IDS]" >> {log}
 
+        # ProtHint (run inside gmetp.pl) has a Perl-threads Spaln dispatcher
+        # that can hang after the last batch is enqueued (#98). Run gmetp.pl
+        # from a symlinked copy of the container's ETP bin tree in which only
+        # ProtHint's run_spliced_alignment.pl is replaced.
+        SHADOW_DIR=$OUTDIR_ABS.bin
+        if bash {script_dir}/make_prothint_shadow.sh $SHADOW_DIR >> {log} 2>&1 && [ -x $SHADOW_DIR/gmetp.pl ]; then
+            GMETP=$SHADOW_DIR/gmetp.pl
+            echo "[INFO] ProtHint will use the process-based Spaln dispatcher (#98)" >> {log}
+        else
+            GMETP=gmetp.pl
+            echo "[WARNING] could not install the Spaln dispatcher fix (#98), using the container's ProtHint" >> {log}
+        fi
+
         # Step 4: Run GeneMark-ETP
         cd $OUTDIR_ABS
 
-        if gmetp.pl \
+        if $GMETP \
             --cfg $OUTDIR_ABS/etp_config.yaml \
             --workdir $OUTDIR_ABS \
             --bam $OUTDIR_ABS/etp_data/ \
@@ -328,4 +347,5 @@ YAMLEOF
             ! -path '*/rnaseq/stringtie/transcripts_merged.gff' \
             -delete 2>/dev/null || true
         find $OUTDIR_ABS -mindepth 1 -type d -empty -delete 2>/dev/null || true
+        rm -rf $SHADOW_DIR
         """

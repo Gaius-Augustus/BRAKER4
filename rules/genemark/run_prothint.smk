@@ -1,6 +1,14 @@
 """
 Run ProtHint to generate protein-based hints for gene prediction.
 
+ProtHint's bundled Perl-threads Spaln dispatcher can hang forever after
+the last batch is enqueued (issue #98). Before running prothint.py, this
+rule builds a symlinked shadow copy of the container's ProtHint bin tree
+via scripts/make_prothint_shadow.sh, with only the Spaln dispatcher
+replaced by scripts/spaln_dispatcher.py, and runs prothint.py from there.
+Falls back to the container's own prothint.py if the shadow cannot be
+built.
+
 Container: teambraker/braker3:latest (contains prothint.py, DIAMOND, Spaln)
 """
 
@@ -40,11 +48,25 @@ rule run_prothint:
         GENEMARK_GTF_ABS=$(readlink -f {input.genemark_es})
         OUTDIR_ABS=$(readlink -f {params.outdir})
 
+        # ProtHint's Perl-threads Spaln dispatcher can hang after the last
+        # batch is enqueued (#98). Run ProtHint from a symlinked copy of the
+        # container's bin tree that uses scripts/spaln_dispatcher.py instead.
+        SHADOW_DIR=$OUTDIR_ABS.bin
+        SHADOW_MSG=$(bash {script_dir}/make_prothint_shadow.sh $SHADOW_DIR 2>&1)
+        if [ -x $SHADOW_DIR/gmes/ProtHint/bin/prothint.py ]
+        then
+            PROTHINT=$SHADOW_DIR/gmes/ProtHint/bin/prothint.py
+            SHADOW_MSG="[INFO] ProtHint run with the process-based Spaln dispatcher (#98)"
+        else
+            PROTHINT=prothint.py
+            SHADOW_MSG="[WARNING] could not install the Spaln dispatcher fix (#98), used the container's ProtHint: $SHADOW_MSG"
+        fi
+
         cd $OUTDIR_ABS
 
         # Run prothint. Capture exit code without triggering set -e.
         # 'if cmd' is the ONLY set -e-safe pattern. No subshells.
-        if prothint.py --threads={threads} --geneMarkGtf $GENEMARK_GTF_ABS $GENOME_ABS $PROTEINS_ABS > $OUTDIR_ABS/prothint_run.log 2>&1
+        if $PROTHINT --threads={threads} --geneMarkGtf $GENEMARK_GTF_ABS $GENOME_ABS $PROTEINS_ABS > $OUTDIR_ABS/prothint_run.log 2>&1
         then
             PROTHINT_EXIT=0
         else
@@ -54,6 +76,7 @@ rule run_prothint:
         cd $WORKDIR
 
         cp $OUTDIR_ABS/prothint_run.log {log} 2>/dev/null || true
+        echo "$SHADOW_MSG" >> {log}
 
         if [ ! -f $OUTDIR_ABS/prothint_augustus.gff ]
         then
@@ -99,4 +122,5 @@ rule run_prothint:
             ! -path '*/Spaln/spaln.gff' \
             -delete 2>/dev/null || true
         find {params.outdir} -mindepth 1 -type d -empty -delete 2>/dev/null || true
+        rm -rf $SHADOW_DIR
         """

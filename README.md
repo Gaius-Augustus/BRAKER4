@@ -1311,6 +1311,10 @@ Common problems
 
     If transposable elements have not been masked appropriately, AUGUSTUS tends to predict those elements as protein coding genes. Make sure your genome is soft-masked for repeats. If you provided an unmasked genome, check that RepeatModeler2/RepeatMasker completed successfully.
 
+-   *ProtHint (or GeneMark-ETP) seems to hang forever after enqueueing Spaln pairs!*
+
+    This was ProtHint's Perl-threads Spaln dispatcher hanging (issue #98). BRAKER4 now runs ProtHint from a shadow bin tree with a Python-based dispatcher (`scripts/spaln_dispatcher.py`) that has a stall watchdog; see [ProtHint Spaln dispatcher hang (issue #98)](#prothint-spaln-dispatcher-hang-issue-98) in Developer Notes.
+
 -   *RepeatModeler2 fails on my genome — what now?* **(known upstream issue)**
 
     RepeatModeler2 is known to crash on certain genomes, particularly very small or highly fragmented assemblies, genomes with unusual base composition, or assemblies where the repeat content is too low for the self-training step to converge. This is an upstream issue in RepeatModeler2 itself and cannot be fixed in BRAKER4. **Workarounds:** (1) switch to the Red repeat detector by setting `masking_tool = red` in `config.ini` — Red does not build a repeat library and is much more robust on small/fragmented assemblies, at the cost of not classifying repeats; (2) mask the genome yourself with another tool (e.g. EDTA, earlGrey, or RepeatMasker with a curated library) and provide the soft-masked genome via the `genome_masked` column in `samples.csv`.
@@ -1386,6 +1390,12 @@ The root cause is a combination of:
 3. `set -euo pipefail` interactions between bash, Singularity, and SLURM's `srun`
 
 The `set +e` approach is safe because the rule explicitly checks for the expected output file and calls `exit 1` if it's missing.
+
+### ProtHint Spaln dispatcher hang (issue #98)
+
+ProtHint's bundled Spaln dispatcher (`bin/run_spliced_alignment.pl`, Perl ithreads + `Thread::Queue` + `MCE::Mutex`) can hang forever after the last `Enqueueing pair ... (99.9%)` line, with no further progress and no error. BRAKER4 replaces it with `scripts/spaln_dispatcher.py`, a drop-in CLI-compatible dispatcher that runs one process group per batch from a single-threaded Python process instead of Perl threads. A watchdog kills a batch whose processes use no CPU for 1800 s (configurable via the `BRAKER4_SPALN_STALL_TIMEOUT` environment variable in seconds; `0` disables the watchdog), retries that batch once, and then skips it (up to 100 pairs) with a `WARNING` in the ProtHint log rather than hanging. Batch outputs are written in batch order.
+
+`scripts/make_prothint_shadow.sh <dest>` builds a symlinked copy of the container's `/opt/ETP/bin` tree with only that one file replaced. The `run_prothint`, `run_prothint_iter2`, `run_genemark_etp`, and `run_genemark_etp_isoseq` rules build this shadow tree next to their output directory (`<outdir>.bin`), run `prothint.py` / `gmetp.pl` from it, log an `[INFO]` line on success (or a `[WARNING]` and fall back to the container's own ProtHint if the shadow cannot be built), and remove the shadow tree when the rule finishes.
 
 ### Snakemake Version
 
