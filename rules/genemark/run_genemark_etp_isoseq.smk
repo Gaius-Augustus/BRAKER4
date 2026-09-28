@@ -172,7 +172,18 @@ YAMLEOF
                     if [ "$TSEQ_SIZE" -eq 0 ]; then
                         echo "HINT: transcripts_merged.fasta is empty -- StringTie produced no transcripts from the IsoSeq BAM. Check alignment quality and coverage." >> {log}
                     else
-                        echo "HINT: exit 139 = segfault in gmhmmp (internal GeneMark binary). This is a known issue when the transcript set is very large. Try subsampling the IsoSeq BAM and rerunning." >> {log}
+                        if [ "$ETP_EXIT" -eq 139 ]; then
+                            echo "HINT: exit 139 = segmentation fault inside GeneMark-ETP." >> {log}
+                        else
+                            echo "HINT: GeneMark-ETP exited with code $ETP_EXIT without writing genemark.gtf." >> {log}
+                        fi
+                        echo "  Common causes (check these before subsampling):" >> {log}
+                        echo "    1. Thread count: GeneMark-ETP ran with --cores {threads}. Very high counts (e.g. 256) are known to crash it; lower slurm_args: cpus_per_task in config.yaml." >> {log}
+                        echo "    2. Sequence name mismatch: @SQ names in the BAM header differ from the genome FASTA headers." >> {log}
+                        echo "       Check: samtools view -H <bam> | grep ^@SQ  vs  grep '>' <genome> | head" >> {log}
+                        echo "    3. Stranded library: GeneMark-ETP assembles transcripts unstranded, which can produce conflicting models from stranded data." >> {log}
+                        echo "    4. Very large transcript set: only if 1-3 are ruled out, subsample the IsoSeq BAM and rerun." >> {log}
+                        echo "  The failing step is usually visible in gms.log (tail printed below)." >> {log}
                     fi
                 else
                     echo "DIAGNOSTIC: transcripts_merged.fasta not found -- GeneMark-ETP likely crashed before StringTie completed." >> {log}

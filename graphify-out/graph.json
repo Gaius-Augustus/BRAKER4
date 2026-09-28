@@ -521,153 +521,153 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L35",
-      "id": "generate_report_rationale_35",
       "community": 3,
-      "norm_label": "read file contents, return empty string if not found."
+      "norm_label": "read file contents, return empty string if not found.",
+      "id": "generate_report_rationale_35"
     },
     {
       "label": "Base64-encode an image for inline HTML embedding.      If download_name is provi",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L43",
-      "id": "generate_report_rationale_43",
       "community": 3,
-      "norm_label": "base64-encode an image for inline html embedding.      if download_name is provi"
+      "norm_label": "base64-encode an image for inline html embedding.      if download_name is provi",
+      "id": "generate_report_rationale_43"
     },
     {
       "label": "Read software_versions.tsv and return list of (tool, version) tuples.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L73",
-      "id": "generate_report_rationale_73",
       "community": 3,
-      "norm_label": "read software_versions.tsv and return list of (tool, version) tuples."
+      "norm_label": "read software_versions.tsv and return list of (tool, version) tuples.",
+      "id": "generate_report_rationale_73"
     },
     {
       "label": "Return the run status from a best_by_compleasm log, or None.      The rule write",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L93",
-      "id": "generate_report_rationale_93",
       "community": 3,
-      "norm_label": "return the run status from a best_by_compleasm log, or none.      the rule write"
+      "norm_label": "return the run status from a best_by_compleasm log, or none.      the rule write",
+      "id": "generate_report_rationale_93"
     },
     {
       "label": "Collect failures of best_by_compleasm, compleasm and BUSCO that the     pipeline",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L106",
-      "id": "generate_report_rationale_106",
       "community": 3,
-      "norm_label": "collect failures of best_by_compleasm, compleasm and busco that the     pipeline"
+      "norm_label": "collect failures of best_by_compleasm, compleasm and busco that the     pipeline",
+      "id": "generate_report_rationale_106"
     },
     {
       "label": "Parse a best_by_compleasm aggregated log into per-pass decisions.      Returns a",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L141",
-      "id": "generate_report_rationale_141",
       "community": 3,
-      "norm_label": "parse a best_by_compleasm aggregated log into per-pass decisions.      returns a"
+      "norm_label": "parse a best_by_compleasm aggregated log into per-pass decisions.      returns a",
+      "id": "generate_report_rationale_141"
     },
     {
       "label": "Render parsed best_by_compleasm passes as a methods-text sentence.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L217",
-      "id": "generate_report_rationale_217",
       "community": 3,
-      "norm_label": "render parsed best_by_compleasm passes as a methods-text sentence."
+      "norm_label": "render parsed best_by_compleasm passes as a methods-text sentence.",
+      "id": "generate_report_rationale_217"
     },
     {
       "label": "Generate a single cohesive methods paragraph from pipeline outputs.      Instead",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L255",
-      "id": "generate_report_rationale_255",
       "community": 3,
-      "norm_label": "generate a single cohesive methods paragraph from pipeline outputs.      instead"
+      "norm_label": "generate a single cohesive methods paragraph from pipeline outputs.      instead",
+      "id": "generate_report_rationale_255"
     },
     {
       "label": "Deduplicate plain-text citations (one per line).",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L792",
-      "id": "generate_report_rationale_792",
       "community": 3,
-      "norm_label": "deduplicate plain-text citations (one per line)."
+      "norm_label": "deduplicate plain-text citations (one per line).",
+      "id": "generate_report_rationale_792"
     },
     {
       "label": "Deduplicate BibTeX entries by key.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L804",
-      "id": "generate_report_rationale_804",
       "community": 3,
-      "norm_label": "deduplicate bibtex entries by key."
+      "norm_label": "deduplicate bibtex entries by key.",
+      "id": "generate_report_rationale_804"
     },
     {
       "label": "Convert compleasm multi-line summary to BUSCO-style one-liner.      Input format",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L826",
-      "id": "generate_report_rationale_826",
       "community": 3,
-      "norm_label": "convert compleasm multi-line summary to busco-style one-liner.      input format"
+      "norm_label": "convert compleasm multi-line summary to busco-style one-liner.      input format",
+      "id": "generate_report_rationale_826"
     },
     {
       "label": "Read a QC summary file and return as HTML paragraph.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L869",
-      "id": "generate_report_rationale_869",
       "community": 3,
-      "norm_label": "read a qc summary file and return as html paragraph."
+      "norm_label": "read a qc summary file and return as html paragraph.",
+      "id": "generate_report_rationale_869"
     },
     {
       "label": "Collect Snakemake benchmark files from benchmarks/{sample}/.      Returns list o",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L879",
-      "id": "generate_report_rationale_879",
       "community": 3,
-      "norm_label": "collect snakemake benchmark files from benchmarks/{sample}/.      returns list o"
+      "norm_label": "collect snakemake benchmark files from benchmarks/{sample}/.      returns list o",
+      "id": "generate_report_rationale_879"
     },
     {
       "label": "Format seconds into human-readable string.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L936",
-      "id": "generate_report_rationale_936",
       "community": 3,
-      "norm_label": "format seconds into human-readable string."
+      "norm_label": "format seconds into human-readable string.",
+      "id": "generate_report_rationale_936"
     },
     {
       "label": "Generate publication-quality resource consumption plots.      Creates a two-pane",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L946",
-      "id": "generate_report_rationale_946",
       "community": 3,
-      "norm_label": "generate publication-quality resource consumption plots.      creates a two-pane"
+      "norm_label": "generate publication-quality resource consumption plots.      creates a two-pane",
+      "id": "generate_report_rationale_946"
     },
     {
       "label": "Detect BRAKER mode from directory structure.      Order matters: check specific",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L1018",
-      "id": "generate_report_rationale_1018",
       "community": 3,
-      "norm_label": "detect braker mode from directory structure.      order matters: check specific"
+      "norm_label": "detect braker mode from directory structure.      order matters: check specific",
+      "id": "generate_report_rationale_1018"
     },
     {
       "label": "Generate the full HTML report.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L1141",
-      "id": "generate_report_rationale_1141",
       "community": 3,
-      "norm_label": "generate the full html report."
+      "norm_label": "generate the full html report.",
+      "id": "generate_report_rationale_1141"
     },
     {
       "label": "compleasm_wrapper.py",
@@ -917,90 +917,90 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L67",
-      "id": "best_by_compleasm_rationale_67",
       "community": 0,
-      "norm_label": "write the one-line run status to the status file and to stdout."
+      "norm_label": "write the one-line run status to the status file and to stdout.",
+      "id": "best_by_compleasm_rationale_67"
     },
     {
       "label": "Report a failure of the given kind (COMPLEASM_FAILED or FAILED) and exit.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L79",
-      "id": "best_by_compleasm_rationale_79",
       "community": 0,
-      "norm_label": "report a failure of the given kind (compleasm_failed or failed) and exit."
+      "norm_label": "report a failure of the given kind (compleasm_failed or failed) and exit.",
+      "id": "best_by_compleasm_rationale_79"
     },
     {
       "label": "Parse the compleasm statistics from the specified file.      Args:         file",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L183",
-      "id": "best_by_compleasm_rationale_183",
       "community": 0,
-      "norm_label": "parse the compleasm statistics from the specified file.      args:         file"
+      "norm_label": "parse the compleasm statistics from the specified file.      args:         file",
+      "id": "best_by_compleasm_rationale_183"
     },
     {
       "label": "Find all the required input files for the process.      Args:         args (argp",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L213",
-      "id": "best_by_compleasm_rationale_213",
       "community": 0,
-      "norm_label": "find all the required input files for the process.      args:         args (argp"
+      "norm_label": "find all the required input files for the process.      args:         args (argp",
+      "id": "best_by_compleasm_rationale_213"
     },
     {
       "label": "Find the genemark.gtf file and corresponding training.gtf file in the specified",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L236",
-      "id": "best_by_compleasm_rationale_236",
       "community": 0,
-      "norm_label": "find the genemark.gtf file and corresponding training.gtf file in the specified"
+      "norm_label": "find the genemark.gtf file and corresponding training.gtf file in the specified",
+      "id": "best_by_compleasm_rationale_236"
     },
     {
       "label": "Run compleasm on the specified protein files      Args:         protein_files (l",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L266",
-      "id": "best_by_compleasm_rationale_266",
       "community": 0,
-      "norm_label": "run compleasm on the specified protein files      args:         protein_files (l"
+      "norm_label": "run compleasm on the specified protein files      args:         protein_files (l",
+      "id": "best_by_compleasm_rationale_266"
     },
     {
       "label": "Run the getAnnoFastaFromJoingenes.py tool to process the Genemark GTF file and g",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L328",
-      "id": "best_by_compleasm_rationale_328",
       "community": 0,
-      "norm_label": "run the getannofastafromjoingenes.py tool to process the genemark gtf file and g"
+      "norm_label": "run the getannofastafromjoingenes.py tool to process the genemark gtf file and g",
+      "id": "best_by_compleasm_rationale_328"
     },
     {
       "label": "Return the most informative line of a subprocess stderr, or ''.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L344",
-      "id": "best_by_compleasm_rationale_344",
       "community": 0,
-      "norm_label": "return the most informative line of a subprocess stderr, or ''."
+      "norm_label": "return the most informative line of a subprocess stderr, or ''.",
+      "id": "best_by_compleasm_rationale_344"
     },
     {
       "label": "Execute a subprocess command with the provided arguments.      Args:         arg",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L353",
-      "id": "best_by_compleasm_rationale_353",
       "community": 0,
-      "norm_label": "execute a subprocess command with the provided arguments.      args:         arg"
+      "norm_label": "execute a subprocess command with the provided arguments.      args:         arg",
+      "id": "best_by_compleasm_rationale_353"
     },
     {
       "label": "Check if the provided binary is executable or available in the system's PATH.",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L403",
-      "id": "best_by_compleasm_rationale_403",
       "community": 0,
-      "norm_label": "check if the provided binary is executable or available in the system's path."
+      "norm_label": "check if the provided binary is executable or available in the system's path.",
+      "id": "best_by_compleasm_rationale_403"
     },
     {
       "label": "Filters and writes GTF lines based on transcript IDs.      This function reads a",
@@ -1016,36 +1016,36 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L453",
-      "id": "best_by_compleasm_rationale_453",
       "community": 0,
-      "norm_label": "determine whether braker run, and whether the files are complete.      args:"
+      "norm_label": "determine whether braker run, and whether the files are complete.      args:",
+      "id": "best_by_compleasm_rationale_453"
     },
     {
       "label": "Check if the specified directory exists.      Returns:         str: Path to the",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L477",
-      "id": "best_by_compleasm_rationale_477",
       "community": 0,
-      "norm_label": "check if the specified directory exists.      returns:         str: path to the"
+      "norm_label": "check if the specified directory exists.      returns:         str: path to the",
+      "id": "best_by_compleasm_rationale_477"
     },
     {
       "label": "Remove genes with internal stop codons from gtf_path in place.      Runs getAnno",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L494",
-      "id": "best_by_compleasm_rationale_494",
       "community": 0,
-      "norm_label": "remove genes with internal stop codons from gtf_path in place.      runs getanno"
+      "norm_label": "remove genes with internal stop codons from gtf_path in place.      runs getanno",
+      "id": "best_by_compleasm_rationale_494"
     },
     {
       "label": "Filters and writes GTF lines based on transcript IDs.      This function reads a",
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
       "source_location": "L559",
-      "id": "best_by_compleasm_rationale_559",
       "community": 0,
-      "norm_label": "filters and writes gtf lines based on transcript ids.      this function reads a"
+      "norm_label": "filters and writes gtf lines based on transcript ids.      this function reads a",
+      "id": "best_by_compleasm_rationale_559"
     },
     {
       "label": "training_summary.py",
@@ -3923,9 +3923,9 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_best_by_compleasm_status.py",
       "source_location": "L1",
-      "id": "test_best_by_compleasm_status_rationale_1",
       "community": 3,
-      "norm_label": "tests for the run status line of best_by_compleasm.py and its use in the report."
+      "norm_label": "tests for the run status line of best_by_compleasm.py and its use in the report.",
+      "id": "test_best_by_compleasm_status_rationale_1"
     },
     {
       "label": "test_stringtie2utr_single_exon.py",
@@ -8093,8 +8093,8 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_best_by_compleasm_status.py",
       "source_location": "L147",
       "weight": 1.0,
-      "_src": "test_best_by_compleasm_status_test_report_reads_status",
-      "_tgt": "generate_report_read_bbc_status",
+      "_src": "generate_report_read_bbc_status",
+      "_tgt": "test_best_by_compleasm_status_test_report_reads_status",
       "source": "generate_report_read_bbc_status",
       "target": "test_best_by_compleasm_status_test_report_reads_status"
     },
@@ -8129,8 +8129,8 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_best_by_compleasm_status.py",
       "source_location": "L160",
       "weight": 1.0,
-      "_src": "test_best_by_compleasm_status_test_report_warns_on_failures",
-      "_tgt": "generate_report_collect_run_warnings",
+      "_src": "generate_report_collect_run_warnings",
+      "_tgt": "test_best_by_compleasm_status_test_report_warns_on_failures",
       "source": "generate_report_collect_run_warnings",
       "target": "test_best_by_compleasm_status_test_report_warns_on_failures"
     },
@@ -8141,8 +8141,8 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_best_by_compleasm_status.py",
       "source_location": "L176",
       "weight": 1.0,
-      "_src": "test_best_by_compleasm_status_test_report_no_warnings_on_success",
-      "_tgt": "generate_report_collect_run_warnings",
+      "_src": "generate_report_collect_run_warnings",
+      "_tgt": "test_best_by_compleasm_status_test_report_no_warnings_on_success",
       "source": "generate_report_collect_run_warnings",
       "target": "test_best_by_compleasm_status_test_report_no_warnings_on_success"
     },
@@ -8225,8 +8225,8 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_best_by_compleasm_status.py",
       "source_location": "L165",
       "weight": 1.0,
-      "_src": "test_best_by_compleasm_status_test_report_warns_on_failures",
-      "_tgt": "generate_report_generate_methods_text",
+      "_src": "generate_report_generate_methods_text",
+      "_tgt": "test_best_by_compleasm_status_test_report_warns_on_failures",
       "source": "generate_report_generate_methods_text",
       "target": "test_best_by_compleasm_status_test_report_warns_on_failures"
     },
