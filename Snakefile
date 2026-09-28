@@ -66,6 +66,7 @@ _env_overrides = {
     'BRAKER4_GC_DONOR':                       ('PARAMS', 'gc_donor'),
     'BRAKER4_ALLOW_HINTED_SPLICESITES':       ('PARAMS', 'allow_hinted_splicesites'),
     'BRAKER4_RUN_NCRNA':                      ('PARAMS', 'run_ncrna'),
+    'BRAKER4_TRNASCAN_HIGH_CONFIDENCE_FILTER': ('PARAMS', 'trnascan_high_confidence_filter'),
     'BRAKER4_RUN_BEST_BY_COMPLEASM':          ('PARAMS', 'run_best_by_compleasm'),
     'BRAKER4_MASKING_TOOL':                   ('PARAMS', 'masking_tool'),
     'BRAKER4_USE_MINISPLICE':                 ('PARAMS', 'use_minisplice'),
@@ -299,6 +300,12 @@ config['augustus_overlap'] = config_parser.getint(
 
 config['run_ncrna'] = config_parser.getboolean(
     'PARAMS', 'run_ncrna', fallback=False
+)
+
+# Keep only tRNAs that pass tRNAscan-SE's EukHighConfidenceFilter (removes
+# pseudogenes and tRNA-derived SINEs; issue #49). Only used when run_ncrna = 1.
+config['trnascan_high_confidence_filter'] = config_parser.getboolean(
+    'PARAMS', 'trnascan_high_confidence_filter', fallback=False
 )
 
 config['run_best_by_compleasm'] = config_parser.getboolean(
@@ -651,6 +658,7 @@ include: "rules/postprocessing/convert_to_gff3.smk"
 # Include QC rules
 include: "rules/quality_control/run_compleasm.smk"
 include: "rules/quality_control/gene_support.smk"
+include: "rules/quality_control/eval_test_set_accuracy.smk"
 
 # BUSCO is the slow QC step (full pipeline including HMMER searches against the
 # lineage dataset). Skip it via skip_busco = 1 in config.ini for fast iteration.

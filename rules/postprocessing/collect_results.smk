@@ -22,7 +22,9 @@ def _get_collect_inputs(wildcards):
         "codingseq": f"output/{sample}/braker.codingseq",
         "gff3": f"output/{sample}/braker.gff3",
         "gene_support": f"output/{sample}/gene_support.tsv",
-        "headers_fixed": f"output/{sample}/preprocessing/.headers_fixed"
+        "headers_fixed": f"output/{sample}/preprocessing/.headers_fixed",
+        # QC: final gene set scored on the held-out AUGUSTUS test set (#54)
+        "test_set_accuracy": f"output/{sample}/accuracy_final_gene_set.txt"
     }
 
     if not config.get('skip_busco', False):
@@ -187,6 +189,11 @@ rule collect_results:
                     cp "$f" "$RESULTS/quality_control/"
                 fi
             done
+        fi
+
+        # Final gene set on the held-out AUGUSTUS test set (QC only)
+        if [ -f "$OUTDIR/accuracy_final_gene_set.txt" ]; then
+            cp "$OUTDIR/accuracy_final_gene_set.txt" "$RESULTS/quality_control/"
         fi
 
         # gffcompare

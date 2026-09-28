@@ -3,7 +3,8 @@
 Generate AUGUSTUS training summary report and publication-quality plot.
 
 Collects training gene counts at each pipeline stage and accuracy metrics
-before and after AUGUSTUS parameter optimization. Produces:
+on the held-out test set: AUGUSTUS before and after parameter optimization,
+and the final gene set (QC only, if accuracy_final_gene_set.txt exists). Produces:
 1. A text summary file
 2. A high-quality PDF/PNG bar+line plot
 
@@ -188,6 +189,8 @@ def main():
     # Accuracy metrics
     acc_before = parse_accuracy_file(os.path.join(d, 'accuracy_after_training.txt'))
     acc_after = parse_accuracy_file(os.path.join(d, 'accuracy_after_optimize.txt'))
+    # Final gene set (TSEBRA etc.) scored on the same test set; QC only (#54)
+    acc_final = parse_accuracy_file(os.path.join(d, 'accuracy_final_gene_set.txt'))
 
     # Final gene count
     braker_gtf = os.path.join(d, 'braker.gtf')
@@ -233,6 +236,18 @@ def main():
                 improvement = acc_after['weighted'] - acc_before['weighted']
                 f.write(f"\n  Improvement: {improvement:+.1f}%\n")
             f.write("\n")
+
+        if acc_final:
+            f.write("Final Gene Set on Held-out Test Set (QC only)\n")
+            f.write("-" * 50 + "\n")
+            for level in ['nu', 'ex', 'gene']:
+                name = {'nu': 'Nucleotide', 'ex': 'Exon', 'gene': 'Gene'}[level]
+                sen = acc_final.get(f'{level}_sen', 0)
+                sp = acc_final.get(f'{level}_sp', 0)
+                f.write(f"  {name:12s}  Sn={sen:5.1f}%  Sp={sp:5.1f}%\n")
+            f.write(f"  {'Weighted':12s}  {acc_final.get('weighted', 0):5.1f}%\n")
+            f.write("  Biased upwards: the test genes are GeneMark training genes and\n"
+                    "  the final set contains GeneMark transcripts selected by TSEBRA.\n\n")
 
         if n_final is not None:
             f.write(f"Final prediction: {n_final} genes\n")
@@ -287,26 +302,29 @@ def main():
                      str(count), va='center', fontsize=9)
 
     # Right panel: Accuracy comparison
-    if acc_before or acc_after:
+    if acc_before or acc_after or acc_final:
         metrics = ['Nuc Sn', 'Nuc Sp', 'Exon Sn', 'Exon Sp',
                    'Gene Sn', 'Gene Sp', 'Weighted']
         keys = ['nu_sen', 'nu_sp', 'ex_sen', 'ex_sp', 'gene_sen', 'gene_sp', 'weighted']
 
         before_vals = [acc_before.get(k, 0) for k in keys]
         after_vals = [acc_after.get(k, 0) for k in keys]
+        final_vals = [acc_final.get(k, 0) for k in keys]
 
         x = range(len(metrics))
-        width = 0.35
+        series = [(acc_before, before_vals, 'Before optimization', '#C44E52'),
+                  (acc_after, after_vals, 'After optimization', '#55A868'),
+                  (acc_final, final_vals, 'Final gene set (QC)', '#4C72B0')]
+        series = [s for s in series if s[0]]
+        width = 0.8 / len(series)
 
-        if acc_before:
-            ax2.bar([i - width / 2 for i in x], before_vals, width,
-                    label='Before optimization', color='#C44E52', alpha=0.8)
-        if acc_after:
-            ax2.bar([i + width / 2 for i in x], after_vals, width,
-                    label='After optimization', color='#55A868', alpha=0.8)
+        for n, (_, vals, label, color) in enumerate(series):
+            offset = (n - (len(series) - 1) / 2) * width
+            ax2.bar([i + offset for i in x], vals, width,
+                    label=label, color=color, alpha=0.8)
 
         ax2.set_ylabel('Accuracy (%)', fontsize=10)
-        ax2.set_title('AUGUSTUS Training Accuracy', fontsize=12, fontweight='bold')
+        ax2.set_title('Accuracy on Held-out Test Set', fontsize=12, fontweight='bold')
         ax2.set_xticks(x)
         ax2.set_xticklabels(metrics, fontsize=8, rotation=45, ha='right')
         ax2.set_ylim(0, 105)

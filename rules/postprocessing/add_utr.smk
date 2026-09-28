@@ -5,8 +5,12 @@ Two-step process:
 1. StringTie transcript assembly:
    - ET mode: run StringTie on RNA-Seq BAMs (separate rule)
    - ETP/IsoSeq mode: use StringTie assembly from GeneMark-ETP (already exists)
+   - dual mode: additionally a long-read-only assembly of the IsoSeq BAM
+     (stringtie -L); its UTRs take priority (#29)
 2. stringtie2utr.py: decorate BRAKER CDS predictions with UTRs from StringTie;
-   check_gtf_loci.py then fails the rule if a model spans several loci (#62)
+   UTRs stop at the nearest same-strand neighbour gene that has a StringTie
+   match of its own (#29). check_gtf_loci.py then fails the rule if a model
+   spans several loci (#62)
 
 Container: teambraker/braker3:latest (contains stringtie, python3 + intervaltree)
 """
@@ -87,6 +91,53 @@ rule run_stringtie:
         """
 
 
+rule run_stringtie_isoseq:
+    """Assemble IsoSeq reads alone (dual mode only).
+
+    GeneMark-ETP assembles short and long reads together (stringtie --mix),
+    which keeps short-read read-through joins of neighbouring genes. The
+    long-read-only assembly gives add_utr a second source that wins where
+    both match a gene (#29).
+    """
+    input:
+        bam=lambda w: get_isoseq_bam_for_etp(w.sample)
+    output:
+        assembly="output/{sample}/stringtie/isoseq.gtf"
+    log:
+        "logs/{sample}/stringtie/stringtie_isoseq.log"
+    benchmark:
+        "benchmarks/{sample}/stringtie/stringtie_isoseq.txt"
+    threads: int(config['slurm_args']['cpus_per_task'])
+    resources:
+        mem_mb=int(config['slurm_args']['mem_of_node']),
+        runtime=int(config['slurm_args']['max_runtime'])
+    container:
+        BRAKER3_CONTAINER
+    shell:
+        r"""
+        set -euo pipefail
+        export PATH=/opt/conda/bin:$PATH
+        export PYTHONNOUSERSITE=1
+        mkdir -p $(dirname {output.assembly})
+
+        echo "Running StringTie in long-read mode on {input.bam}..." > {log}
+        stringtie -L "{input.bam}" \
+            -o {output.assembly} \
+            -p {threads} \
+            2>> {log}
+
+        n_tx=$(awk '$3=="transcript"{{n++}}END{{print n+0}}' {output.assembly})
+        echo "StringTie assembled $n_tx transcripts from IsoSeq reads" >> {log}
+        """
+
+
+def _get_isoseq_stringtie_gtf(wildcards):
+    """Long-read-only assembly for add_utr, dual mode only (#29)."""
+    if get_braker_mode(wildcards.sample) == 'dual':
+        return f"output/{wildcards.sample}/stringtie/isoseq.gtf"
+    return []
+
+
 def _get_stringtie_gtf(wildcards):
     """Get StringTie assembly GTF, routing by mode.
 
@@ -113,7 +164,8 @@ rule add_utr:
     """
     input:
         genes="output/{sample}/braker.gtf",
-        stringtie=_get_stringtie_gtf
+        stringtie=_get_stringtie_gtf,
+        isoseq_stringtie=_get_isoseq_stringtie_gtf
     output:
         utr_gtf="output/{sample}/braker_utr.gtf"
     log:
@@ -136,9 +188,16 @@ rule add_utr:
         export PYTHONNOUSERSITE=1
         echo "Decorating gene predictions with UTRs from StringTie..." > {log}
 
+        # Dual mode: UTRs from the IsoSeq-only assembly take priority (#29)
+        LR_OPT=""
+        if [ -n "{input.isoseq_stringtie}" ]; then
+            LR_OPT="-l {input.isoseq_stringtie}"
+        fi
+
         python3 {params.script} \
             -g {input.genes} \
             -s {input.stringtie} \
+            $LR_OPT \
             -o {output.utr_gtf} \
             2>> {log}
 

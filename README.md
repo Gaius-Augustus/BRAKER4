@@ -506,6 +506,7 @@ allow_hinted_splicesites = gcag,atac # non-canonical splice sites for AUGUSTUS (
 augustus_chunksize = 3000000        # genome chunk size (bp) for parallel AUGUSTUS prediction
 augustus_overlap = 500000           # overlap (bp) between adjacent AUGUSTUS chunks
 run_ncrna = 0                       # set to 1 to annotate ncRNAs (tRNA, snoRNA, miRNA, lncRNA)
+trnascan_high_confidence_filter = 0 # set to 1 to keep only EukHighConfidenceFilter-passing tRNAs (run_ncrna = 1)
 run_best_by_compleasm = 1           # rescue dropped BUSCO genes after TSEBRA merge (set to 0 to disable)
 masking_tool = repeatmasker          # repeat masking engine: "repeatmasker" (default) or "red" (much faster)
 use_minisplice = 0                  # set to 1 to score splice sites with minisplice before minimap2 (IsoSeq only)
@@ -940,7 +941,7 @@ You will rarely need to change either value. Both apply to the iteration-1 and i
 Set to `1` to annotate non-coding RNAs in addition to protein-coding genes. Default is `0` (off). When enabled, the pipeline runs four ncRNA predictors in parallel:
 
 -   **pybarrnap** (Onishi, 2025): ribosomal RNA gene prediction (18S, 28S, 5.8S, 5S; all modes). Python re-implementation of barrnap using Rfam 14.10 HMM profiles via pyhmmer; resolves the eukaryotic 5.8S/28S overlap present in barrnap v0.9.
--   **tRNAscan-SE** (Chan & Lowe, 2019): transfer RNA gene prediction (all modes)
+-   **tRNAscan-SE** (Chan & Lowe, 2019): transfer RNA gene prediction (all modes). Set `trnascan_high_confidence_filter = 1` to keep only the tRNAs that pass tRNAscan-SE's `EukHighConfidenceFilter`, which removes pseudogenes and low-scoring hits such as tRNA-derived SINEs. This is recommended for vertebrates and other genomes rich in tRNA-derived repeats. The unfiltered result stays in `ncrna/tRNAs.txt`, and the filter's report is in `ncrna/tRNAs.highconf.log`.
 -   **Infernal/cmscan** (Nawrocki & Eddy, 2013): scans the genome against the Rfam database (Kalvari et al., 2021) to identify snoRNAs, snRNAs, miRNAs, ribozymes, and other structured ncRNAs (all modes)
 -   **FEELnc** (Wucher et al., 2017): long non-coding RNA identification from StringTie transcriptome assemblies (only when RNA-Seq evidence is available, i.e. ET, ETP, IsoSeq, or dual modes)
 
@@ -1211,7 +1212,9 @@ output/{sample_name}/results/
     ├── busco_figure.png            # BUSCO visualization (if skip_busco = 0)
     ├── compleasm_summary.txt       # Compleasm proteome completeness (always produced)
     ├── completeness.png            # Combined BUSCO + compleasm visualization
-    ├── training_summary.png        # Training gene counts and AUGUSTUS accuracy plot
+    ├── training_summary.png        # Training gene counts and accuracy on the held-out
+                                     #   test set (AUGUSTUS before/after optimization,
+                                     #   plus the final gene set as a QC check)
     ├── gene_set_statistics.txt     # Gene structure statistics
     ├── isoform_and_exon_structure.png  # Isoform and single-vs-multi-exon plots
     ├── transcript_lengths.png      # CDS and genomic-span length distributions
@@ -1219,8 +1222,19 @@ output/{sample_name}/results/
     ├── evidence_support.png        # Transcript/protein hint support plot
     ├── runtime_plot.png            # Resource consumption (time + RAM) plot
     ├── omark_summary.txt           # OMArk proteome quality (if run_omark = 1)
-    └── gffcompare.stats            # Accuracy vs reference (if reference_gtf provided)
+    ├── gffcompare.stats            # Accuracy vs reference (if reference_gtf provided)
+    └── accuracy_final_gene_set.txt # Final gene set scored on the held-out AUGUSTUS
+                                     #   test set; QC only, biased upwards (see below)
 ```
+
+`accuracy_final_gene_set.txt` (same format as `accuracy_after_optimize.txt`) scores the
+final `braker.gtf` on the AUGUSTUS held-out test genes, for comparison next to
+AUGUSTUS ab initio accuracy in `training_summary.png`/`.pdf`. This is a QC number, not
+an independent benchmark: the test genes are GeneMark (or GeneMark-ETP) training genes,
+and TSEBRA can carry those same GeneMark transcripts into the final gene set, so the
+reported accuracy is biased upwards (e.g. on the ES test scenario it reproduces 100% of
+test genes exactly, versus ~28% gene-level sensitivity for AUGUSTUS ab initio). It does
+not replace `gffcompare` against an independent reference annotation.
 
 In ETP/IsoSeq/dual modes, `braker.gtf` contains the TSEBRA merge of AUGUSTUS and GeneMark-ETP predictions, filtered for genes with high extrinsic evidence support. In ET and EP modes, `braker.gtf` contains the union of AUGUSTUS predictions with hints and reliable GeneMark predictions (genes fully supported by external evidence).
 

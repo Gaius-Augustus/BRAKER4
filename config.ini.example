@@ -88,6 +88,9 @@ augustus_chunksize = 3000000
 augustus_overlap = 500000
 ; Set to 1 to annotate ncRNAs (tRNA, snoRNA, miRNA, lncRNA).
 run_ncrna = 0
+; Set to 1 to keep only tRNAs that pass tRNAscan-SE's EukHighConfidenceFilter
+; (removes pseudogenes and tRNA-derived SINEs; recommended for vertebrates).
+trnascan_high_confidence_filter = 0
 ; Set to 0 to disable the rescue of dropped BUSCO genes after TSEBRA merge.
 run_best_by_compleasm = 1
 ; Repeat masking engine: "repeatmasker" (default) or "red" (faster, less detailed).

@@ -15,6 +15,7 @@ it under the terms of the Artistic License.
 """
 
 import argparse
+import bisect
 import re
 import sys
 from intervaltree import IntervalTree, Interval
@@ -270,7 +271,92 @@ def same_locus(feature, reference):
     return f[0] == r[0] and f[6] == r[6]
 
 
-def merge_features(tsebra_gtf, stringtie_gtf, selected_transcripts, max_utr_extension=5000):
+def clip_exons(exons, lo, hi):
+    """Clip exon lines to [lo, hi] (None = unbounded); drop exons outside."""
+    clipped = []
+    for e in exons:
+        ef = e.split('\t')
+        new_start = int(ef[3]) if lo is None else max(int(ef[3]), lo)
+        new_end = int(ef[4]) if hi is None else min(int(ef[4]), hi)
+        if new_start <= new_end:
+            ef[3] = str(new_start)
+            ef[4] = str(new_end)
+            clipped.append('\t'.join(ef))
+    return clipped
+
+
+def neighbour_bounds(tsebra_gtf, tx_to_gene_dict, supported_tx):
+    """
+    Region each BRAKER transcript's UTRs may occupy without running into a
+    transcript-supported gene (issue #29 follow-up).
+
+    StringTie often joins adjacent genes on the same strand into one read-through
+    transcript; without a limit, the neighbour gene becomes UTR. Only neighbours
+    with their own match in a StringTie assembly (supported_tx) stop a UTR;
+    ab initio neighbours may be wrong and do not. Neighbours that overlap the
+    transcript, and other transcripts of the same gene, are ignored.
+
+    Must be called before merge_features, which extends the transcripts.
+
+    Args:
+    - tsebra_gtf (dict): transcript ID -> list of GTF feature lines (no UTRs yet).
+    - tx_to_gene_dict (dict): transcript ID -> gene ID.
+    - supported_tx (iterable): transcript IDs with a StringTie match.
+
+    Returns:
+    dict: transcript ID -> (lo, hi), first and last position a UTR may cover;
+          None where there is no supported neighbour on that side.
+    """
+    spans = {}
+    for tx_id, features in tsebra_gtf.items():
+        if not features:
+            continue
+        f0 = features[0].split('\t')
+        spans[tx_id] = (f0[0], f0[6],
+                        min(int(f.split('\t')[3]) for f in features),
+                        max(int(f.split('\t')[4]) for f in features))
+
+    by_locus = {}
+    for tx_id in supported_tx:
+        if tx_id in spans:
+            seq, strand, start, end = spans[tx_id]
+            by_locus.setdefault((seq, strand), []).append(
+                (start, end, tx_to_gene_dict.get(tx_id)))
+    index = {}
+    for key, items in by_locus.items():
+        by_end = sorted(items, key=lambda x: x[1])
+        by_start = sorted(items, key=lambda x: x[0])
+        index[key] = (by_end, [x[1] for x in by_end],
+                      by_start, [x[0] for x in by_start])
+
+    bounds = {}
+    for tx_id, (seq, strand, start, end) in spans.items():
+        if (seq, strand) not in index:
+            continue
+        by_end, ends, by_start, starts = index[(seq, strand)]
+        gene_id = tx_to_gene_dict.get(tx_id)
+        lo = hi = None
+        # nearest supported neighbour ending left of this transcript
+        i = bisect.bisect_left(ends, start) - 1
+        while i >= 0:
+            if by_end[i][2] != gene_id:
+                lo = by_end[i][1] + 1
+                break
+            i -= 1
+        # nearest supported neighbour starting right of this transcript
+        i = bisect.bisect_right(starts, end)
+        while i < len(by_start):
+            if by_start[i][2] != gene_id:
+                hi = by_start[i][0] - 1
+                break
+            i += 1
+        if lo is not None or hi is not None:
+            bounds[tx_id] = (lo, hi)
+    return bounds
+
+
+def merge_features(tsebra_gtf, stringtie_gtf, selected_transcripts, max_utr_extension=5000,
+                   bounds=None):
     for tsebra_tx, stringtie_tx in selected_transcripts.items():
         # Retrieve features for current transcripts
         tsebra_features = tsebra_gtf[tsebra_tx]
@@ -292,16 +378,12 @@ def merge_features(tsebra_gtf, stringtie_gtf, selected_transcripts, max_utr_exte
         if tsebra_cds_features:
             cds_min = min(int(f.split('\t')[3]) for f in tsebra_cds_features)
             cds_max = max(int(f.split('\t')[4]) for f in tsebra_cds_features)
-            clipped = []
-            for e in stringtie_exons:
-                ef = e.split('\t')
-                new_start = max(int(ef[3]), cds_min - max_utr_extension)
-                new_end   = min(int(ef[4]), cds_max + max_utr_extension)
-                if new_start <= new_end:
-                    ef[3] = str(new_start)
-                    ef[4] = str(new_end)
-                    clipped.append('\t'.join(ef))
-            stringtie_exons = clipped
+            stringtie_exons = clip_exons(stringtie_exons, cds_min - max_utr_extension,
+                                         cds_max + max_utr_extension)
+
+        # Stop UTRs at the nearest transcript-supported neighbour gene (#29).
+        if bounds and tsebra_tx in bounds:
+            stringtie_exons = clip_exons(stringtie_exons, *bounds[tsebra_tx])
 
         # For single-exon BRAKER transcripts, only accept StringTie exons that overlap
         # the BRAKER exon. Single-exon genes are matched by position overlap, not by
@@ -740,6 +822,31 @@ def check_overlap_compatibility(gene_to_transcripts, tsebra_tx_dict, stringtie_t
     return gene_to_transcripts
     
     
+def match_assembly(stringtie_file, tsebra_none_gene_dict, tsebra_introns_hash, seq_strand_to_genes):
+    """
+    Match BRAKER transcripts to the transcripts of one StringTie assembly.
+
+    Multi-exon transcripts are matched by intron chain, single-exon transcripts
+    by overlap (without a StringTie intron inside the CDS). Of several matches,
+    the longest StringTie transcript is kept.
+
+    Returns:
+    tuple: (BRAKER transcript ID -> StringTie transcript ID,
+            StringTie transcript ID -> list of feature lines incl. introns)
+    """
+    stringtie_none_gene_dict, _, _, stringtie_tx_dict = read_gtf(stringtie_file)
+    stringtie_none_gene_dict = add_intron_features(stringtie_none_gene_dict)
+    matched_transcripts = find_matching_transcripts(
+        tsebra_introns_hash, create_introns_hash(stringtie_none_gene_dict))
+    overlaps = find_overlapping_transcripts(
+        seq_strand_to_genes, construct_transcript_tree(stringtie_tx_dict))
+    # the overlaps might include matches where stringtie introns break cds, remove these
+    overlaps = check_overlap_compatibility(overlaps, tsebra_none_gene_dict, stringtie_none_gene_dict)
+    matched_transcripts.update(overlaps)
+    return (select_longest_tx(matched_transcripts, tx_len(stringtie_none_gene_dict)),
+            stringtie_none_gene_dict)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Updates GaiusAugustus gene models with UTRs from a StringTie assembly.")
     
@@ -747,6 +854,10 @@ def main():
     parser.add_argument("-g", "--genes", required=True, help="File with gene gene models in GTF format, typically the output of Augustus, BRAKER, or TSEBRA.")
     parser.add_argument("-s", "--stringtie", required=True, help="File with StringTie transcript models in GFF format")
     parser.add_argument("-o", "--output", required=True, help="Output file name, file is in GTF format.")
+    parser.add_argument("-l", "--long-read-stringtie",
+                        help="Optional StringTie assembly of long reads only (IsoSeq, stringtie -L). "
+                             "A BRAKER transcript matched in this assembly takes its UTRs from it, "
+                             "even if it also matches a transcript in --stringtie.")
     parser.add_argument("--max-utr-extension", type=int, default=5000,
                         help="Maximum bp a StringTie exon may extend beyond the BRAKER CDS boundary "
                              "on either side.  Prevents polycistronic / read-through assemblies from "
@@ -754,44 +865,55 @@ def main():
 
     args = parser.parse_args()
 
-    tsebra_file = args.genes
-    stringtie_file = args.stringtie
-
     # read the tsebra_file with gene models
-    tsebra_none_gene_dict, tsebra_gene_line_dict, tsebra_tx_to_gene_dict, tsebra_tx_dict = read_gtf(tsebra_file)
-    # read the stringtie_file
-    stringtie_none_gene_dict, stringtie_gene_line_dict, stringtie_tx_to_gene_dict, stringtie_tx_dict = read_gtf(stringtie_file)
-    # add intron features to the stringtie_none_gene_dict
-    stringtie_none_gene_dict = add_intron_features(stringtie_none_gene_dict)
+    tsebra_none_gene_dict, tsebra_gene_line_dict, tsebra_tx_to_gene_dict, tsebra_tx_dict = read_gtf(args.genes)
 
     # in order to match genes and transcripts efficiently, we will take 2 different approaches. For multi-exon genes,
     # we create intron hashes for matching transcripts. For single-exon genes, we construct interval trees.
-    # first the multi-exon gene matching
     tsebra_introns_hash = create_introns_hash(tsebra_none_gene_dict)
-    stringtie_introns_hash = create_introns_hash(stringtie_none_gene_dict)
-    matched_transcripts = find_matching_transcripts(tsebra_introns_hash, stringtie_introns_hash)
-
-    # find single exon genes, these now do not have UTRs yet
     single_exon_genes = find_single_exon_genes(tsebra_none_gene_dict)
-    
-    # construct transcript trees
-    seq_strand_to_transcripts = construct_transcript_tree(stringtie_tx_dict)
     seq_strand_to_genes = construct_gene_tree(tsebra_tx_dict, single_exon_genes)
-    overlaps = find_overlapping_transcripts(seq_strand_to_genes, seq_strand_to_transcripts)
-    # the overlaps might include matches where stringtie introns break cds, remove these
-    overlaps = check_overlap_compatibility(overlaps, tsebra_none_gene_dict, stringtie_none_gene_dict)
-    # merge the single exon matches on top of the multi exon matches
-    matched_transcripts.update(overlaps)
 
-    # We may now have several alternative RNA-Seq inferred transcripts that match a single predicted transcript
-    # we will select the longest of these. For this calculate the length of each transcript
-    tx_lens_stringtie = tx_len(stringtie_none_gene_dict)
-    final_matching_tx = select_longest_tx(matched_transcripts, tx_lens_stringtie)
+    final_matching_tx, stringtie_none_gene_dict = match_assembly(
+        args.stringtie, tsebra_none_gene_dict, tsebra_introns_hash, seq_strand_to_genes)
+    print(f"{len(final_matching_tx)} transcripts matched in {args.stringtie}", file=sys.stderr)
+
+    # Long-read matches replace short-read matches (#29 follow-up): short-read
+    # StringTie joins neighbouring genes more often than long reads do.
+    if args.long_read_stringtie:
+        lr_matching_tx, lr_none_gene_dict = match_assembly(
+            args.long_read_stringtie, tsebra_none_gene_dict, tsebra_introns_hash, seq_strand_to_genes)
+        replaced = sum(1 for tx in lr_matching_tx if tx in final_matching_tx)
+        # prefix long-read IDs, both assemblies number their transcripts MSTRG.*
+        stringtie_none_gene_dict.update(
+            {"longread:" + st: feats for st, feats in lr_none_gene_dict.items()})
+        final_matching_tx.update(
+            {tx: "longread:" + st for tx, st in lr_matching_tx.items()})
+        print(f"{len(lr_matching_tx)} transcripts matched in {args.long_read_stringtie} "
+              f"(UTRs taken from there; {replaced} of them replace a match in "
+              f"{args.stringtie})", file=sys.stderr)
+
+    # UTRs must not run into a neighbour gene that has transcript support itself (#29)
+    bounds = neighbour_bounds(tsebra_none_gene_dict, tsebra_tx_to_gene_dict, final_matching_tx)
+    n_stopped = 0
+    for tx, st in final_matching_tx.items():
+        if tx not in bounds:
+            continue
+        lo, hi = bounds[tx]
+        ref = tsebra_none_gene_dict[tx][0]
+        for e in stringtie_none_gene_dict[st]:
+            ef = e.split('\t')
+            if ef[2] == 'exon' and same_locus(e, ref) and (
+                    (lo is not None and int(ef[3]) < lo) or (hi is not None and int(ef[4]) > hi)):
+                n_stopped += 1
+                break
+    print(f"{n_stopped} transcripts: UTR stopped at a transcript-supported neighbour gene",
+          file=sys.stderr)
 
     # merge features from stringtie_gtf into tsebra_gtf based on the selected transcripts, this is a simple concatenation,
     # UTR features are not inferred, yet
     tsebra_gtf = merge_features(tsebra_none_gene_dict, stringtie_none_gene_dict, final_matching_tx,
-                                max_utr_extension=args.max_utr_extension)
+                                max_utr_extension=args.max_utr_extension, bounds=bounds)
     # compute UTR features, remove StringTie exon features
     tsebra_gtf = compute_utr_features(tsebra_gtf)
 

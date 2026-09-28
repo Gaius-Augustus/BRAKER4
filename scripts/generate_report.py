@@ -693,11 +693,19 @@ def generate_methods_text(workdir, mode):
     ncrna_parts = []
     trna_gff = os.path.join(d, "ncrna", "tRNAs.gff3")
     if os.path.exists(trna_gff):
-        n_trna = sum(1 for l in open(trna_gff) if not l.startswith("#") and l.strip())
+        n_trna = 0
+        with open(trna_gff) as fh:
+            for l in fh:
+                cols = l.split("\t")
+                if not l.startswith("#") and len(cols) > 2 and cols[2] == "tRNA":
+                    n_trna += 1
         if n_trna > 0:
+            highconf = os.path.exists(os.path.join(d, "ncrna", "tRNAs.highconf.log"))
             ncrna_parts.append(
                 f"**{n_trna:,}** transfer RNA genes were predicted using tRNAscan-SE "
-                "(Chan & Lowe, 2019)."
+                "(Chan & Lowe, 2019)"
+                + (", keeping only those that passed its EukHighConfidenceFilter."
+                   if highconf else ".")
             )
 
     infernal_gff = os.path.join(d, "ncrna", "ncRNAs_infernal.gff3")
@@ -784,6 +792,22 @@ def generate_methods_text(workdir, mode):
         parts.append(
             "Quality was assessed using " + ", ".join(qc_parts) + "."
         )
+
+    # Final gene set on the held-out AUGUSTUS test set (#54)
+    final_acc = os.path.join(d, "accuracy_final_gene_set.txt")
+    if os.path.exists(final_acc):
+        text = read_file(final_acc)
+        m_n = re.search(r"Test genes:\s*(\d+)", text)
+        m_gene = re.search(r"Gene level:\s*\n\s*Sensitivity:\s*([\d.]+)%", text)
+        if m_n and m_gene:
+            parts.append(
+                f"As a consistency check, the final gene set was scored on the "
+                f"{int(m_n.group(1)):,} held-out AUGUSTUS test genes; "
+                f"{float(m_gene.group(1)):.1f}% of them are reproduced with identical "
+                "coding sequence structure. The test genes are GeneMark training genes "
+                "that TSEBRA can carry into the final set, so this is not an "
+                "independent accuracy estimate."
+            )
 
     return " ".join(parts)
 
@@ -1343,8 +1367,11 @@ def generate_html(sample_name, mode, methods_text, citations, images, qc_data, b
                       (os.path.isdir(os.path.join(outdir, "..", "GeneMark-ETP")) and
                        os.path.isdir(os.path.join(outdir, "..", "GeneMark-ETP-isoseq")))
         caption = (
-            "Training gene counts at each pipeline stage (left) and AUGUSTUS parameter "
-            "accuracy before and after optimization (right)."
+            "Training gene counts at each pipeline stage (left) and accuracy on the "
+            "held-out test set (right): AUGUSTUS ab initio before and after optimization, "
+            "and, where shown, the final gene set. The final gene set value is QC only "
+            "and biased upwards, because the test genes are GeneMark training genes "
+            "that TSEBRA can keep in the final set."
         )
         if is_dual_etp:
             caption += (
@@ -1537,6 +1564,7 @@ def main():
         ("Compleasm (Proteome)", "compleasm_summary.txt"),
         ("OMArk", "omark_summary.txt"),
         ("gffcompare", "gffcompare.stats"),
+        ("Final gene set on held-out AUGUSTUS test set", "accuracy_final_gene_set.txt"),
     ]:
         for search_dir in [os.path.join(out, "quality_control"), out, d]:
             path = os.path.join(search_dir, filename)
