@@ -5,6 +5,11 @@ Fixes BRAKER issues:
 - #833: Stop codon included in CDS (GeneMark convention vs AUGUSTUS convention)
 - #904: Internal stop codons in protein-coding genes
 - #283: Reports non-ATG start codons (warning only, does not discard)
+- #97: Gene IDs used on several loci (sequence, strand, or non-overlapping
+  transcripts) are split into one gene per locus (<gene_id>_2, ...)
+- #71: Transcripts whose CDS chain (coordinates and frames) repeats an earlier
+  transcript are removed; TSEBRA misses these when the transcript spans
+  differ, e.g. an AUGUSTUS partial gene with a leading intron feature
 
 This rule runs after filter_internal_stop_codons and produces the final braker.gtf.
 Genes with broken structures after stop codon trimming are discarded entirely.

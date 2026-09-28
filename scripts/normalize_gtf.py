@@ -8,6 +8,8 @@ Fixes:
 - Validates all gene structures after trimming; discards broken genes
 - Reports transcripts with non-ATG start codons (BRAKER issue #283)
 - Reports transcripts with CDS not divisible by 3
+- Splits gene IDs used on several loci into one gene per locus (#97)
+- Removes transcripts whose CDS chain repeats an earlier transcript (#71)
 
 Usage:
     python3 normalize_gtf.py -g genome.fa -f braker.gtf -o braker.normalized.gtf -l normalize.log
@@ -198,6 +200,156 @@ def update_gene_boundaries(gene_id, genes, gene_lines, tx_lines):
         gene_lines[gene_id][4] = str(max(all_ends))
 
 
+def rename_ids(fields, old_gene, new_gene, old_tx=None, new_tx=None):
+    """Return a copy of a GTF line with gene and transcript IDs replaced.
+
+    Handles attribute-style column 9 as well as the bare TSEBRA/AUGUSTUS
+    gene and transcript lines, where column 9 holds only the ID.
+    """
+    out = list(fields)
+    attr = out[8]
+    if 'gene_id "' in attr or 'transcript_id "' in attr:
+        attr = attr.replace(f'gene_id "{old_gene}"', f'gene_id "{new_gene}"')
+        if old_tx is not None:
+            attr = attr.replace(f'transcript_id "{old_tx}"',
+                                f'transcript_id "{new_tx}"')
+    elif old_tx is not None and attr.strip() == old_tx:
+        attr = new_tx
+    elif attr.strip() == old_gene:
+        attr = new_gene
+    out[8] = attr
+    return out
+
+
+def split_multilocus_ids(genes, gene_lines, tx_lines, tx_to_gene):
+    """Give every locus its own gene ID (issue #97).
+
+    A transcript ID whose features sit on more than one sequence or strand is
+    split into one transcript per sequence and strand. A gene ID whose
+    transcripts sit on more than one sequence or strand, or do not overlap,
+    is split into one gene per locus: the first locus in genomic order keeps
+    the ID, the others become <gene_id>_2, <gene_id>_3, ... and their
+    transcripts are renamed to match.
+
+    Returns log messages.
+    """
+    messages = []
+    used_genes = set(genes) | set(gene_lines)
+    used_tx = set(tx_to_gene)
+
+    def free_id(candidate, used):
+        new_id, n = candidate, 1
+        while new_id in used:
+            n += 1
+            new_id = f"{candidate}_{n}"
+        used.add(new_id)
+        return new_id
+
+    for gene_id in list(genes):
+        # One piece per (transcript, sequence, strand)
+        pieces = []
+        for tx_id, features in genes[gene_id].items():
+            by_locus = defaultdict(list)
+            for f in features:
+                by_locus[(f[0], f[6])].append(f)
+            for (chrom, strand), feats in by_locus.items():
+                start = min(int(f[3]) for f in feats)
+                end = max(int(f[4]) for f in feats)
+                pieces.append((chrom, strand, start, end, tx_id, feats))
+
+        # Cluster pieces into loci: same sequence and strand, overlapping spans
+        clusters = []
+        for piece in sorted(pieces, key=lambda p: (p[0], p[1], p[2])):
+            last = clusters[-1] if clusters else None
+            if last and last['chrom'] == piece[0] and last['strand'] == piece[1] \
+                    and piece[2] <= last['end']:
+                last['pieces'].append(piece)
+                last['end'] = max(last['end'], piece[3])
+            else:
+                clusters.append({'chrom': piece[0], 'strand': piece[1],
+                                 'start': piece[2], 'end': piece[3],
+                                 'pieces': [piece]})
+        if len(clusters) < 2:
+            continue
+
+        clusters.sort(key=lambda c: (c['chrom'], c['start'], c['strand']))
+        gene_template = gene_lines.get(gene_id)
+        del genes[gene_id]
+        new_gene_ids = []
+        for k, cluster in enumerate(clusters):
+            new_gene = gene_id if k == 0 else free_id(f"{gene_id}_{k + 1}", used_genes)
+            new_gene_ids.append(new_gene)
+            genes[new_gene] = {}
+            for chrom, strand, _, _, tx_id, feats in cluster['pieces']:
+                if k == 0 and tx_id not in genes[new_gene]:
+                    new_tx = tx_id
+                elif tx_id.startswith(gene_id + '.'):
+                    new_tx = free_id(new_gene + tx_id[len(gene_id):], used_tx)
+                else:
+                    new_tx = free_id(f"{tx_id}_{k + 1}", used_tx)
+                genes[new_gene][new_tx] = [
+                    rename_ids(f, gene_id, new_gene, tx_id, new_tx) for f in feats]
+                tx_to_gene[new_tx] = new_gene
+                tx_template = tx_lines.get(tx_id)
+                if tx_template:
+                    tx_line = rename_ids(tx_template, gene_id, new_gene, tx_id, new_tx)
+                    tx_line[0], tx_line[6] = chrom, strand
+                    tx_lines[new_tx] = tx_line
+            if gene_template:
+                gene_line = rename_ids(gene_template, gene_id, new_gene)
+                gene_line[0], gene_line[6] = cluster['chrom'], cluster['strand']
+                gene_line[3], gene_line[4] = str(cluster['start']), str(cluster['end'])
+                gene_lines[new_gene] = gene_line
+        messages.append(f"SPLIT {gene_id}: {len(clusters)} loci -> "
+                        f"{', '.join(new_gene_ids)}")
+
+    return messages
+
+
+def remove_duplicate_transcripts(genes, gene_lines, tx_lines):
+    """Drop transcripts whose CDS chain repeats an earlier one (issue #71).
+
+    Two transcripts are duplicates when they share sequence, strand and
+    every CDS (start, end, frame), whether they belong to the same gene or
+    not. The first one in genomic order is kept; a gene left without
+    transcripts is dropped.
+
+    Returns log messages.
+    """
+    messages = []
+    seen = {}
+    changed = set()
+
+    def gene_key(gene_id):
+        feats = [f for tx in genes[gene_id].values() for f in tx]
+        return (feats[0][0], min(int(f[3]) for f in feats), gene_id) if feats \
+            else ('', 0, gene_id)
+
+    for gene_id in sorted(genes, key=gene_key):
+        for tx_id in sorted(genes[gene_id]):
+            cds = sorted((int(f[3]), int(f[4]), f[7])
+                         for f in genes[gene_id][tx_id] if f[2] == 'CDS')
+            if not cds:
+                continue
+            first = next(f for f in genes[gene_id][tx_id] if f[2] == 'CDS')
+            key = (first[0], first[6], tuple(cds))
+            if key in seen:
+                messages.append(f"DUPLICATE {tx_id}: CDS identical to {seen[key]}, removed")
+                del genes[gene_id][tx_id]
+                changed.add(gene_id)
+            else:
+                seen[key] = tx_id
+        if not genes[gene_id]:
+            messages.append(f"DUPLICATE gene {gene_id}: no transcripts left, removed")
+            del genes[gene_id]
+            changed.discard(gene_id)
+
+    for gene_id in changed:
+        update_gene_boundaries(gene_id, genes, gene_lines, tx_lines)
+
+    return messages
+
+
 def write_gtf(output_file, genes, gene_lines, tx_lines, tx_to_gene):
     """Write normalized GTF, preserving gene/transcript/feature order."""
     # Group transcripts by gene
@@ -249,8 +401,11 @@ def main():
     print(f"Parsing GTF: {args.gtf}", file=sys.stderr)
     genes, gene_lines, tx_lines, tx_to_gene = parse_gtf(args.gtf)
 
+    # Give every locus its own gene ID before anything else
+    all_messages = split_multilocus_ids(genes, gene_lines, tx_lines, tx_to_gene)
+    split_count = len(all_messages)
+
     # Normalize each transcript
-    all_messages = []
     discarded_genes = set()
     trimmed_count = 0
     non_atg_count = 0
@@ -281,6 +436,11 @@ def main():
         else:
             update_gene_boundaries(gene_id, genes, gene_lines, tx_lines)
 
+    # Drop repeated CDS chains (compared after stop codon trimming)
+    dup_messages = remove_duplicate_transcripts(genes, gene_lines, tx_lines)
+    all_messages.extend(dup_messages)
+    dup_count = sum(1 for m in dup_messages if not m.startswith("DUPLICATE gene"))
+
     # Write output
     write_gtf(args.output, genes, gene_lines, tx_lines, tx_to_gene)
 
@@ -293,13 +453,16 @@ def main():
         log.write(f"Genes discarded (broken after trim): {len(discarded_genes)}\n")
         log.write(f"Non-ATG start codons (warning only): {non_atg_count}\n")
         log.write(f"CDS length not divisible by 3 (warning): {frame_warn_count}\n")
+        log.write(f"Gene IDs split (several loci): {split_count}\n")
+        log.write(f"Duplicate transcripts removed (identical CDS): {dup_count}\n")
         log.write(f"Genes in output: {genes_after}\n")
         log.write(f"\nDetails:\n")
         for msg in all_messages:
             log.write(f"  {msg}\n")
 
     print(f"Done: {trimmed_count} trimmed, {len(discarded_genes)} discarded, "
-          f"{non_atg_count} non-ATG starts, {genes_after} genes in output",
+          f"{non_atg_count} non-ATG starts, {split_count} gene IDs split, "
+          f"{dup_count} duplicate transcripts removed, {genes_after} genes in output",
           file=sys.stderr)
 
 
