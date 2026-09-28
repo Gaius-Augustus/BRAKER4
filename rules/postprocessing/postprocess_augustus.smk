@@ -195,6 +195,10 @@ rule assess_completeness:
 
         # compleasm_wrapper.py skips proteins >= 100,000 aa (hmmsearch limit,
         # issues #91/#92) and restores the offline fallback (issue #105).
+        # A compleasm failure does not stop the pipeline, but it is recorded
+        # as "COMPLEASM_FAILED: <reason>" in the summary (and so in the report).
+        COMPLEASM_RUN_LOG={params.compleasm_outdir}.run.tmp
+        COMPLEASM_RC=0
         python3 {script_dir}/compleasm_wrapper.py protein \
             -p {input.braker_aa} \
             -l $COMPLEASM_NAME \
@@ -202,7 +206,7 @@ rule assess_completeness:
             -t {threads} \
             -o {params.compleasm_outdir} \
             -L {params.library_path} \
-            2>&1 | tee -a {output.compleasm_log} || true
+            2>&1 | tee "$COMPLEASM_RUN_LOG" | tee -a {output.compleasm_log} || COMPLEASM_RC=$?
 
         # Check if summary was created (compleasm may put it in a lineage subdirectory)
         if [ ! -f {output.compleasm_summary} ]; then
@@ -211,10 +215,18 @@ rule assess_completeness:
                 cp "$FOUND_SUMMARY" {output.compleasm_summary}
                 echo "[INFO] Copied summary from $FOUND_SUMMARY" | tee -a {output.compleasm_log}
             else
-                echo "[WARNING] Compleasm did not produce summary file" | tee -a {output.compleasm_log}
+                REASON=$(grep -iE 'error|exception|abort|fail|killed' "$COMPLEASM_RUN_LOG" | tail -n 1 || true)
+                if [ -z "$REASON" ]; then
+                    REASON=$(grep -v '^[[:space:]]*$' "$COMPLEASM_RUN_LOG" | tail -n 1 || true)
+                fi
+                STATUS="COMPLEASM_FAILED: compleasm exited with code $COMPLEASM_RC and wrote no summary.txt${{REASON:+: $REASON}}"
+                echo "[WARNING] $STATUS" | tee -a {output.compleasm_log} >&2
                 mkdir -p {params.compleasm_outdir}
-                echo "Compleasm assessment failed" > {output.compleasm_summary}
+                echo "$STATUS" > {output.compleasm_summary}
             fi
+        elif [ "$COMPLEASM_RC" -ne 0 ]; then
+            echo "[WARNING] compleasm exited with code $COMPLEASM_RC but wrote a summary; check it" | tee -a {output.compleasm_log} >&2
+            cat {output.compleasm_summary} | tee -a {output.compleasm_log}
         else
             echo "[INFO] Compleasm assessment completed" | tee -a {output.compleasm_log}
             echo "[INFO] Summary:" | tee -a {output.compleasm_log}
@@ -222,6 +234,7 @@ rule assess_completeness:
         fi
 
         echo "[INFO] =======================================" | tee -a {output.compleasm_log}
+        rm -f "$COMPLEASM_RUN_LOG"
 
         # Remove compleasm protein internal files; keep only summary.txt.
         find {params.compleasm_outdir} -mindepth 1 -type f ! -name 'summary.txt' \

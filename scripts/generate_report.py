@@ -27,6 +27,7 @@ import re
 import sys
 from collections import OrderedDict
 from datetime import datetime
+from html import escape as html_escape
 
 
 
@@ -86,6 +87,54 @@ def read_software_versions(outdir, workdir):
                             versions[tool] = version
             break
     return list(versions.items())
+
+
+def read_bbc_status(path):
+    """Return the run status from a best_by_compleasm log, or None.
+
+    The rule writes "STATUS: OK: ...", "STATUS: COMPLEASM_FAILED: ..." or
+    "STATUS: FAILED: ..." as the first line. Logs from older runs have no
+    status line and yield None.
+    """
+    for line in read_file(path).splitlines():
+        if line.startswith("STATUS: "):
+            return line[len("STATUS: "):].strip()
+    return None
+
+
+def collect_run_warnings(workdir, outdir):
+    """Collect failures of best_by_compleasm, compleasm and BUSCO that the
+    pipeline tolerated, so the report does not present them as results."""
+    warnings = []
+    status = read_bbc_status(os.path.join(workdir, "best_by_compleasm.log"))
+    if status and not status.startswith("OK"):
+        warnings.append(
+            "best_by_compleasm failed; the TSEBRA gene set was used without "
+            "BUSCO rescue. " + status
+        )
+
+    def _first_found(*paths):
+        for path in paths:
+            if os.path.exists(path):
+                return read_file(path).strip()
+        return None
+
+    qc = os.path.join(outdir, "quality_control")
+    prot = _first_found(os.path.join(qc, "compleasm_summary.txt"),
+                        os.path.join(workdir, "compleasm_proteins", "summary.txt"))
+    if prot and (prot.startswith("COMPLEASM_FAILED") or
+                 prot.startswith("Compleasm assessment failed")):
+        warnings.append("compleasm assessment of the predicted proteome failed. " + prot)
+    genome = _first_found(os.path.join(workdir, "compleasm_genome_out", "summary.txt"),
+                          os.path.join(qc, "compleasm_genome_out", "summary.txt"))
+    if genome and genome.startswith("Compleasm did not produce a summary"):
+        warnings.append("compleasm assessment of the genome failed. " + genome)
+    busco = _first_found(os.path.join(qc, "busco_summary.txt"),
+                         os.path.join(workdir, "busco", "busco_summary.txt"))
+    if busco and "Results not found" in busco:
+        warnings.append("BUSCO produced no result for at least one assessment "
+                        "(see the BUSCO summary below).")
+    return warnings
 
 
 def parse_bbc_log(path):
@@ -577,9 +626,16 @@ def generate_methods_text(workdir, mode):
 
     # --- best_by_compleasm decisions (parsed from the aggregated log) ---
     bbc_log_path = os.path.join(d, "best_by_compleasm.log")
-    bbc_passes = parse_bbc_log(bbc_log_path)
-    if bbc_passes:
-        parts.append(format_bbc_decisions(bbc_passes, mode))
+    bbc_status = read_bbc_status(bbc_log_path)
+    if bbc_status and not bbc_status.startswith("OK"):
+        parts.append(
+            "best_by_compleasm (Brůna, Gabriel & Hoff, 2025) failed, so the "
+            "TSEBRA gene set was used without BUSCO rescue."
+        )
+    else:
+        bbc_passes = parse_bbc_log(bbc_log_path)
+        if bbc_passes:
+            parts.append(format_bbc_decisions(bbc_passes, mode))
 
     # --- Final gene set ---
     braker_gtf = os.path.join(d, "braker.gtf")
@@ -1023,6 +1079,13 @@ h3 { color: #555; }
 .meta dt { font-weight: bold; display: inline; }
 .meta dd { display: inline; margin-left: 5px; }
 .meta dd::after { content: ''; display: block; }
+.warning {
+    background: #fff3e0;
+    border-left: 4px solid #e65100;
+    padding: 12px 16px;
+    margin: 20px 0;
+}
+.warning ul { margin: 5px 0; }
 pre {
     background: #f5f5f5;
     border: 1px solid #ddd;
@@ -1074,7 +1137,7 @@ footer {
 """
 
 
-def generate_html(sample_name, mode, methods_text, citations, images, qc_data, benchmarks=None, outdir=".", software_versions=None):
+def generate_html(sample_name, mode, methods_text, citations, images, qc_data, benchmarks=None, outdir=".", software_versions=None, warnings=None):
     """Generate the full HTML report."""
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -1169,6 +1232,14 @@ def generate_html(sample_name, mode, methods_text, citations, images, qc_data, b
             size_str = f"{size_bytes} B"
         result_files_html += f'<tr><td><a href="{display_name}"><code>{display_name}</code></a> ({size_str})</td><td>{description}</td></tr>\n'
 
+    warnings_html = ""
+    if warnings:
+        items = "".join(f"<li>{html_escape(w)}</li>" for w in warnings)
+        warnings_html = (
+            '<div class="warning"><strong>Warning: some steps failed and were '
+            f'skipped; the pipeline continued.</strong><ul>{items}</ul></div>\n'
+        )
+
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1190,7 +1261,7 @@ def generate_html(sample_name, mode, methods_text, citations, images, qc_data, b
 <dt>Date:</dt><dd>{now}</dd>
 </dl>
 </div>
-
+{warnings_html}
 <h2>Output Files</h2>
 <table>
 <tr><th>File</th><th>Description</th></tr>
@@ -1523,7 +1594,11 @@ def main():
     software_versions = read_software_versions(out, d)
 
     # Generate HTML
-    html = generate_html(sample_name, mode, methods_text, citations, images, qc_data, benchmarks, outdir=out, software_versions=software_versions)
+    warnings = collect_run_warnings(d, out)
+    for w in warnings:
+        print("WARNING: " + w, file=sys.stderr)
+
+    html = generate_html(sample_name, mode, methods_text, citations, images, qc_data, benchmarks, outdir=out, software_versions=software_versions, warnings=warnings)
     html_path = os.path.join(out, "braker_report.html")
     with open(html_path, "w") as f:
         f.write(html)

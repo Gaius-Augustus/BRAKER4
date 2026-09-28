@@ -49,9 +49,37 @@ argparser.add_argument('-a', '--diff_to_braker', type=int, default = 5,
 argparser.add_argument('-L', '--library_path', type=str, required = False,
                        help = 'Path to pre-downloaded BUSCO lineage data (compleasm mb_downloads directory). '
                               'If provided, compleasm will use this instead of downloading.')
+argparser.add_argument('-s', '--status_file', type=str, required = False,
+                       help = 'File that receives a one-line run status: "OK: <outcome>", ' +
+                              '"COMPLEASM_FAILED: <reason>" or "FAILED: <reason>". ' +
+                              'Default: <tmp_dir>/bbc_status.txt')
 argparser.add_argument('-v', '--version', action='version', version='%(prog)s {version}'.format(version=__version__))
 
 args = argparser.parse_args()
+
+
+# One-line run status for the calling pipeline (seen in #91: a compleasm crash
+# used to be indistinguishable from "the original gene set was already best").
+_status_written = False
+
+
+def write_status(line):
+    """Write the one-line run status to the status file and to stdout."""
+    global _status_written
+    path = args.status_file or os.path.join(args.tmp_dir, "bbc_status.txt")
+    status_dir = os.path.dirname(os.path.abspath(path))
+    os.makedirs(status_dir, exist_ok=True)
+    with open(path, "w") as f:
+        f.write(line + "\n")
+    print("STATUS: " + line)
+    _status_written = True
+
+
+def fail(kind, reason):
+    """Report a failure of the given kind (COMPLEASM_FAILED or FAILED) and exit."""
+    print("ERROR: " + reason)
+    write_status(kind + ": " + reason)
+    sys.exit(1)
 
 # Functions copied from compleasm by Huang Neng under the Apache License 2.0
 # modifications are noted in the comments
@@ -165,16 +193,19 @@ def parse_compleasm(file):
         SystemExit: If the file cannot be opened.
 
     """
-    missing = 0
+    missing = None
     stat_pattern = r'M:(\d+\.\d+)\%, \d+'
+    if not file:
+        fail("COMPLEASM_FAILED", "compleasm wrote no summary.txt")
     try:
         with open(file, "r") as f:
             for line in f:
                 if re.search(stat_pattern, line):
                     missing = float(re.search(stat_pattern, line).group(1))
     except IOError:
-        print("ERROR: Could not open file: " + file)
-        sys.exit(1)
+        fail("COMPLEASM_FAILED", "could not open compleasm summary " + file)
+    if missing is None:
+        fail("COMPLEASM_FAILED", "no missing-BUSCO line (M:...) in " + file)
     return missing
 
 
@@ -256,13 +287,12 @@ def run_compleasm(protein_files, threads, busco_db, tmp_dir):
     if args.library_path is not None:
         lineage_dir = os.path.join(args.library_path, args.busco_db)
         if not os.path.exists(lineage_dir):
-            print("ERROR: Pre-downloaded BUSCO lineage not found at " + lineage_dir)
-            sys.exit(1)
+            fail("COMPLEASM_FAILED", "pre-downloaded BUSCO lineage not found at " + lineage_dir)
     else:
         lineage_dir = "mb_downloads/" + args.busco_db
         if not os.path.exists(lineage_dir):
             compleasm_cmd = [sys.executable, COMPLEASM_WRAPPER, args.compleasm_bin, "download", lineage_name, "--odb", odb]
-            run_simple_process(compleasm_cmd)
+            run_simple_process(compleasm_cmd, "COMPLEASM_FAILED", "compleasm download " + lineage_name)
 
     # read key data of BUSCO lineage
     score_cutoff_dict = load_score_cutoff(os.path.join(lineage_dir, "scores_cutoff"))
@@ -282,13 +312,15 @@ def run_compleasm(protein_files, threads, busco_db, tmp_dir):
         compleasm_cmd = [sys.executable, COMPLEASM_WRAPPER, args.compleasm_bin, "protein", "-p", protein_file, "-l", lineage_name, "--odb", odb, "-t", str(args.threads), "-o", tool_out_dir]
         if args.library_path is not None:
             compleasm_cmd.extend(["--library_path", args.library_path])
-        run_simple_process(compleasm_cmd)
+        run_simple_process(compleasm_cmd, "COMPLEASM_FAILED", "compleasm protein on " + os.path.basename(protein_file))
 
     result_dict = {}
     for protein_file in protein_files:
         # identify the gene prediction program from the protein file name
         tool = re.search(r'^([^.]+)\.', os.path.basename(protein_file)).group(1)
         result_dict[tool] = check_file(tmp_dir + "/" + tool + "/summary.txt")
+        if not result_dict[tool]:
+            fail("COMPLEASM_FAILED", "compleasm wrote no summary.txt for " + os.path.basename(protein_file))
 
     return result_dict, score_cutoff_dict, length_cutoff_dict, protein_hmmsearch_output_dict
 
@@ -308,12 +340,24 @@ def run_getanno(annobin, genome_file, gtf, output_dir):
     run_simple_process(cmd)
     return check_file(output_dir + "/" + tool + ".aa")
 
-def run_simple_process(args_lst):
+def last_error_line(text):
+    """Return the most informative line of a subprocess stderr, or ''."""
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    for line in reversed(lines):
+        if re.search(r'error|exception|abort|fail|killed', line, re.IGNORECASE):
+            return line
+    return lines[-1] if lines else ""
+
+
+def run_simple_process(args_lst, failure_kind="FAILED", label=None):
     """
     Execute a subprocess command with the provided arguments.
 
     Args:
         args_lst (list): List of command-line arguments.
+        failure_kind (str): Status prefix written on failure
+            ("COMPLEASM_FAILED" for compleasm calls, "FAILED" otherwise).
+        label (str): Short description of the command for the status line.
 
     Returns:
         CompletedProcess: Result of the subprocess execution.
@@ -322,10 +366,14 @@ def run_simple_process(args_lst):
         SystemExit: If the subprocess returns a non-zero exit code.
 
     """
+    args_lst = [str(a) for a in args_lst if a is not None]
+    if label is None:
+        label = os.path.basename(args_lst[0])
     try:
         print(" ".join(args_lst))
         result = subprocess.run(
-            args_lst, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            args_lst, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            universal_newlines=True)
         if(result.returncode == 0):
             return(result)
         else:
@@ -333,6 +381,13 @@ def run_simple_process(args_lst):
             print('Error in file ' + frameinfo.filename + ' at line ' +
                   str(frameinfo.lineno) + ': ' + "Return code of subprocess was " +
                   str(result.returncode) + str(result.args))
+            # stderr used to be discarded, which hid the cause of compleasm crashes
+            sys.stderr.write("\n".join(result.stderr.splitlines()[-20:]) + "\n")
+            reason = label + " exited with code " + str(result.returncode)
+            err = last_error_line(result.stderr)
+            if err:
+                reason += ": " + err
+            write_status(failure_kind + ": " + reason)
             sys.exit(1)
     except subprocess.CalledProcessError as grepexc:
         frameinfo = getframeinfo(currentframe())
@@ -340,6 +395,7 @@ def run_simple_process(args_lst):
               str(frameinfo.lineno) + ': ' + "Failed executing: ",
               " ".join(grepexc.args))
         print("Error code: ", grepexc.returncode, grepexc.output)
+        write_status(failure_kind + ": " + label + " could not be executed")
         sys.exit(1)
 
 
@@ -365,18 +421,15 @@ def check_binary(binary, name):
             if os.access(binary, os.X_OK):
                 return binary
             else:
-                print("ERROR: " + name + " binary is not executable: " + binary)
-                sys.exit(1)
+                fail("FAILED", name + " binary is not executable: " + binary)
         else:
-            print("ERROR: " + name + " binary not found at " + binary)
-            sys.exit(1)
+            fail("FAILED", name + " binary not found at " + binary)
     else:
         # check if binary is in PATH
         if shutil.which(name) is not None:
             return shutil.which(name)
         else:
-            print("ERROR: " + name + " binary not found in PATH")
-            sys.exit(1)
+            fail("FAILED", name + " binary not found in PATH")
 
 
 def check_file(file):
@@ -417,7 +470,7 @@ def determine_mode(path_dir):
         print("These are the files that were found:")
         print(path_dir)
         print("We require the following key files for a BRAKER run: braker.aa, braker.gtf, genome.fa, augustus.hints.aa, augustus.hints.gtf, genemark.gtf")
-        sys.exit(1)
+        fail("FAILED", "input directory lacks required files (braker.aa, braker.gtf, genome.fa, augustus.hints.aa, augustus.hints.gtf, genemark.gtf)")
 
 
 def check_dir(dir):
@@ -596,6 +649,7 @@ def main():
         print("Augustus is missing " + str(augustus_missing) + " BUSCOs.")
         if braker_missing <= augustus_missing and braker_missing <= genemark_missing:
             print("The BRAKER gene set " + file_paths["braker_gtf"] + " is the best one. It lacks " + str(braker_missing) + "% BUSCOs.")
+            write_status("OK: original gene set kept, it has the fewest missing BUSCOs (" + str(braker_missing) + "%)")
             sys.exit(0)
         elif (braker_missing <= args.missing_busco_threshold or ((braker_missing-augustus_missing)<args.diff_to_braker and (braker_missing-genemark_missing)<args.diff_to_braker)) and (augustus_missing < braker_missing or genemark_missing < braker_missing):
             print("All BUSCOs present in augustus.hints.gtf and genemark.gtf will be added to the braker.gtf gene set.")
@@ -642,6 +696,7 @@ def main():
             else:
                 print("Attempted to merge additional BUSCOs onto braker.gtf but there are no BUSCOs to be added.")
                 print("The BRAKER gene set " + file_paths["braker_gtf"] + " will be kept. It lacks " + str(braker_missing) + "% BUSCOs.")
+                write_status("OK: original gene set kept, no BUSCOs to add (" + str(braker_missing) + "% missing)")
                 sys.exit(0)
         elif file_paths['training_gtf']:
             tsebra_cmd = [args.tsebra, "-k", file_paths["training_gtf"] + "," + tsebra_force # enforcing training.gtf may seem redundant if genemark is enforced but it causes no harm, and it must be enforced if augustus is enforced
@@ -673,6 +728,7 @@ def main():
         if better_missing < braker_missing:
             print("The new best BRAKER gene set is " + better_gtf + ".")
             print("It is missing " + str(better_missing) + "% BUSCOs.")
+            write_status("OK: better.gtf written, missing BUSCOs " + str(braker_missing) + "% -> " + str(better_missing) + "%")
         else:
             # if the new gene set is not superior, produce an output that tells the user what
             # of the previously existing gene sets had the lowest percentage of missing BUSCOs
@@ -700,7 +756,17 @@ def main():
                         break
             # Print the name of the gene set with the lowest number of missing BUSCOs
             print(min_gene_set)
+            write_status("OK: better.gtf written but not better than the original (" + str(better_missing) + "% vs " + str(braker_missing) + "% missing)")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit as e:
+        if e.code not in (0, None) and not _status_written:
+            write_status("FAILED: exited with code " + str(e.code))
+        raise
+    except Exception as e:
+        if not _status_written:
+            write_status("FAILED: " + type(e).__name__ + ": " + str(e))
+        raise

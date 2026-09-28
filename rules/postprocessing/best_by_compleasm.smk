@@ -106,6 +106,10 @@ rule best_by_compleasm:
         # $4 = path to genemark.gtf for this pass
         # writes: $TMP/<label>/better.gtf  (if produced)
         #         $TMP/<label>/bbc.stdout  (script stdout)
+        #         $TMP/<label>/bbc_status.txt  (one line: "OK: ...",
+        #             "COMPLEASM_FAILED: ..." or "FAILED: ...")
+        # On a failed pass, better.gtf is discarded so pick_result falls back
+        # to the input gene set; the pipeline keeps running with a warning.
         # Note: augustus.hints.aa is ALWAYS regenerated from the staged
         # augustus.hints.gtf so the protein set matches the gene set the
         # pass is asked to evaluate. This matters for the dual-mode "final"
@@ -150,6 +154,8 @@ rule best_by_compleasm:
             fi
 
             mkdir -p "$TMP/$label"
+            local status_file="$TMP/$label/bbc_status.txt"
+            local rc=0
             python3 {params.script} \
                 -m "$TMP/$label" \
                 -d "$stage" \
@@ -157,14 +163,32 @@ rule best_by_compleasm:
                 -t {threads} \
                 -p {params.busco_lineage} \
                 -L {params.library_path} \
-                > "$TMP/$label/bbc.stdout" 2>> {log} || true
+                -s "$status_file" \
+                > "$TMP/$label/bbc.stdout" 2>> {log} || rc=$?
 
-            # If the script wrote a better.gtf into $TMP/$label, copy it for clarity
-            if [ -s "$TMP/$label/better.gtf" ]; then
-                echo "[INFO] $label: produced better.gtf" >> {log}
-            else
-                echo "[INFO] $label: original was already best; no better.gtf" >> {log}
+            # The script writes its own status line; if it died before that
+            # (killed, OOM, import error), record the exit code instead.
+            if [ ! -s "$status_file" ]; then
+                echo "FAILED: best_by_compleasm.py exited with code $rc without writing a status line" > "$status_file"
             fi
+            local status
+            status=$(head -n 1 "$status_file")
+            echo "[INFO] $label: status: $status" >> {log}
+
+            case "$status" in
+                OK*)
+                    if [ -s "$TMP/$label/better.gtf" ]; then
+                        echo "[INFO] $label: produced better.gtf" >> {log}
+                    else
+                        echo "[INFO] $label: original was already best; no better.gtf" >> {log}
+                    fi
+                    ;;
+                *)
+                    # Never use a better.gtf left behind by a failed run
+                    rm -f "$TMP/$label/better.gtf"
+                    echo "[WARNING] $label: best_by_compleasm failed, keeping the TSEBRA gene set unchanged. $status" | tee -a {log} >&2
+                    ;;
+            esac
             return 0
         }}
 
@@ -218,10 +242,11 @@ rule best_by_compleasm:
             echo "[INFO] non-dual mode: running 1 best_by_compleasm pass" >> {log}
             run_pass "single" {input.braker_raw} {input.augustus_gtf} {input.genemark_sr}
             pick_result "single" {input.braker_raw} {output.braker_merged_gtf}
-            cp "$TMP/single/bbc.stdout" {output.bbc_log} 2>/dev/null || true
-            if [ ! -s {output.bbc_log} ]; then
-                echo "best_by_compleasm produced no stdout (script may have failed)" > {output.bbc_log}
-            fi
+            # First line of the log is the run status (read by generate_report.py)
+            {{
+                echo "STATUS: $(head -n 1 "$TMP/single/bbc_status.txt")"
+                grep -v '^STATUS: ' "$TMP/single/bbc.stdout" 2>/dev/null || true
+            }} > {output.bbc_log}
         # fi
 
         # Final sanity check — ensure the output file exists
