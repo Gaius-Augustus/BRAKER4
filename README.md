@@ -333,7 +333,7 @@ Consult your HPC administrator if Singularity is not available. BRAKER4 will aut
 | BUSCO | `ezlabgva/busco:v6.1.0_cv2` | 801 MB | BUSCO completeness assessment |
 | AGAT | `quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0` | 370 MB | GTF↔GFF3 conversion, normalization |
 | OMArk | `quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0` | 455 MB | OMArk + OMAmer (optional, only when `run_omark = 1`) |
-| pyVARUS | `gaiusaugustus/pyvarus:v2.0.0a0` | 458 MB (compressed) | pyVARUS auto-download of RNA-Seq from SRA (Logan pre-screen), plus HISAT2, minimap2, samtools, sra-tools, zstd (optional). Built from [pyVARUS/docker](https://github.com/Gaius-Augustus/pyVARUS/tree/main/docker) |
+| pyVARUS | `gaiusaugustus/pyvarus:v2.0.0a0` | 458 MB (compressed) | pyVARUS auto-download of RNA-Seq from SRA (optional Logan pre-screen), plus HISAT2, minimap2, samtools, sra-tools, zstd (optional). Built from [pyVARUS/docker](https://github.com/Gaius-Augustus/pyVARUS/tree/main/docker) |
 | minimap2 + minisplice | `katharinahoff/minimap-minisplice:v0.1` | ~200 MB | minimap2 ≥ 2.29 splice:hq for IsoSeq alignment, plus the minisplice CNN splice-site scorer (only when an IsoSeq FASTA/FASTQ is provided unaligned; minisplice is used only when `use_minisplice = 1`) |
 | pybarrnap | `quay.io/biocontainers/pybarrnap:0.5.1--pyhdfd78af_0` | 115 MB | rRNA prediction (only when `run_ncrna = 1`) |
 | tRNAscan-SE | `quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0` | 32 MB | tRNA prediction (only when `run_ncrna = 1`) |
@@ -490,10 +490,12 @@ fungus = 0                          # set to 1 for fungal genomes
 min_contig = 10000                  # skip contigs shorter than this (bp)
 # gm_max_intergenic = 10000        # TEST GENOMES ONLY — omit on real data (GeneMark chooses automatically)
 use_varus = 0                       # set to 1 to enable VARUS auto-download of RNA-Seq from SRA
+varus_logan = 0                     # set to 1 to run the pyVARUS Logan pre-screen
 skip_optimize_augustus = 0          # set to 1 to skip AUGUSTUS optimization (saves time)
 skip_single_exon_downsampling = 0   # set to 1 to disable single-exon training-gene downsampling
 downsampling_lambda = 2             # Poisson lambda for single-exon downsampling (lower = more aggressive)
 downsampling_single_exon_skip_threshold = 95  # auto-skip downsampling when >= this % of training genes are single-exon
+filter_single_exon_genes = auto     # TSEBRA drops single-exon genes without start/stop hint: auto (> 300 Mbp), 1 (always), 0 (never)
 use_dev_shm = 0                     # set to 1 to use /dev/shm for temp files (faster I/O)
 use_compleasm_hints = 1             # 0 to keep BUSCO CDSpart hints out of AUGUSTUS hintsfile (compleasm still runs)
 skip_busco = 0                      # set to 1 to skip the (slow) full BUSCO pipeline
@@ -781,15 +783,29 @@ By default, BRAKER4 downsamples single-exon training genes when assembling the A
 
 `downsampling_single_exon_skip_threshold` (default `80`) sets the percentage at which the pipeline auto-skips downsampling. When ≥ this percentage of candidate training genes are single-exon, downsampling is skipped on the assumption that the organism genuinely has many intronless genes (e.g. some fungi or protists) and downsampling would incorrectly remove legitimate training genes. Set to `100` to effectively disable the auto-skip, or to a lower value to trigger it earlier. This threshold has no effect when `skip_single_exon_downsampling = 1`.
 
+### filter_single_exon_genes
+
+Controls TSEBRA's `--filter_single_exon_genes`, which removes single-exon gene predictions that are not supported by at least one start- or stop-codon hint. Unsupported single-exon predictions are a common source of false positives, especially in large, repeat-rich genomes.
+
+- `auto` (default): filter only when the genome is larger than 300 Mbp.
+- `1`: always filter. Try this on smaller genomes with a suspiciously high fraction of single-exon genes.
+- `0`: never filter, e.g. for organisms with many genuine intronless genes.
+
 ### use_varus
 
 Set to `1` to enable the VARUS auto-download workflow. With `use_varus = 1` and `varus_genus`/`varus_species` filled in `samples.csv`, BRAKER4 invokes VARUS to discover and download representative RNA-Seq runs from SRA for the target species, then aligns them with HISAT2 and feeds the resulting BAM into GeneMark. Default is `0`.
 
 VARUS is useful when you want RNA-Seq evidence but don't already have BAM/FASTQ files. Note that internet access and a reasonable amount of disk space are required, and the download step can take several hours depending on how much RNA-Seq is available for the species.
 
+### varus_logan
+
+Set to `1` to let pyVARUS run its Logan pre-screen, which ranks candidate SRA runs by their Logan contigs before the first download. Default is `0`: BRAKER4 passes `--no-logan` and pyVARUS samples runs online only, the way the benchmark BAMs were produced before Logan was available.
+
 ### use_dev_shm
 
 Set to `1` to use `/dev/shm` (shared memory) for temporary files during RepeatModeler2/RepeatMasker runs. This can speed up masking on systems where `/dev/shm` is large enough. Only relevant when `masking_tool = repeatmasker` and the genome is unmasked; the Red masker is fast enough that it does not benefit from `/dev/shm`.
+
+On SLURM clusters where systemd-logind runs with `RemoveIPC=yes` (the default on many distributions), files you own in `/dev/shm` are deleted whenever another of your sessions or jobs on the same node ends. The masking job then fails silently and loses its progress. If other jobs of yours can land on the same node, either keep `use_dev_shm = 0`, request the node exclusively for `run_masking`, or ask your admins to set `RemoveIPC=no` in `logind.conf` (see issue #43).
 
 ### gm_max_intergenic
 

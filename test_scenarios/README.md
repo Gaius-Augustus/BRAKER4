@@ -25,6 +25,15 @@ cd test_scenarios/scenario_11_etp_sra
 bash run_test.sh
 ```
 
+If your cluster does not allow long-running processes on the login node, you can submit the runner itself as a SLURM job. Submit from inside `test_scenarios/` (or set `BRAKER4_TEST_DIR` to that directory), because SLURM runs a copy of the script from its spool directory. `RESULTS_DIR` moves the per-scenario logs elsewhere:
+
+```bash
+cd test_scenarios
+RESULTS_DIR=/path/to/test_logs sbatch --time=24:00:00 run_all_tests.sh
+```
+
+The compute nodes must be allowed to submit SLURM jobs themselves, since each scenario's Snakemake process submits its own jobs.
+
 For local testing (no SLURM, 8 cores, cheap scenarios only), see `test_scenarios_local/`.
 
 ## Test Scenarios

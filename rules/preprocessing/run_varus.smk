@@ -40,6 +40,7 @@ rule run_varus:
         genus=lambda wildcards: get_varus_genus(wildcards.sample),
         species=lambda wildcards: get_varus_species(wildcards.sample),
         varus_dir=lambda wildcards: f"output/{wildcards.sample}/varus",
+        use_logan=1 if config.get('varus_logan', False) else 0,
         wrapper=os.path.join(script_dir, "run_varus_wrapper.sh")
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
@@ -57,7 +58,8 @@ rule run_varus:
             {params.species} \
             {threads} \
             {output.bam} \
-            {log}
+            {log} \
+            {params.use_logan}
 
         # Record software version
         VERSIONS_FILE=output/{wildcards.sample}/software_versions.tsv

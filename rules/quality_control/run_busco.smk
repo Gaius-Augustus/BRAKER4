@@ -179,8 +179,26 @@ rule busco_proteins:
             OFFLINE_FLAG="--offline"
             echo "[INFO] Found pre-downloaded lineage at {params.download_path}/lineages/{params.busco_lineage}; running BUSCO with --offline" >> {log}
         fi
+
+        # hmmsearch aborts on targets >= 100,000 aa ("over comparison pipeline
+        # limit"), which kills the whole BUSCO run (issues #91, #92). No real
+        # protein is that long, so hand BUSCO a copy without such sequences.
+        mkdir -p "$OUTDIR_ABS"
+        BUSCO_INPUT="$OUTDIR_ABS/busco_input_proteins.faa"
+        awk -v max=100000 -v skipped="$OUTDIR_ABS/busco_skipped_long_proteins.txt" '
+            function flush() {{
+                if (hdr == "") return
+                s = seq; sub(/\*$/, "", s)
+                if (length(s) >= max) {{ split(substr(hdr, 2), a, /[ \t]/); print a[1] > skipped; n++ }}
+                else print hdr "\n" seq
+            }}
+            /^>/ {{ flush(); hdr = $0; seq = ""; next }}
+            {{ gsub(/[ \t\r]/, ""); seq = seq $0 }}
+            END {{ flush(); if (n > 0) printf "[WARNING] Skipped %d protein(s) >= %d aa for BUSCO (hmmsearch limit)\n", n, max > "/dev/stderr" }}
+        ' {input.proteins} > "$BUSCO_INPUT" 2>> {log}
+
         busco \
-            -i {input.proteins} \
+            -i "$BUSCO_INPUT" \
             -o proteins \
             --out_path "$OUTDIR_ABS" \
             -l {params.busco_lineage} \
@@ -189,6 +207,7 @@ rule busco_proteins:
             --download_path {params.download_path} \
             $OFFLINE_FLAG \
             >> {log} 2>&1
+        rm -f "$BUSCO_INPUT"
 
         # Remove the BUSCO working tree; keep only short_summary*.txt.
         # busco_summary and collect_results locate the summaries via

@@ -152,6 +152,8 @@ rule run_tsebra_etp_per_run:
         etp_run="sr|iso",
     benchmark:
         "benchmarks/{sample}/run_tsebra_etp_per_run/{etp_run}.txt"
+    params:
+        filter_se=config['filter_single_exon_genes']
     threads: 1
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']) // int(config['slurm_args']['cpus_per_task']),
@@ -177,12 +179,14 @@ rule run_tsebra_etp_per_run:
         echo "[INFO] TSEBRA config: $TSEBRA_CFG" | tee -a {output.log_file}
 
         GENOME_SIZE=$(awk '{{sum+=$2}} END {{printf "%.0f\n", sum+0}}' {input.genome_fai})
+        # [PARAMS] filter_single_exon_genes: auto (> 300 Mbp), 1 (always), 0 (never)
+        FILTER_SE_MODE={params.filter_se}
         FILTER_SE_ARG=""
-        if [ "$GENOME_SIZE" -gt 300000000 ]; then
+        if [ "$FILTER_SE_MODE" = "1" ] || {{ [ "$FILTER_SE_MODE" = "auto" ] && [ "$GENOME_SIZE" -gt 300000000 ]; }}; then
             FILTER_SE_ARG="--filter_single_exon_genes"
-            echo "[INFO] Large genome ($GENOME_SIZE bp): single-exon gene filter active" | tee -a {output.log_file}
+            echo "[INFO] Genome $GENOME_SIZE bp, filter_single_exon_genes=$FILTER_SE_MODE: single-exon gene filter active" | tee -a {output.log_file}
         else
-            echo "[INFO] Small genome ($GENOME_SIZE bp): single-exon gene filter inactive" | tee -a {output.log_file}
+            echo "[INFO] Genome $GENOME_SIZE bp, filter_single_exon_genes=$FILTER_SE_MODE: single-exon gene filter inactive" | tee -a {output.log_file}
         fi
 
         TSEBRA_TMP={output.braker_per_run}.tmp
@@ -215,7 +219,8 @@ rule run_tsebra:
     benchmark:
         "benchmarks/{sample}/run_tsebra/run_tsebra.txt"
     params:
-        mode=lambda w: get_braker_mode(w.sample)
+        mode=lambda w: get_braker_mode(w.sample),
+        filter_se=config['filter_single_exon_genes']
     threads: 1
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']) // int(config['slurm_args']['cpus_per_task']),
@@ -242,12 +247,14 @@ rule run_tsebra:
         echo "[INFO] TSEBRA config: $TSEBRA_CFG" | tee -a {output.tsebra_log}
 
         GENOME_SIZE=$(awk '{{sum+=$2}} END {{printf "%.0f\n", sum+0}}' {input.genome_fai})
+        # [PARAMS] filter_single_exon_genes: auto (> 300 Mbp), 1 (always), 0 (never)
+        FILTER_SE_MODE={params.filter_se}
         FILTER_SE_ARG=""
-        if [ "$GENOME_SIZE" -gt 300000000 ]; then
+        if [ "$FILTER_SE_MODE" = "1" ] || {{ [ "$FILTER_SE_MODE" = "auto" ] && [ "$GENOME_SIZE" -gt 300000000 ]; }}; then
             FILTER_SE_ARG="--filter_single_exon_genes"
-            echo "[INFO] Large genome ($GENOME_SIZE bp): single-exon gene filter active" | tee -a {output.tsebra_log}
+            echo "[INFO] Genome $GENOME_SIZE bp, filter_single_exon_genes=$FILTER_SE_MODE: single-exon gene filter active" | tee -a {output.tsebra_log}
         else
-            echo "[INFO] Small genome ($GENOME_SIZE bp): single-exon gene filter inactive" | tee -a {output.tsebra_log}
+            echo "[INFO] Genome $GENOME_SIZE bp, filter_single_exon_genes=$FILTER_SE_MODE: single-exon gene filter inactive" | tee -a {output.tsebra_log}
         fi
 
         TSEBRA_TMP={output.braker_merged_gtf}.tmp

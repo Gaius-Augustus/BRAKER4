@@ -70,9 +70,11 @@ _env_overrides = {
     'BRAKER4_MASKING_TOOL':                   ('PARAMS', 'masking_tool'),
     'BRAKER4_USE_MINISPLICE':                 ('PARAMS', 'use_minisplice'),
     'BRAKER4_USE_VARUS':                      ('PARAMS', 'use_varus'),
+    'BRAKER4_VARUS_LOGAN':                    ('PARAMS', 'varus_logan'),
     'BRAKER4_SKIP_SINGLE_EXON_DOWNSAMPLING':              ('PARAMS', 'skip_single_exon_downsampling'),
     'BRAKER4_DOWNSAMPLING_LAMBDA':                        ('PARAMS', 'downsampling_lambda'),
     'BRAKER4_DOWNSAMPLING_SINGLE_EXON_SKIP_THRESHOLD':    ('PARAMS', 'downsampling_single_exon_skip_threshold'),
+    'BRAKER4_FILTER_SINGLE_EXON_GENES':                   ('PARAMS', 'filter_single_exon_genes'),
     'BRAKER4_AUGUSTUS_CHUNKSIZE':             ('PARAMS', 'augustus_chunksize'),
     'BRAKER4_AUGUSTUS_OVERLAP':               ('PARAMS', 'augustus_overlap'),
     # SLURM_ARGS extras
@@ -160,6 +162,14 @@ config['skip_optimize_augustus'] =config_parser.getboolean(
     fallback=False
 )
 
+# pyVARUS Logan pre-screen is off by default: the benchmark BAMs were sampled
+# before Logan existed, so default runs stay comparable to them.
+config['varus_logan'] = config_parser.getboolean(
+    'PARAMS',
+    'varus_logan',
+    fallback=False
+)
+
 config['skip_single_exon_downsampling'] = config_parser.getboolean(
     'PARAMS',
     'skip_single_exon_downsampling',
@@ -177,6 +187,17 @@ config['downsampling_single_exon_skip_threshold'] = config_parser.getint(
     'downsampling_single_exon_skip_threshold',
     fallback=95
 )
+
+# TSEBRA --filter_single_exon_genes drops single-exon predictions without
+# hint support. "auto" applies it to genomes > 300 Mbp only; 1/0 force it
+# on/off (issues #83, #87).
+_filter_se = config_parser.get('PARAMS', 'filter_single_exon_genes',
+                               fallback='auto').strip().lower()
+_filter_se = {'true': '1', 'yes': '1', 'on': '1',
+              'false': '0', 'no': '0', 'off': '0'}.get(_filter_se, _filter_se)
+if _filter_se not in ('auto', '0', '1'):
+    raise ValueError(f"[PARAMS] filter_single_exon_genes must be auto, 0 or 1, not '{_filter_se}'")
+config['filter_single_exon_genes'] = _filter_se
 
 config['use_dev_shm'] = config_parser.getboolean(
     'PARAMS',

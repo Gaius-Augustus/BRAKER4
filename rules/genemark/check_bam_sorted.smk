@@ -27,7 +27,8 @@ def get_input_bam(wildcards):
 
 rule check_bam_sorted:
     input:
-        bam=get_input_bam
+        bam=get_input_bam,
+        genome_fai="output/{sample}/genome.fa.fai"
     output:
         bam=temp("output/{sample}/bam_sorted/{bam_id}.sorted.bam"),
         csi=temp("output/{sample}/bam_sorted/{bam_id}.sorted.bam.csi")
@@ -43,12 +44,39 @@ rule check_bam_sorted:
         BRAKER3_CONTAINER
     shell:
         r"""
+        # Reference names in the BAM must match the genome FASTA headers
+        # (first word, as kept by prepare_genome). Otherwise GeneMark-ETP's
+        # StringTie step silently produces an empty transcripts_merged.fasta
+        # and fails much later (issue #76).
+        samtools view -H {input.bam} | awk -F'\t' -v fai={input.genome_fai} '
+            BEGIN {{ while ((getline l < fai) > 0) {{ split(l, f, "\t"); len[f[1]] = f[2] }} }}
+            $1 == "@SQ" {{
+                sn = ""; ln = ""
+                for (i = 2; i <= NF; i++) {{
+                    if ($i ~ /^SN:/) sn = substr($i, 4)
+                    if ($i ~ /^LN:/) ln = substr($i, 4)
+                }}
+                n++
+                if (sn in len) {{ ok++; if (len[sn] != ln) diff++ }}
+                else if (miss++ < 5) ex = ex " " sn
+            }}
+            END {{
+                if (n > 0 && ok == 0) {{
+                    print "ERROR: none of the " n " reference sequences in {input.bam} match the genome FASTA headers." > "/dev/stderr"
+                    print "  BAM references, e.g.:" ex > "/dev/stderr"
+                    print "  Align the reads against the same genome FASTA (identical sequence names) that you pass to BRAKER4." > "/dev/stderr"
+                    exit 1
+                }}
+                if (miss > 0) printf "WARNING: %d of %d BAM reference sequences are not in the genome, e.g.:%s\n", miss, n, ex > "/dev/stderr"
+                if (diff > 0) printf "WARNING: %d BAM reference sequences have a different length than in the genome. Was the BAM made against another assembly version?\n", diff > "/dev/stderr"
+            }}' 2> {log} || {{ cat {log} >&2; exit 1; }}
+
         # Check if BAM is already coordinate-sorted and indexable
         # Even if header says sorted, unmapped reads might be in wrong position
         IS_SORTED=false
 
         if samtools view -H {input.bam} | grep -q '@HD.*SO:coordinate'; then
-            echo "BAM file {input.bam} header indicates coordinate-sorted" > {log}
+            echo "BAM file {input.bam} header indicates coordinate-sorted" >> {log}
 
             # Try to create a symlink and index it
             ln -sf $(readlink -f {input.bam}) {output.bam} 2>> {log}
@@ -64,7 +92,7 @@ rule check_bam_sorted:
                 IS_SORTED=false
             fi
         else
-            echo "BAM file {input.bam} is not coordinate-sorted" > {log}
+            echo "BAM file {input.bam} is not coordinate-sorted" >> {log}
             IS_SORTED=false
         fi
 

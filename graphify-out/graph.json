@@ -141,12 +141,192 @@
   },
   "nodes": [
     {
+      "label": "merge_ncrna_gff3.py",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L1",
+      "id": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "community": 11,
+      "norm_label": "merge_ncrna_gff3.py"
+    },
+    {
+      "label": "parse_attrs()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L45",
+      "id": "merge_ncrna_gff3_parse_attrs",
+      "community": 11,
+      "norm_label": "parse_attrs()"
+    },
+    {
+      "label": "format_attrs()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L54",
+      "id": "merge_ncrna_gff3_format_attrs",
+      "community": 11,
+      "norm_label": "format_attrs()"
+    },
+    {
+      "label": "read_gff3()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L60",
+      "id": "merge_ncrna_gff3_read_gff3",
+      "community": 11,
+      "norm_label": "read_gff3()"
+    },
+    {
+      "label": "overlap()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L79",
+      "id": "merge_ncrna_gff3_overlap",
+      "community": 11,
+      "norm_label": "overlap()"
+    },
+    {
+      "label": "IntervalIndex",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L83",
+      "id": "merge_ncrna_gff3_intervalindex",
+      "community": 11,
+      "norm_label": "intervalindex"
+    },
+    {
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L86",
+      "id": "merge_ncrna_gff3_intervalindex_init",
+      "community": 11,
+      "norm_label": ".__init__()"
+    },
+    {
+      "label": ".add()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L89",
+      "id": "merge_ncrna_gff3_intervalindex_add",
+      "community": 7,
+      "norm_label": ".add()"
+    },
+    {
+      "label": ".covered_bp()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L92",
+      "id": "merge_ncrna_gff3_intervalindex_covered_bp",
+      "community": 11,
+      "norm_label": ".covered_bp()"
+    },
+    {
+      "label": "build_loci()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L110",
+      "id": "merge_ncrna_gff3_build_loci",
+      "community": 11,
+      "norm_label": "build_loci()"
+    },
+    {
+      "label": "rna_type_of()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L140",
+      "id": "merge_ncrna_gff3_rna_type_of",
+      "community": 11,
+      "norm_label": "rna_type_of()"
+    },
+    {
+      "label": "biotype_of()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L148",
+      "id": "merge_ncrna_gff3_biotype_of",
+      "community": 11,
+      "norm_label": "biotype_of()"
+    },
+    {
+      "label": "normalize_locus()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L154",
+      "id": "merge_ncrna_gff3_normalize_locus",
+      "community": 11,
+      "norm_label": "normalize_locus()"
+    },
+    {
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L190",
+      "id": "merge_ncrna_gff3_main",
+      "community": 11,
+      "norm_label": "main()"
+    },
+    {
+      "label": "Return (header_lines, features); a feature is a list of 9 columns.",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L61",
+      "id": "merge_ncrna_gff3_rationale_61",
+      "community": 11,
+      "norm_label": "return (header_lines, features); a feature is a list of 9 columns."
+    },
+    {
+      "label": "Intervals per (seqid, strand); linear scan is fine for ncRNA counts.",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L84",
+      "id": "merge_ncrna_gff3_rationale_84",
+      "community": 11,
+      "norm_label": "intervals per (seqid, strand); linear scan is fine for ncrna counts."
+    },
+    {
+      "label": "bp of [start, end] covered by the stored intervals (merged).",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L93",
+      "id": "merge_ncrna_gff3_rationale_93",
+      "community": 11,
+      "norm_label": "bp of [start, end] covered by the stored intervals (merged)."
+    },
+    {
+      "label": "Group features into loci: a root feature and all its descendants.",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L111",
+      "id": "merge_ncrna_gff3_rationale_111",
+      "community": 11,
+      "norm_label": "group features into loci: a root feature and all its descendants."
+    },
+    {
+      "label": "SO type of an RNA line; FEELnc lncRNAs come as transcript + biotype=lncRNA.",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L141",
+      "id": "merge_ncrna_gff3_rationale_141",
+      "community": 11,
+      "norm_label": "so type of an rna line; feelnc lncrnas come as transcript + biotype=lncrna."
+    },
+    {
+      "label": "Return the locus as gene -> RNA -> exon lines, or None if not an RNA.",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L155",
+      "id": "merge_ncrna_gff3_rationale_155",
+      "community": 11,
+      "norm_label": "return the locus as gene -> rna -> exon lines, or none if not an rna."
+    },
+    {
       "label": "completeness_plot.py",
       "file_type": "code",
       "source_file": "scripts/completeness_plot.py",
       "source_location": "L1",
       "id": "scripts_completeness_plot_py",
-      "community": 18,
+      "community": 17,
       "norm_label": "completeness_plot.py"
     },
     {
@@ -155,7 +335,7 @@
       "source_file": "scripts/completeness_plot.py",
       "source_location": "L23",
       "id": "completeness_plot_parse_busco_summary",
-      "community": 18,
+      "community": 17,
       "norm_label": "parse_busco_summary()"
     },
     {
@@ -164,7 +344,7 @@
       "source_file": "scripts/completeness_plot.py",
       "source_location": "L52",
       "id": "completeness_plot_parse_compleasm_summary",
-      "community": 18,
+      "community": 17,
       "norm_label": "parse_compleasm_summary()"
     },
     {
@@ -173,7 +353,7 @@
       "source_file": "scripts/completeness_plot.py",
       "source_location": "L75",
       "id": "completeness_plot_generate_plot",
-      "community": 18,
+      "community": 17,
       "norm_label": "generate_plot()"
     },
     {
@@ -182,7 +362,7 @@
       "source_file": "scripts/completeness_plot.py",
       "source_location": "L137",
       "id": "completeness_plot_main",
-      "community": 18,
+      "community": 17,
       "norm_label": "main()"
     },
     {
@@ -190,7 +370,7 @@
       "file_type": "rationale",
       "source_file": "scripts/completeness_plot.py",
       "source_location": "L24",
-      "community": 18,
+      "community": 17,
       "norm_label": "parse busco summary for genome and proteome scores.",
       "id": "completeness_plot_rationale_24"
     },
@@ -199,7 +379,7 @@
       "file_type": "rationale",
       "source_file": "scripts/completeness_plot.py",
       "source_location": "L53",
-      "community": 18,
+      "community": 17,
       "norm_label": "parse compleasm summary.txt.",
       "id": "completeness_plot_rationale_53"
     },
@@ -208,7 +388,7 @@
       "file_type": "rationale",
       "source_file": "scripts/completeness_plot.py",
       "source_location": "L76",
-      "community": 18,
+      "community": 17,
       "norm_label": "generate horizontal stacked bar chart.",
       "id": "completeness_plot_rationale_76"
     },
@@ -218,7 +398,7 @@
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L1",
       "id": "scripts_both_agree_rescue_py",
-      "community": 16,
+      "community": 7,
       "norm_label": "both_agree_rescue.py"
     },
     {
@@ -227,7 +407,7 @@
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L21",
       "id": "both_agree_rescue_parse_intron_hints",
-      "community": 16,
+      "community": 7,
       "norm_label": "parse_intron_hints()"
     },
     {
@@ -236,7 +416,7 @@
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L51",
       "id": "both_agree_rescue_parse_cds_intron_chains",
-      "community": 16,
+      "community": 7,
       "norm_label": "parse_cds_intron_chains()"
     },
     {
@@ -245,7 +425,7 @@
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L93",
       "id": "both_agree_rescue_extract_gene_blocks",
-      "community": 16,
+      "community": 7,
       "norm_label": "extract_gene_blocks()"
     },
     {
@@ -254,7 +434,7 @@
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L162",
       "id": "both_agree_rescue_rename_gene_ids",
-      "community": 16,
+      "community": 7,
       "norm_label": "rename_gene_ids()"
     },
     {
@@ -263,7 +443,7 @@
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L214",
       "id": "both_agree_rescue_main",
-      "community": 16,
+      "community": 7,
       "norm_label": "main()"
     },
     {
@@ -271,7 +451,7 @@
       "file_type": "rationale",
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L22",
-      "community": 16,
+      "community": 7,
       "norm_label": "parse hintsfile.gff and return a set of (chrom, start, end, strand) for intron h",
       "id": "both_agree_rescue_rationale_22"
     },
@@ -280,7 +460,7 @@
       "file_type": "rationale",
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L52",
-      "community": 16,
+      "community": 7,
       "norm_label": "parse a gtf and return per-transcript cds intron chains.      returns:         c",
       "id": "both_agree_rescue_rationale_52"
     },
@@ -289,7 +469,7 @@
       "file_type": "rationale",
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L94",
-      "community": 16,
+      "community": 7,
       "norm_label": "extract full gene blocks (all gtf lines) for given transcript ids.      returns",
       "id": "both_agree_rescue_rationale_94"
     },
@@ -298,7 +478,7 @@
       "file_type": "rationale",
       "source_file": "scripts/both_agree_rescue.py",
       "source_location": "L163",
-      "community": 16,
+      "community": 7,
       "norm_label": "rename gene and transcript ids in gtf lines to avoid collisions.      prefixes a",
       "id": "both_agree_rescue_rationale_163"
     },
@@ -308,7 +488,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L1",
       "id": "home_katharina_git_braker4_scripts_generate_report_py",
-      "community": 5,
+      "community": 6,
       "norm_label": "generate_report.py"
     },
     {
@@ -317,7 +497,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L33",
       "id": "generate_report_read_file",
-      "community": 5,
+      "community": 6,
       "norm_label": "read_file()"
     },
     {
@@ -326,7 +506,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L41",
       "id": "generate_report_embed_image",
-      "community": 5,
+      "community": 6,
       "norm_label": "embed_image()"
     },
     {
@@ -335,7 +515,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L71",
       "id": "generate_report_read_software_versions",
-      "community": 5,
+      "community": 6,
       "norm_label": "read_software_versions()"
     },
     {
@@ -344,7 +524,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L91",
       "id": "generate_report_parse_bbc_log",
-      "community": 5,
+      "community": 6,
       "norm_label": "parse_bbc_log()"
     },
     {
@@ -353,7 +533,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L167",
       "id": "generate_report_format_bbc_decisions",
-      "community": 5,
+      "community": 6,
       "norm_label": "format_bbc_decisions()"
     },
     {
@@ -362,7 +542,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L205",
       "id": "generate_report_generate_methods_text",
-      "community": 5,
+      "community": 6,
       "norm_label": "generate_methods_text()"
     },
     {
@@ -371,7 +551,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L735",
       "id": "generate_report_deduplicate_citations",
-      "community": 5,
+      "community": 6,
       "norm_label": "deduplicate_citations()"
     },
     {
@@ -380,7 +560,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L747",
       "id": "generate_report_deduplicate_bibtex",
-      "community": 5,
+      "community": 6,
       "norm_label": "deduplicate_bibtex()"
     },
     {
@@ -389,7 +569,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L769",
       "id": "generate_report_format_compleasm_as_busco",
-      "community": 5,
+      "community": 6,
       "norm_label": "format_compleasm_as_busco()"
     },
     {
@@ -398,7 +578,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L812",
       "id": "generate_report_read_qc_summary",
-      "community": 5,
+      "community": 6,
       "norm_label": "read_qc_summary()"
     },
     {
@@ -407,7 +587,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L822",
       "id": "generate_report_collect_benchmarks",
-      "community": 5,
+      "community": 6,
       "norm_label": "collect_benchmarks()"
     },
     {
@@ -416,7 +596,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L879",
       "id": "generate_report_format_time",
-      "community": 5,
+      "community": 6,
       "norm_label": "format_time()"
     },
     {
@@ -425,7 +605,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L889",
       "id": "generate_report_generate_benchmark_plot",
-      "community": 5,
+      "community": 6,
       "norm_label": "generate_benchmark_plot()"
     },
     {
@@ -434,7 +614,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L961",
       "id": "generate_report_detect_mode",
-      "community": 5,
+      "community": 6,
       "norm_label": "detect_mode()"
     },
     {
@@ -443,7 +623,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L1077",
       "id": "generate_report_generate_html",
-      "community": 5,
+      "community": 6,
       "norm_label": "generate_html()"
     },
     {
@@ -452,7 +632,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
       "source_location": "L1407",
       "id": "generate_report_main",
-      "community": 5,
+      "community": 6,
       "norm_label": "main()"
     },
     {
@@ -460,7 +640,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L34",
-      "community": 5,
+      "community": 6,
       "norm_label": "read file contents, return empty string if not found.",
       "id": "generate_report_rationale_34"
     },
@@ -469,7 +649,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L42",
-      "community": 5,
+      "community": 6,
       "norm_label": "base64-encode an image for inline html embedding.      if download_name is provi",
       "id": "generate_report_rationale_42"
     },
@@ -478,7 +658,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L72",
-      "community": 5,
+      "community": 6,
       "norm_label": "read software_versions.tsv and return list of (tool, version) tuples.",
       "id": "generate_report_rationale_72"
     },
@@ -487,7 +667,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L92",
-      "community": 5,
+      "community": 6,
       "norm_label": "parse a best_by_compleasm aggregated log into per-pass decisions.      returns a",
       "id": "generate_report_rationale_92"
     },
@@ -496,7 +676,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L168",
-      "community": 5,
+      "community": 6,
       "norm_label": "render parsed best_by_compleasm passes as a methods-text sentence.",
       "id": "generate_report_rationale_168"
     },
@@ -505,7 +685,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L206",
-      "community": 5,
+      "community": 6,
       "norm_label": "generate a single cohesive methods paragraph from pipeline outputs.      instead",
       "id": "generate_report_rationale_206"
     },
@@ -514,7 +694,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L736",
-      "community": 5,
+      "community": 6,
       "norm_label": "deduplicate plain-text citations (one per line).",
       "id": "generate_report_rationale_736"
     },
@@ -523,7 +703,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L748",
-      "community": 5,
+      "community": 6,
       "norm_label": "deduplicate bibtex entries by key.",
       "id": "generate_report_rationale_748"
     },
@@ -532,7 +712,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L770",
-      "community": 5,
+      "community": 6,
       "norm_label": "convert compleasm multi-line summary to busco-style one-liner.      input format",
       "id": "generate_report_rationale_770"
     },
@@ -541,7 +721,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L813",
-      "community": 5,
+      "community": 6,
       "norm_label": "read a qc summary file and return as html paragraph.",
       "id": "generate_report_rationale_813"
     },
@@ -550,7 +730,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L823",
-      "community": 5,
+      "community": 6,
       "norm_label": "collect snakemake benchmark files from benchmarks/{sample}/.      returns list o",
       "id": "generate_report_rationale_823"
     },
@@ -559,7 +739,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L880",
-      "community": 5,
+      "community": 6,
       "norm_label": "format seconds into human-readable string.",
       "id": "generate_report_rationale_880"
     },
@@ -568,7 +748,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L890",
-      "community": 5,
+      "community": 6,
       "norm_label": "generate publication-quality resource consumption plots.      creates a two-pane",
       "id": "generate_report_rationale_890"
     },
@@ -577,7 +757,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L962",
-      "community": 5,
+      "community": 6,
       "norm_label": "detect braker mode from directory structure.      order matters: check specific",
       "id": "generate_report_rationale_962"
     },
@@ -586,7 +766,7 @@
       "file_type": "rationale",
       "source_file": "scripts/generate_report.py",
       "source_location": "L1078",
-      "community": 5,
+      "community": 6,
       "norm_label": "generate the full html report.",
       "id": "generate_report_rationale_1078"
     },
@@ -857,7 +1037,7 @@
       "source_file": "scripts/training_summary.py",
       "source_location": "L1",
       "id": "scripts_training_summary_py",
-      "community": 19,
+      "community": 5,
       "norm_label": "training_summary.py"
     },
     {
@@ -866,7 +1046,7 @@
       "source_file": "scripts/training_summary.py",
       "source_location": "L19",
       "id": "training_summary_parse_accuracy_file",
-      "community": 19,
+      "community": 5,
       "norm_label": "parse_accuracy_file()"
     },
     {
@@ -875,7 +1055,7 @@
       "source_file": "scripts/training_summary.py",
       "source_location": "L55",
       "id": "training_summary_parse_gene_count",
-      "community": 19,
+      "community": 5,
       "norm_label": "parse_gene_count()"
     },
     {
@@ -884,7 +1064,7 @@
       "source_file": "scripts/training_summary.py",
       "source_location": "L75",
       "id": "training_summary_count_loci_in_gb",
-      "community": 19,
+      "community": 5,
       "norm_label": "count_loci_in_gb()"
     },
     {
@@ -893,7 +1073,7 @@
       "source_file": "scripts/training_summary.py",
       "source_location": "L83",
       "id": "training_summary_main",
-      "community": 19,
+      "community": 5,
       "norm_label": "main()"
     },
     {
@@ -901,7 +1081,7 @@
       "file_type": "rationale",
       "source_file": "scripts/training_summary.py",
       "source_location": "L20",
-      "community": 19,
+      "community": 5,
       "norm_label": "parse accuracy file, return dict with nu_sen, nu_sp, ex_sen, ex_sp, gene_sen, ge",
       "id": "training_summary_rationale_20"
     },
@@ -910,7 +1090,7 @@
       "file_type": "rationale",
       "source_file": "scripts/training_summary.py",
       "source_location": "L56",
-      "community": 19,
+      "community": 5,
       "norm_label": "extract a gene count from a file. returns int or none.",
       "id": "training_summary_rationale_56"
     },
@@ -919,7 +1099,7 @@
       "file_type": "rationale",
       "source_file": "scripts/training_summary.py",
       "source_location": "L76",
-      "community": 19,
+      "community": 5,
       "norm_label": "count locus entries in genbank file.",
       "id": "training_summary_rationale_76"
     },
@@ -929,7 +1109,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L1",
       "id": "home_katharina_git_braker4_scripts_generate_embeddings_py",
-      "community": 2,
+      "community": 3,
       "norm_label": "generate_embeddings.py"
     },
     {
@@ -938,7 +1118,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L75",
       "id": "generate_embeddings_tqdmshim",
-      "community": 2,
+      "community": 3,
       "norm_label": "_tqdmshim"
     },
     {
@@ -947,7 +1127,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L76",
       "id": "generate_embeddings_tqdmshim_init",
-      "community": 2,
+      "community": 3,
       "norm_label": ".__init__()"
     },
     {
@@ -956,7 +1136,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L79",
       "id": "generate_embeddings_tqdmshim_iter",
-      "community": 2,
+      "community": 3,
       "norm_label": ".__iter__()"
     },
     {
@@ -965,7 +1145,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L82",
       "id": "generate_embeddings_tqdmshim_close",
-      "community": 2,
+      "community": 5,
       "norm_label": ".close()"
     },
     {
@@ -974,7 +1154,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L85",
       "id": "generate_embeddings_tqdm",
-      "community": 2,
+      "community": 3,
       "norm_label": "tqdm()"
     },
     {
@@ -983,7 +1163,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L119",
       "id": "generate_embeddings_parse_fasta",
-      "community": 2,
+      "community": 3,
       "norm_label": "parse_fasta()"
     },
     {
@@ -992,7 +1172,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L197",
       "id": "generate_embeddings_embeddingfailure",
-      "community": 2,
+      "community": 3,
       "norm_label": "embeddingfailure"
     },
     {
@@ -1001,7 +1181,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L208",
       "id": "generate_embeddings_embeddingresult",
-      "community": 2,
+      "community": 3,
       "norm_label": "embeddingresult"
     },
     {
@@ -1010,7 +1190,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L216",
       "id": "generate_embeddings_normalize_sequence_for_embedding",
-      "community": 2,
+      "community": 3,
       "norm_label": "normalize_sequence_for_embedding()"
     },
     {
@@ -1019,7 +1199,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L228",
       "id": "generate_embeddings_preprocess_sequence",
-      "community": 2,
+      "community": 3,
       "norm_label": "preprocess_sequence()"
     },
     {
@@ -1028,7 +1208,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L250",
       "id": "generate_embeddings_pool_hidden_states",
-      "community": 2,
+      "community": 3,
       "norm_label": "_pool_hidden_states()"
     },
     {
@@ -1037,7 +1217,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L270",
       "id": "generate_embeddings_collect_hidden_state_layers",
-      "community": 2,
+      "community": 3,
       "norm_label": "_collect_hidden_state_layers()"
     },
     {
@@ -1046,7 +1226,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L294",
       "id": "generate_embeddings_resolve_layer_indices",
-      "community": 2,
+      "community": 3,
       "norm_label": "resolve_layer_indices()"
     },
     {
@@ -1055,7 +1235,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L313",
       "id": "generate_embeddings_compute_embeddings_batch",
-      "community": 2,
+      "community": 3,
       "norm_label": "compute_embeddings_batch()"
     },
     {
@@ -1064,7 +1244,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L389",
       "id": "generate_embeddings_compute_embedding",
-      "community": 2,
+      "community": 3,
       "norm_label": "compute_embedding()"
     },
     {
@@ -1073,7 +1253,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L412",
       "id": "generate_embeddings_classify_embedding_error",
-      "community": 2,
+      "community": 3,
       "norm_label": "classify_embedding_error()"
     },
     {
@@ -1082,7 +1262,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L433",
       "id": "generate_embeddings_infer_embedding_dim",
-      "community": 2,
+      "community": 3,
       "norm_label": "infer_embedding_dim()"
     },
     {
@@ -1091,7 +1271,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L446",
       "id": "generate_embeddings_iter_embedding_batches",
-      "community": 2,
+      "community": 3,
       "norm_label": "iter_embedding_batches()"
     },
     {
@@ -1100,7 +1280,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L479",
       "id": "generate_embeddings_iter_queue_packages",
-      "community": 2,
+      "community": 3,
       "norm_label": "iter_queue_packages()"
     },
     {
@@ -1109,7 +1289,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L491",
       "id": "generate_embeddings_load_model_components",
-      "community": 2,
+      "community": 3,
       "norm_label": "load_model_components()"
     },
     {
@@ -1118,7 +1298,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L519",
       "id": "generate_embeddings_embed_sequences_for_model",
-      "community": 2,
+      "community": 3,
       "norm_label": "embed_sequences_for_model()"
     },
     {
@@ -1127,7 +1307,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L667",
       "id": "generate_embeddings_write_failure_report",
-      "community": 2,
+      "community": 3,
       "norm_label": "write_failure_report()"
     },
     {
@@ -1136,7 +1316,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L688",
       "id": "generate_embeddings_stack_embeddings_for_model",
-      "community": 2,
+      "community": 3,
       "norm_label": "stack_embeddings_for_model()"
     },
     {
@@ -1145,7 +1325,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L709",
       "id": "generate_embeddings_stack_layer_embeddings_for_model",
-      "community": 2,
+      "community": 3,
       "norm_label": "stack_layer_embeddings_for_model()"
     },
     {
@@ -1154,7 +1334,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L730",
       "id": "generate_embeddings_save_embeddings_archive",
-      "community": 2,
+      "community": 3,
       "norm_label": "save_embeddings_archive()"
     },
     {
@@ -1163,7 +1343,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L819",
       "id": "generate_embeddings_process_chunk",
-      "community": 2,
+      "community": 3,
       "norm_label": "process_chunk()"
     },
     {
@@ -1172,7 +1352,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L921",
       "id": "generate_embeddings_main",
-      "community": 2,
+      "community": 3,
       "norm_label": "main()"
     },
     {
@@ -1180,7 +1360,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L120",
-      "community": 2,
+      "community": 3,
       "norm_label": "parse a fasta file and return sequence ids and sequences.      parameters     --",
       "id": "generate_embeddings_rationale_120"
     },
@@ -1189,7 +1369,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L221",
-      "community": 2,
+      "community": 3,
       "norm_label": "apply upstream-compatible pre-embedding length filtering.",
       "id": "generate_embeddings_rationale_221"
     },
@@ -1198,7 +1378,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L229",
-      "community": 2,
+      "community": 3,
       "norm_label": "format the raw fasta sequence for the requested model.",
       "id": "generate_embeddings_rationale_229"
     },
@@ -1207,7 +1387,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L256",
-      "community": 2,
+      "community": 3,
       "norm_label": "pool token-level hidden states into one embedding per sequence.",
       "id": "generate_embeddings_rationale_256"
     },
@@ -1216,7 +1396,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L274",
-      "community": 2,
+      "community": 3,
       "norm_label": "return the last hidden state plus a normalized layer-index mapping.",
       "id": "generate_embeddings_rationale_274"
     },
@@ -1225,7 +1405,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L300",
-      "community": 2,
+      "community": 3,
       "norm_label": "resolve the final set of layer indices to export.",
       "id": "generate_embeddings_rationale_300"
     },
@@ -1234,7 +1414,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L323",
-      "community": 2,
+      "community": 3,
       "norm_label": "compute mean pooled embeddings for a batch of sequences.      this function toke",
       "id": "generate_embeddings_rationale_323"
     },
@@ -1243,7 +1423,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L399",
-      "community": 2,
+      "community": 3,
       "norm_label": "backward-compatible single-sequence wrapper around batch inference.",
       "id": "generate_embeddings_rationale_399"
     },
@@ -1252,7 +1432,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L413",
-      "community": 2,
+      "community": 3,
       "norm_label": "return a short category string if the error is recoverable.",
       "id": "generate_embeddings_rationale_413"
     },
@@ -1261,7 +1441,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L434",
-      "community": 2,
+      "community": 3,
       "norm_label": "best-effort extraction of the model's embedding dimensionality.",
       "id": "generate_embeddings_rationale_434"
     },
@@ -1270,7 +1450,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L452",
-      "community": 2,
+      "community": 3,
       "norm_label": "yield batches of similar-length prepared sequences.",
       "id": "generate_embeddings_rationale_452"
     },
@@ -1279,7 +1459,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L484",
-      "community": 2,
+      "community": 3,
       "norm_label": "yield upstream-style queue packages before model forward batching.",
       "id": "generate_embeddings_rationale_484"
     },
@@ -1288,7 +1468,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L494",
-      "community": 2,
+      "community": 3,
       "norm_label": "load tokenizer and model for ``model_name`` and move to ``device``.",
       "id": "generate_embeddings_rationale_494"
     },
@@ -1297,7 +1477,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L532",
-      "community": 2,
+      "community": 3,
       "norm_label": "compute embeddings for all sequences using a given model.      parameters     --",
       "id": "generate_embeddings_rationale_532"
     },
@@ -1306,7 +1486,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/generate_embeddings.py",
       "source_location": "L668",
-      "community": 2,
+      "community": 3,
       "norm_label": "write a csv report describing sequences that were skipped.",
       "id": "generate_embeddings_rationale_668"
     },
@@ -1316,7 +1496,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/filter_gtf.py",
       "source_location": "L1",
       "id": "home_katharina_git_braker4_scripts_filter_gtf_py",
-      "community": 25,
+      "community": 22,
       "norm_label": "filter_gtf.py"
     },
     {
@@ -1325,7 +1505,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L1",
       "id": "home_katharina_git_braker4_scripts_stringtie2utr_py",
-      "community": 4,
+      "community": 1,
       "norm_label": "stringtie2utr.py"
     },
     {
@@ -1334,7 +1514,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L22",
       "id": "stringtie2utr_read_gtf",
-      "community": 4,
+      "community": 1,
       "norm_label": "read_gtf()"
     },
     {
@@ -1343,7 +1523,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L73",
       "id": "stringtie2utr_add_intron_features",
-      "community": 4,
+      "community": 1,
       "norm_label": "add_intron_features()"
     },
     {
@@ -1352,7 +1532,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L116",
       "id": "stringtie2utr_create_introns_hash",
-      "community": 4,
+      "community": 1,
       "norm_label": "create_introns_hash()"
     },
     {
@@ -1361,7 +1541,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L146",
       "id": "stringtie2utr_find_matching_transcripts",
-      "community": 4,
+      "community": 1,
       "norm_label": "find_matching_transcripts()"
     },
     {
@@ -1370,7 +1550,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L187",
       "id": "stringtie2utr_find_single_exon_genes",
-      "community": 4,
+      "community": 1,
       "norm_label": "find_single_exon_genes()"
     },
     {
@@ -1379,7 +1559,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L208",
       "id": "stringtie2utr_tx_len",
-      "community": 4,
+      "community": 1,
       "norm_label": "tx_len()"
     },
     {
@@ -1388,7 +1568,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L237",
       "id": "stringtie2utr_select_longest_tx",
-      "community": 4,
+      "community": 1,
       "norm_label": "select_longest_tx()"
     },
     {
@@ -1397,7 +1577,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L260",
       "id": "stringtie2utr_overlap",
-      "community": 13,
+      "community": 1,
       "norm_label": "overlap()"
     },
     {
@@ -1406,7 +1586,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L265",
       "id": "stringtie2utr_merge_features",
-      "community": 9,
+      "community": 1,
       "norm_label": "merge_features()"
     },
     {
@@ -1415,7 +1595,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L338",
       "id": "stringtie2utr_make_utr_feature",
-      "community": 4,
+      "community": 1,
       "norm_label": "_make_utr_feature()"
     },
     {
@@ -1424,7 +1604,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L356",
       "id": "stringtie2utr_compute_utr_features",
-      "community": 4,
+      "community": 1,
       "norm_label": "compute_utr_features()"
     },
     {
@@ -1433,7 +1613,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L471",
       "id": "stringtie2utr_fix_feature_coordinates",
-      "community": 4,
+      "community": 1,
       "norm_label": "fix_feature_coordinates()"
     },
     {
@@ -1442,7 +1622,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L535",
       "id": "stringtie2utr_print_gtf",
-      "community": 4,
+      "community": 1,
       "norm_label": "print_gtf()"
     },
     {
@@ -1451,7 +1631,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L582",
       "id": "stringtie2utr_build_tree",
-      "community": 4,
+      "community": 1,
       "norm_label": "build_tree()"
     },
     {
@@ -1460,7 +1640,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L590",
       "id": "stringtie2utr_construct_transcript_tree",
-      "community": 4,
+      "community": 1,
       "norm_label": "construct_transcript_tree()"
     },
     {
@@ -1469,7 +1649,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L619",
       "id": "stringtie2utr_construct_gene_tree",
-      "community": 4,
+      "community": 1,
       "norm_label": "construct_gene_tree()"
     },
     {
@@ -1478,7 +1658,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L652",
       "id": "stringtie2utr_find_overlapping_transcripts",
-      "community": 4,
+      "community": 1,
       "norm_label": "find_overlapping_transcripts()"
     },
     {
@@ -1487,7 +1667,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L671",
       "id": "stringtie2utr_extract_introns_from_dict",
-      "community": 4,
+      "community": 1,
       "norm_label": "extract_introns_from_dict()"
     },
     {
@@ -1496,7 +1676,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L680",
       "id": "stringtie2utr_check_overlap_compatibility",
-      "community": 4,
+      "community": 1,
       "norm_label": "check_overlap_compatibility()"
     },
     {
@@ -1505,7 +1685,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L728",
       "id": "stringtie2utr_main",
-      "community": 4,
+      "community": 1,
       "norm_label": "main()"
     },
     {
@@ -1513,7 +1693,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L23",
-      "community": 4,
+      "community": 1,
       "norm_label": "reads a gtf file and extracts gene and non-gene features.      args:     - gtf_f",
       "id": "stringtie2utr_rationale_23"
     },
@@ -1522,7 +1702,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L74",
-      "community": 4,
+      "community": 1,
       "norm_label": "adds intron feature lines based on the exon feature lines.          args:     -",
       "id": "stringtie2utr_rationale_74"
     },
@@ -1531,7 +1711,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L117",
-      "community": 4,
+      "community": 1,
       "norm_label": "creates a dictionary with intron strings as keys and transcript ids as values.",
       "id": "stringtie2utr_rationale_117"
     },
@@ -1540,7 +1720,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L147",
-      "community": 4,
+      "community": 1,
       "norm_label": "find matching transcript ids based on intron patterns.     this only works for m",
       "id": "stringtie2utr_rationale_147"
     },
@@ -1549,7 +1729,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L188",
-      "community": 4,
+      "community": 1,
       "norm_label": "find single exon genes in non_gene_dict.          args:     - non_gene_dict (dic",
       "id": "stringtie2utr_rationale_188"
     },
@@ -1558,7 +1738,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L209",
-      "community": 4,
+      "community": 1,
       "norm_label": "calculate the length of each transcript.      args:     - non_gene_dict (dict):",
       "id": "stringtie2utr_rationale_209"
     },
@@ -1567,7 +1747,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L238",
-      "community": 4,
+      "community": 1,
       "norm_label": "for each key in matched_transcripts, select the longest transcript based on leng",
       "id": "stringtie2utr_rationale_238"
     },
@@ -1576,7 +1756,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L261",
-      "community": 13,
+      "community": 1,
       "norm_label": "check if exon overlaps with cds.",
       "id": "stringtie2utr_rationale_261"
     },
@@ -1585,7 +1765,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L339",
-      "community": 4,
+      "community": 1,
       "norm_label": "compute the utr features for each transcript in tsebra_gtf based on strand infor",
       "id": "stringtie2utr_rationale_339"
     },
@@ -1594,7 +1774,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L357",
-      "community": 4,
+      "community": 1,
       "norm_label": "compute the utr features for each transcript in tsebra_gtf based on strand infor",
       "id": "stringtie2utr_rationale_357"
     },
@@ -1603,7 +1783,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L472",
-      "community": 4,
+      "community": 1,
       "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers",
       "id": "stringtie2utr_rationale_472"
     },
@@ -1612,7 +1792,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L536",
-      "community": 4,
+      "community": 1,
       "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
       "id": "stringtie2utr_rationale_536"
     },
@@ -1621,7 +1801,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L583",
-      "community": 4,
+      "community": 1,
       "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi",
       "id": "stringtie2utr_rationale_583"
     },
@@ -1630,7 +1810,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L591",
-      "community": 4,
+      "community": 1,
       "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
       "id": "stringtie2utr_rationale_591"
     },
@@ -1639,7 +1819,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L620",
-      "community": 4,
+      "community": 1,
       "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
       "id": "stringtie2utr_rationale_620"
     },
@@ -1648,7 +1828,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L653",
-      "community": 4,
+      "community": 1,
       "norm_label": "find transcripts that overlap with genes.",
       "id": "stringtie2utr_rationale_653"
     },
@@ -1657,7 +1837,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L672",
-      "community": 4,
+      "community": 1,
       "norm_label": "extract introns directly from stringtie_tx_dict.",
       "id": "stringtie2utr_rationale_672"
     },
@@ -1666,7 +1846,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L681",
-      "community": 4,
+      "community": 1,
       "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in",
       "id": "stringtie2utr_rationale_681"
     },
@@ -1676,7 +1856,7 @@
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L1",
       "id": "scripts_fantasia_decorate_gff3_py",
-      "community": 17,
+      "community": 15,
       "norm_label": "fantasia_decorate_gff3.py"
     },
     {
@@ -1685,7 +1865,7 @@
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L51",
       "id": "fantasia_decorate_gff3_lookup_key",
-      "community": 17,
+      "community": 15,
       "norm_label": "_lookup_key()"
     },
     {
@@ -1694,7 +1874,7 @@
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L66",
       "id": "fantasia_decorate_gff3_load_go_assignments",
-      "community": 17,
+      "community": 15,
       "norm_label": "load_go_assignments()"
     },
     {
@@ -1703,7 +1883,7 @@
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L83",
       "id": "fantasia_decorate_gff3_add_ontology_term",
-      "community": 17,
+      "community": 15,
       "norm_label": "_add_ontology_term()"
     },
     {
@@ -1712,7 +1892,7 @@
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L110",
       "id": "fantasia_decorate_gff3_decorate",
-      "community": 17,
+      "community": 15,
       "norm_label": "decorate()"
     },
     {
@@ -1721,7 +1901,7 @@
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L164",
       "id": "fantasia_decorate_gff3_main",
-      "community": 17,
+      "community": 15,
       "norm_label": "main()"
     },
     {
@@ -1729,7 +1909,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L52",
-      "community": 17,
+      "community": 15,
       "norm_label": "return the fantasia lookup key for a transcript-equivalent row.      prefers `tr",
       "id": "fantasia_decorate_gff3_rationale_52"
     },
@@ -1738,7 +1918,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L67",
-      "community": 17,
+      "community": 15,
       "norm_label": "map transcript_id -> set of go ids above the score threshold.",
       "id": "fantasia_decorate_gff3_rationale_67"
     },
@@ -1747,7 +1927,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L84",
-      "community": 17,
+      "community": 15,
       "norm_label": "append or merge an ontology_term attribute on a gff3 col9 string.      preserves",
       "id": "fantasia_decorate_gff3_rationale_84"
     },
@@ -1756,7 +1936,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_decorate_gff3.py",
       "source_location": "L111",
-      "community": 17,
+      "community": 15,
       "norm_label": "two-pass: build transcript->gene map, then rewrite the gff3.      both `mrna` an",
       "id": "fantasia_decorate_gff3_rationale_111"
     },
@@ -1766,7 +1946,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/compleasm_to_hints.py",
       "source_location": "L1",
       "id": "home_katharina_git_braker4_scripts_compleasm_to_hints_py",
-      "community": 20,
+      "community": 18,
       "norm_label": "compleasm_to_hints.py"
     },
     {
@@ -1775,7 +1955,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/compleasm_to_hints.py",
       "source_location": "L36",
       "id": "compleasm_to_hints_run_simple_process",
-      "community": 20,
+      "community": 18,
       "norm_label": "run_simple_process()"
     },
     {
@@ -1784,7 +1964,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/compleasm_to_hints.py",
       "source_location": "L65",
       "id": "compleasm_to_hints_extract_tx_ids_from_tsv",
-      "community": 20,
+      "community": 18,
       "norm_label": "extract_tx_ids_from_tsv()"
     },
     {
@@ -1793,7 +1973,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/compleasm_to_hints.py",
       "source_location": "L74",
       "id": "compleasm_to_hints_read_and_filter_gff",
-      "community": 20,
+      "community": 18,
       "norm_label": "read_and_filter_gff()"
     },
     {
@@ -1802,7 +1982,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/compleasm_to_hints.py",
       "source_location": "L88",
       "id": "compleasm_to_hints_miniprot_to_hints",
-      "community": 20,
+      "community": 18,
       "norm_label": "miniprot_to_hints()"
     },
     {
@@ -1811,7 +1991,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/compleasm_to_hints.py",
       "source_location": "L102",
       "id": "compleasm_to_hints_main",
-      "community": 20,
+      "community": 18,
       "norm_label": "main()"
     },
     {
@@ -1820,44 +2000,80 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
       "source_location": "L1",
       "id": "home_katharina_git_braker4_scripts_infernal_to_gff3_py",
-      "community": 21,
+      "community": 10,
       "norm_label": "infernal_to_gff3.py"
+    },
+    {
+      "label": "load_family_types()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
+      "source_location": "L24",
+      "id": "infernal_to_gff3_load_family_types",
+      "community": 10,
+      "norm_label": "load_family_types()"
+    },
+    {
+      "label": "rna_class()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
+      "source_location": "L39",
+      "id": "infernal_to_gff3_rna_class",
+      "community": 10,
+      "norm_label": "rna_class()"
     },
     {
       "label": "parse_tblout()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
-      "source_location": "L16",
+      "source_location": "L72",
       "id": "infernal_to_gff3_parse_tblout",
-      "community": 21,
+      "community": 10,
       "norm_label": "parse_tblout()"
     },
     {
       "label": "write_gff3()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
-      "source_location": "L80",
+      "source_location": "L135",
       "id": "infernal_to_gff3_write_gff3",
-      "community": 21,
+      "community": 10,
       "norm_label": "write_gff3()"
     },
     {
       "label": "main()",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
-      "source_location": "L100",
+      "source_location": "L164",
       "id": "infernal_to_gff3_main",
-      "community": 21,
+      "community": 10,
       "norm_label": "main()"
     },
     {
-      "label": "Parse Infernal --fmt 2 tblout output.      Fields (fmt 2):     0: idx, 1: target",
+      "label": "Rfam accession -> Rfam type string (e.g. 'Gene; snRNA; snoRNA; CD-box;').",
       "file_type": "rationale",
-      "source_file": "scripts/infernal_to_gff3.py",
-      "source_location": "L17",
-      "community": 21,
-      "norm_label": "parse infernal --fmt 2 tblout output.      fields (fmt 2):     0: idx, 1: target",
-      "id": "infernal_to_gff3_rationale_17"
+      "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
+      "source_location": "L25",
+      "id": "infernal_to_gff3_rationale_25",
+      "community": 10,
+      "norm_label": "rfam accession -> rfam type string (e.g. 'gene; snrna; snorna; cd-box;')."
+    },
+    {
+      "label": "(GFF3 feature type, gene_biotype or None) for an Rfam type string.      Feature",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
+      "source_location": "L40",
+      "id": "infernal_to_gff3_rationale_40",
+      "community": 10,
+      "norm_label": "(gff3 feature type, gene_biotype or none) for an rfam type string.      feature"
+    },
+    {
+      "label": "Parse Infernal cmscan --fmt 2 tblout output.      For cmscan, \"target\" is the Rf",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
+      "source_location": "L73",
+      "id": "infernal_to_gff3_rationale_73",
+      "community": 10,
+      "norm_label": "parse infernal cmscan --fmt 2 tblout output.      for cmscan, \"target\" is the rf"
     },
     {
       "label": "analyze_hint_support.py",
@@ -1865,7 +2081,7 @@
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L1",
       "id": "scripts_analyze_hint_support_py",
-      "community": 8,
+      "community": 7,
       "norm_label": "analyze_hint_support.py"
     },
     {
@@ -1874,7 +2090,7 @@
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L22",
       "id": "analyze_hint_support_parse_gtf_line",
-      "community": 8,
+      "community": 7,
       "norm_label": "parse_gtf_line()"
     },
     {
@@ -1883,7 +2099,7 @@
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L59",
       "id": "analyze_hint_support_parse_gff_line",
-      "community": 8,
+      "community": 7,
       "norm_label": "parse_gff_line()"
     },
     {
@@ -1892,7 +2108,7 @@
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L94",
       "id": "analyze_hint_support_load_transcripts_and_introns",
-      "community": 8,
+      "community": 7,
       "norm_label": "load_transcripts_and_introns()"
     },
     {
@@ -1901,7 +2117,7 @@
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L166",
       "id": "analyze_hint_support_load_hints",
-      "community": 8,
+      "community": 7,
       "norm_label": "load_hints()"
     },
     {
@@ -1910,7 +2126,7 @@
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L203",
       "id": "analyze_hint_support_check_intron_support",
-      "community": 8,
+      "community": 7,
       "norm_label": "check_intron_support()"
     },
     {
@@ -1919,7 +2135,7 @@
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L208",
       "id": "analyze_hint_support_check_cds_overlap",
-      "community": 8,
+      "community": 7,
       "norm_label": "check_cds_overlap()"
     },
     {
@@ -1928,7 +2144,7 @@
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L221",
       "id": "analyze_hint_support_analyze_hint_support",
-      "community": 8,
+      "community": 7,
       "norm_label": "analyze_hint_support()"
     },
     {
@@ -1937,7 +2153,7 @@
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L301",
       "id": "analyze_hint_support_print_stats",
-      "community": 8,
+      "community": 7,
       "norm_label": "print_stats()"
     },
     {
@@ -1946,7 +2162,7 @@
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L340",
       "id": "analyze_hint_support_main",
-      "community": 8,
+      "community": 7,
       "norm_label": "main()"
     },
     {
@@ -1954,7 +2170,7 @@
       "file_type": "rationale",
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L23",
-      "community": 8,
+      "community": 7,
       "norm_label": "parse a gtf line and return relevant information.",
       "id": "analyze_hint_support_rationale_23"
     },
@@ -1963,7 +2179,7 @@
       "file_type": "rationale",
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L60",
-      "community": 8,
+      "community": 7,
       "norm_label": "parse a gff/hints line and return relevant information.",
       "id": "analyze_hint_support_rationale_60"
     },
@@ -1972,7 +2188,7 @@
       "file_type": "rationale",
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L95",
-      "community": 8,
+      "community": 7,
       "norm_label": "load transcripts and their introns from gtf file.      returns:         transcri",
       "id": "analyze_hint_support_rationale_95"
     },
@@ -1981,7 +2197,7 @@
       "file_type": "rationale",
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L167",
-      "community": 8,
+      "community": 7,
       "norm_label": "load hints from gff file.      returns:         intron_hints: set of (seqname, s",
       "id": "analyze_hint_support_rationale_167"
     },
@@ -1990,7 +2206,7 @@
       "file_type": "rationale",
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L204",
-      "community": 8,
+      "community": 7,
       "norm_label": "check if an intron is supported by a hint.",
       "id": "analyze_hint_support_rationale_204"
     },
@@ -1999,7 +2215,7 @@
       "file_type": "rationale",
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L209",
-      "community": 8,
+      "community": 7,
       "norm_label": "check if there's any cds hint overlap for a transcript's location.",
       "id": "analyze_hint_support_rationale_209"
     },
@@ -2008,7 +2224,7 @@
       "file_type": "rationale",
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L222",
-      "community": 8,
+      "community": 7,
       "norm_label": "analyze hint support for all transcripts.      returns:         stats: dict with",
       "id": "analyze_hint_support_rationale_222"
     },
@@ -2017,7 +2233,7 @@
       "file_type": "rationale",
       "source_file": "scripts/analyze_hint_support.py",
       "source_location": "L302",
-      "community": 8,
+      "community": 7,
       "norm_label": "print statistics to stdout or file.",
       "id": "analyze_hint_support_rationale_302"
     },
@@ -2027,7 +2243,7 @@
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L1",
       "id": "scripts_gene_support_summary_py",
-      "community": 13,
+      "community": 16,
       "norm_label": "gene_support_summary.py"
     },
     {
@@ -2036,7 +2252,7 @@
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L30",
       "id": "gene_support_summary_parse_hints",
-      "community": 13,
+      "community": 16,
       "norm_label": "parse_hints()"
     },
     {
@@ -2045,7 +2261,7 @@
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L83",
       "id": "gene_support_summary_parse_gtf_transcripts",
-      "community": 13,
+      "community": 16,
       "norm_label": "parse_gtf_transcripts()"
     },
     {
@@ -2054,7 +2270,7 @@
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L152",
       "id": "gene_support_summary_check_support",
-      "community": 13,
+      "community": 16,
       "norm_label": "check_support()"
     },
     {
@@ -2063,7 +2279,7 @@
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L193",
       "id": "gene_support_summary_check_exon_support",
-      "community": 13,
+      "community": 16,
       "norm_label": "check_exon_support()"
     },
     {
@@ -2072,7 +2288,7 @@
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L222",
       "id": "gene_support_summary_main",
-      "community": 13,
+      "community": 16,
       "norm_label": "main()"
     },
     {
@@ -2080,7 +2296,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L31",
-      "community": 13,
+      "community": 16,
       "norm_label": "parse hints file into interval trees by (chrom, feature_type, source_class).",
       "id": "gene_support_summary_rationale_31"
     },
@@ -2089,7 +2305,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L84",
-      "community": 13,
+      "community": 16,
       "norm_label": "parse gtf into per-transcript feature lists.      returns list of (gene_id, tx_i",
       "id": "gene_support_summary_rationale_84"
     },
@@ -2098,7 +2314,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L153",
-      "community": 13,
+      "community": 16,
       "norm_label": "check how many intervals are supported by hints.      for introns: exact match (",
       "id": "gene_support_summary_rationale_153"
     },
@@ -2107,7 +2323,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_support_summary.py",
       "source_location": "L194",
-      "community": 13,
+      "community": 16,
       "norm_label": "check how many exons have any overlapping exon/cds hints.      uses overlap (not",
       "id": "gene_support_summary_rationale_194"
     },
@@ -2225,7 +2441,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L1",
       "id": "home_katharina_git_braker4_scripts_normalize_gtf_py",
-      "community": 10,
+      "community": 12,
       "norm_label": "normalize_gtf.py"
     },
     {
@@ -2234,7 +2450,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L24",
       "id": "normalize_gtf_parse_gtf",
-      "community": 10,
+      "community": 12,
       "norm_label": "parse_gtf()"
     },
     {
@@ -2243,7 +2459,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L63",
       "id": "normalize_gtf_parse_attrs",
-      "community": 10,
+      "community": 12,
       "norm_label": "parse_attrs()"
     },
     {
@@ -2252,7 +2468,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L76",
       "id": "normalize_gtf_get_sequence",
-      "community": 10,
+      "community": 12,
       "norm_label": "get_sequence()"
     },
     {
@@ -2261,7 +2477,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L86",
       "id": "normalize_gtf_get_cds_features",
-      "community": 10,
+      "community": 12,
       "norm_label": "get_cds_features()"
     },
     {
@@ -2270,7 +2486,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L93",
       "id": "normalize_gtf_normalize_transcript",
-      "community": 10,
+      "community": 12,
       "norm_label": "normalize_transcript()"
     },
     {
@@ -2279,7 +2495,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L179",
       "id": "normalize_gtf_update_gene_boundaries",
-      "community": 10,
+      "community": 12,
       "norm_label": "update_gene_boundaries()"
     },
     {
@@ -2288,7 +2504,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L201",
       "id": "normalize_gtf_write_gtf",
-      "community": 10,
+      "community": 12,
       "norm_label": "write_gtf()"
     },
     {
@@ -2297,7 +2513,7 @@
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L231",
       "id": "normalize_gtf_main",
-      "community": 10,
+      "community": 12,
       "norm_label": "main()"
     },
     {
@@ -2305,7 +2521,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L25",
-      "community": 10,
+      "community": 12,
       "norm_label": "parse gtf into gene -> transcript -> features structure.",
       "id": "normalize_gtf_rationale_25"
     },
@@ -2314,7 +2530,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L64",
-      "community": 10,
+      "community": 12,
       "norm_label": "parse gtf attribute string into dict.",
       "id": "normalize_gtf_rationale_64"
     },
@@ -2323,7 +2539,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L77",
-      "community": 10,
+      "community": 12,
       "norm_label": "extract sequence from genome (1-based coords).",
       "id": "normalize_gtf_rationale_77"
     },
@@ -2332,7 +2548,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L87",
-      "community": 10,
+      "community": 12,
       "norm_label": "get cds features sorted by genomic position.",
       "id": "normalize_gtf_rationale_87"
     },
@@ -2341,7 +2557,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L94",
-      "community": 10,
+      "community": 12,
       "norm_label": "normalize cds boundaries for a transcript.      returns (normalized_features, is",
       "id": "normalize_gtf_rationale_94"
     },
@@ -2350,7 +2566,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L180",
-      "community": 10,
+      "community": 12,
       "norm_label": "update gene and transcript boundaries to match their features.",
       "id": "normalize_gtf_rationale_180"
     },
@@ -2359,7 +2575,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
       "source_location": "L202",
-      "community": 10,
+      "community": 12,
       "norm_label": "write normalized gtf, preserving gene/transcript/feature order.",
       "id": "normalize_gtf_rationale_202"
     },
@@ -2369,7 +2585,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L1",
       "id": "scripts_gene_set_statistics_py",
-      "community": 12,
+      "community": 5,
       "norm_label": "gene_set_statistics.py"
     },
     {
@@ -2378,7 +2594,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L27",
       "id": "gene_set_statistics_parse_gtf",
-      "community": 12,
+      "community": 5,
       "norm_label": "parse_gtf()"
     },
     {
@@ -2387,7 +2603,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L77",
       "id": "gene_set_statistics_compute_statistics",
-      "community": 12,
+      "community": 5,
       "norm_label": "compute_statistics()"
     },
     {
@@ -2396,7 +2612,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L149",
       "id": "gene_set_statistics_parse_support_tsv",
-      "community": 12,
+      "community": 5,
       "norm_label": "parse_support_tsv()"
     },
     {
@@ -2405,7 +2621,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L171",
       "id": "gene_set_statistics_generate_plots",
-      "community": 12,
+      "community": 5,
       "norm_label": "generate_plots()"
     },
     {
@@ -2414,7 +2630,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L340",
       "id": "gene_set_statistics_write_summary",
-      "community": 12,
+      "community": 5,
       "norm_label": "write_summary()"
     },
     {
@@ -2423,7 +2639,7 @@
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L366",
       "id": "gene_set_statistics_main",
-      "community": 12,
+      "community": 5,
       "norm_label": "main()"
     },
     {
@@ -2431,7 +2647,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L28",
-      "community": 12,
+      "community": 5,
       "norm_label": "parse gtf file into gene/transcript/exon structure.      returns:         genes:",
       "id": "gene_set_statistics_rationale_28"
     },
@@ -2440,7 +2656,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L78",
-      "community": 12,
+      "community": 5,
       "norm_label": "compute summary statistics from parsed gene structure.",
       "id": "gene_set_statistics_rationale_78"
     },
@@ -2449,7 +2665,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L150",
-      "community": 12,
+      "community": 5,
       "norm_label": "parse gene_support.tsv for evidence support visualization.",
       "id": "gene_set_statistics_rationale_150"
     },
@@ -2458,7 +2674,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L172",
-      "community": 12,
+      "community": 5,
       "norm_label": "generate all publication-quality plots.",
       "id": "gene_set_statistics_rationale_172"
     },
@@ -2467,7 +2683,7 @@
       "file_type": "rationale",
       "source_file": "scripts/gene_set_statistics.py",
       "source_location": "L341",
-      "community": 12,
+      "community": 5,
       "norm_label": "write gene set statistics summary text file.",
       "id": "gene_set_statistics_rationale_341"
     },
@@ -2477,7 +2693,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L1",
       "id": "scripts_fix_in_frame_stop_codon_genes_py",
-      "community": 11,
+      "community": 13,
       "norm_label": "fix_in_frame_stop_codon_genes.py"
     },
     {
@@ -2486,7 +2702,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L180",
       "id": "fix_in_frame_stop_codon_genes_create_random_string",
-      "community": 11,
+      "community": 13,
       "norm_label": "create_random_string()"
     },
     {
@@ -2495,7 +2711,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L195",
       "id": "fix_in_frame_stop_codon_genes_create_log_file_name",
-      "community": 11,
+      "community": 13,
       "norm_label": "create_log_file_name()"
     },
     {
@@ -2504,7 +2720,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L201",
       "id": "fix_in_frame_stop_codon_genes_create_tmp_dir",
-      "community": 11,
+      "community": 13,
       "norm_label": "create_tmp_dir()"
     },
     {
@@ -2513,7 +2729,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L209",
       "id": "fix_in_frame_stop_codon_genes_find_tool",
-      "community": 11,
+      "community": 13,
       "norm_label": "find_tool()"
     },
     {
@@ -2522,7 +2738,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L222",
       "id": "fix_in_frame_stop_codon_genes_check_tool_in_given_path",
-      "community": 11,
+      "community": 13,
       "norm_label": "check_tool_in_given_path()"
     },
     {
@@ -2531,7 +2747,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L239",
       "id": "fix_in_frame_stop_codon_genes_run_process",
-      "community": 11,
+      "community": 13,
       "norm_label": "run_process()"
     },
     {
@@ -2540,7 +2756,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L331",
       "id": "fix_in_frame_stop_codon_genes_sortfirst",
-      "community": 11,
+      "community": 13,
       "norm_label": "sortfirst()"
     },
     {
@@ -2549,7 +2765,7 @@
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L335",
       "id": "fix_in_frame_stop_codon_genes_sortsecond",
-      "community": 11,
+      "community": 13,
       "norm_label": "sortsecond()"
     },
     {
@@ -2557,7 +2773,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L181",
-      "community": 11,
+      "community": 13,
       "norm_label": "funtion that creates a random string added to the logfile name         and tmp d",
       "id": "fix_in_frame_stop_codon_genes_rationale_181"
     },
@@ -2566,7 +2782,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L196",
-      "community": 11,
+      "community": 13,
       "norm_label": "function that creates a log file with a random name",
       "id": "fix_in_frame_stop_codon_genes_rationale_196"
     },
@@ -2575,7 +2791,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L202",
-      "community": 11,
+      "community": 13,
       "norm_label": "function that creates a directory for temporary files with a random name",
       "id": "fix_in_frame_stop_codon_genes_rationale_202"
     },
@@ -2584,7 +2800,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L210",
-      "community": 11,
+      "community": 13,
       "norm_label": "function that tries to locate a tool with which",
       "id": "fix_in_frame_stop_codon_genes_rationale_210"
     },
@@ -2593,7 +2809,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fix_in_frame_stop_codon_genes.py",
       "source_location": "L223",
-      "community": 11,
+      "community": 13,
       "norm_label": "if tool_path is provided as command line option, check whether the     required",
       "id": "fix_in_frame_stop_codon_genes_rationale_223"
     },
@@ -2603,7 +2819,7 @@
       "source_file": "scripts/getAnnoFastaFromJoingenes.py",
       "source_location": "L1",
       "id": "scripts_getannofastafromjoingenes_py",
-      "community": 26,
+      "community": 23,
       "norm_label": "getannofastafromjoingenes.py"
     },
     {
@@ -2612,7 +2828,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L1",
       "id": "scripts_fantasia_summary_py",
-      "community": 15,
+      "community": 5,
       "norm_label": "fantasia_summary.py"
     },
     {
@@ -2621,7 +2837,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L199",
       "id": "fantasia_summary_compile_categories",
-      "community": 15,
+      "community": 5,
       "norm_label": "_compile_categories()"
     },
     {
@@ -2630,7 +2846,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L208",
       "id": "fantasia_summary_classify_proteins",
-      "community": 15,
+      "community": 5,
       "norm_label": "classify_proteins()"
     },
     {
@@ -2639,7 +2855,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L253",
       "id": "fantasia_summary_parse_results",
-      "community": 15,
+      "community": 5,
       "norm_label": "parse_results()"
     },
     {
@@ -2648,7 +2864,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L302",
       "id": "fantasia_summary_write_go_terms_tsv",
-      "community": 15,
+      "community": 5,
       "norm_label": "write_go_terms_tsv()"
     },
     {
@@ -2657,7 +2873,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L312",
       "id": "fantasia_summary_write_summary",
-      "community": 15,
+      "community": 5,
       "norm_label": "write_summary()"
     },
     {
@@ -2666,7 +2882,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L334",
       "id": "fantasia_summary_write_categories_pie",
-      "community": 15,
+      "community": 5,
       "norm_label": "write_categories_pie()"
     },
     {
@@ -2675,7 +2891,7 @@
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L404",
       "id": "fantasia_summary_main",
-      "community": 15,
+      "community": 5,
       "norm_label": "main()"
     },
     {
@@ -2683,7 +2899,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L209",
-      "community": 15,
+      "community": 5,
       "norm_label": "map each protein to all categories its go terms touch.      returns a counter of",
       "id": "fantasia_summary_rationale_209"
     },
@@ -2692,7 +2908,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L254",
-      "community": 15,
+      "community": 5,
       "norm_label": "stream results.csv: collect counters and per-row tuples for the tsv.",
       "id": "fantasia_summary_rationale_254"
     },
@@ -2701,7 +2917,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L303",
-      "community": 15,
+      "community": 5,
       "norm_label": "flat per-(transcript, go term) tsv with human-readable go names.",
       "id": "fantasia_summary_rationale_303"
     },
@@ -2710,7 +2926,7 @@
       "file_type": "rationale",
       "source_file": "scripts/fantasia_summary.py",
       "source_location": "L335",
-      "community": 15,
+      "community": 5,
       "norm_label": "pie chart of broad functional categories.      each protein is counted once per",
       "id": "fantasia_summary_rationale_335"
     },
@@ -2949,12 +3165,129 @@
       "id": "test_best_by_compleasm_cutoffs_rationale_145"
     },
     {
+      "label": "test_merge_ncrna_gff3.py",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L1",
+      "id": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "community": 10,
+      "norm_label": "test_merge_ncrna_gff3.py"
+    },
+    {
+      "label": "_attrs()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L60",
+      "id": "test_merge_ncrna_gff3_attrs",
+      "community": 10,
+      "norm_label": "_attrs()"
+    },
+    {
+      "label": "_merge()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L64",
+      "id": "test_merge_ncrna_gff3_merge",
+      "community": 10,
+      "norm_label": "_merge()"
+    },
+    {
+      "label": "_merged()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L80",
+      "id": "test_merge_ncrna_gff3_merged",
+      "community": 10,
+      "norm_label": "_merged()"
+    },
+    {
+      "label": "test_coding_genes_are_copied_unchanged()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L85",
+      "id": "test_merge_ncrna_gff3_test_coding_genes_are_copied_unchanged",
+      "community": 10,
+      "norm_label": "test_coding_genes_are_copied_unchanged()"
+    },
+    {
+      "label": "test_every_ncrna_has_a_gene_with_biotype()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L90",
+      "id": "test_merge_ncrna_gff3_test_every_ncrna_has_a_gene_with_biotype",
+      "community": 10,
+      "norm_label": "test_every_ncrna_has_a_gene_with_biotype()"
+    },
+    {
+      "label": "test_exons_point_to_their_rna()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L104",
+      "id": "test_merge_ncrna_gff3_test_exons_point_to_their_rna",
+      "community": 10,
+      "norm_label": "test_exons_point_to_their_rna()"
+    },
+    {
+      "label": "test_overlaps_are_resolved()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L118",
+      "id": "test_merge_ncrna_gff3_test_overlaps_are_resolved",
+      "community": 10,
+      "norm_label": "test_overlaps_are_resolved()"
+    },
+    {
+      "label": "test_non_rna_features_pass_through_without_gene()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L128",
+      "id": "test_merge_ncrna_gff3_test_non_rna_features_pass_through_without_gene",
+      "community": 10,
+      "norm_label": "test_non_rna_features_pass_through_without_gene()"
+    },
+    {
+      "label": "test_orphan_features_are_dropped_with_warning()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L135",
+      "id": "test_merge_ncrna_gff3_test_orphan_features_are_dropped_with_warning",
+      "community": 10,
+      "norm_label": "test_orphan_features_are_dropped_with_warning()"
+    },
+    {
+      "label": "test_rfam_types_map_to_ncbi_feature_types()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L141",
+      "id": "test_merge_ncrna_gff3_test_rfam_types_map_to_ncbi_feature_types",
+      "community": 10,
+      "norm_label": "test_rfam_types_map_to_ncbi_feature_types()"
+    },
+    {
+      "label": "test_shipped_rfam_table_covers_all_families()",
+      "file_type": "code",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L156",
+      "id": "test_merge_ncrna_gff3_test_shipped_rfam_table_covers_all_families",
+      "community": 10,
+      "norm_label": "test_shipped_rfam_table_covers_all_families()"
+    },
+    {
+      "label": "Tests for scripts/merge_ncrna_gff3.py and the Rfam type mapping in scripts/infer",
+      "file_type": "rationale",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L1",
+      "id": "test_merge_ncrna_gff3_rationale_1",
+      "community": 10,
+      "norm_label": "tests for scripts/merge_ncrna_gff3.py and the rfam type mapping in scripts/infer"
+    },
+    {
       "label": "test_stringtie2utr_cross_scaffold.py",
       "file_type": "code",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
       "source_location": "L1",
       "id": "home_katharina_git_braker4_tests_test_stringtie2utr_cross_scaffold_py",
-      "community": 9,
+      "community": 1,
       "norm_label": "test_stringtie2utr_cross_scaffold.py"
     },
     {
@@ -2963,7 +3296,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
       "source_location": "L25",
       "id": "test_stringtie2utr_cross_scaffold_gtf_line",
-      "community": 9,
+      "community": 1,
       "norm_label": "_gtf_line()"
     },
     {
@@ -2972,7 +3305,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
       "source_location": "L37",
       "id": "test_stringtie2utr_cross_scaffold_test_cross_scaffold_mstrg_collision_multi_exon",
-      "community": 9,
+      "community": 1,
       "norm_label": "test_cross_scaffold_mstrg_collision_multi_exon()"
     },
     {
@@ -2981,7 +3314,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
       "source_location": "L93",
       "id": "test_stringtie2utr_cross_scaffold_test_fix_feature_coordinates_ignores_wrong_scaffold",
-      "community": 9,
+      "community": 1,
       "norm_label": "test_fix_feature_coordinates_ignores_wrong_scaffold()"
     },
     {
@@ -2989,7 +3322,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
       "source_location": "L1",
-      "community": 9,
+      "community": 1,
       "norm_label": "regression tests for the cross-scaffold mstrg id collision bug.  root cause (iss",
       "id": "test_stringtie2utr_cross_scaffold_rationale_1"
     },
@@ -2998,7 +3331,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
       "source_location": "L38",
-      "community": 9,
+      "community": 1,
       "norm_label": "exons from a colliding scaffold must not be merged into the braker transcript.",
       "id": "test_stringtie2utr_cross_scaffold_rationale_38"
     },
@@ -3007,7 +3340,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_cross_scaffold.py",
       "source_location": "L94",
-      "community": 9,
+      "community": 1,
       "norm_label": "fix_feature_coordinates must skip features whose seqname differs from the transc",
       "id": "test_stringtie2utr_cross_scaffold_rationale_94"
     },
@@ -3017,7 +3350,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L1",
       "id": "home_katharina_git_braker4_tests_test_stringtie2utr_single_exon_py",
-      "community": 9,
+      "community": 1,
       "norm_label": "test_stringtie2utr_single_exon.py"
     },
     {
@@ -3026,7 +3359,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L26",
       "id": "test_stringtie2utr_single_exon_gtf_line",
-      "community": 9,
+      "community": 1,
       "norm_label": "_gtf_line()"
     },
     {
@@ -3035,7 +3368,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L38",
       "id": "test_stringtie2utr_single_exon_test_single_exon_braker_distant_stringtie_exon_not_merged",
-      "community": 9,
+      "community": 1,
       "norm_label": "test_single_exon_braker_distant_stringtie_exon_not_merged()"
     },
     {
@@ -3044,7 +3377,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L91",
       "id": "test_stringtie2utr_single_exon_test_single_exon_braker_overlapping_stringtie_exon_is_merged",
-      "community": 9,
+      "community": 1,
       "norm_label": "test_single_exon_braker_overlapping_stringtie_exon_is_merged()"
     },
     {
@@ -3053,7 +3386,7 @@
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L138",
       "id": "test_stringtie2utr_single_exon_test_multi_exon_braker_all_stringtie_exons_merged",
-      "community": 9,
+      "community": 1,
       "norm_label": "test_multi_exon_braker_all_stringtie_exons_merged()"
     },
     {
@@ -3061,7 +3394,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L1",
-      "community": 9,
+      "community": 1,
       "norm_label": "regression and positive tests for the single-exon guard added to merge_features(",
       "id": "test_stringtie2utr_single_exon_rationale_1"
     },
@@ -3070,7 +3403,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L39",
-      "community": 9,
+      "community": 1,
       "norm_label": "distant second exon of a multi-exon stringtie transcript must not be     merged",
       "id": "test_stringtie2utr_single_exon_rationale_39"
     },
@@ -3079,7 +3412,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L92",
-      "community": 9,
+      "community": 1,
       "norm_label": "a stringtie exon that overlaps the braker exon must still be merged.",
       "id": "test_stringtie2utr_single_exon_rationale_92"
     },
@@ -3088,16 +3421,25 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/tests/test_stringtie2utr_single_exon.py",
       "source_location": "L139",
-      "community": 9,
+      "community": 1,
       "norm_label": "for a multi-exon braker transcript the single-exon guard must not     activate;",
       "id": "test_stringtie2utr_single_exon_rationale_139"
+    },
+    {
+      "label": "Parse Infernal --fmt 2 tblout output.      Fields (fmt 2):     0: idx, 1: target",
+      "file_type": "rationale",
+      "source_file": "scripts/infernal_to_gff3.py",
+      "source_location": "L17",
+      "community": 24,
+      "norm_label": "parse infernal --fmt 2 tblout output.      fields (fmt 2):     0: idx, 1: target",
+      "id": "infernal_to_gff3_rationale_17"
     },
     {
       "label": "Run the getAnnoFastaFromJoingenes.py tool to process the Genemark GTF file and g",
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L290",
-      "community": 27,
+      "community": 25,
       "norm_label": "run the getannofastafromjoingenes.py tool to process the genemark gtf file and g",
       "id": "best_by_compleasm_rationale_290"
     },
@@ -3106,7 +3448,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L306",
-      "community": 28,
+      "community": 26,
       "norm_label": "execute a subprocess command with the provided arguments.      args:         arg",
       "id": "best_by_compleasm_rationale_306"
     },
@@ -3115,7 +3457,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L341",
-      "community": 29,
+      "community": 27,
       "norm_label": "check if the provided binary is executable or available in the system's path.",
       "id": "best_by_compleasm_rationale_341"
     },
@@ -3124,7 +3466,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L377",
-      "community": 30,
+      "community": 28,
       "norm_label": "check if the specified file exists.      args:         file (str): path to the f",
       "id": "best_by_compleasm_rationale_377"
     },
@@ -3133,7 +3475,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L394",
-      "community": 31,
+      "community": 29,
       "norm_label": "determine whether braker run, and whether the files are complete.      args:",
       "id": "best_by_compleasm_rationale_394"
     },
@@ -3142,7 +3484,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L418",
-      "community": 32,
+      "community": 30,
       "norm_label": "check if the specified directory exists.      returns:         str: path to the",
       "id": "best_by_compleasm_rationale_418"
     },
@@ -3151,7 +3493,7 @@
       "file_type": "rationale",
       "source_file": "scripts/best_by_compleasm.py",
       "source_location": "L435",
-      "community": 33,
+      "community": 31,
       "norm_label": "filters and writes gtf lines based on transcript ids.      this function reads a",
       "id": "best_by_compleasm_rationale_435"
     },
@@ -3160,7 +3502,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L59",
-      "community": 34,
+      "community": 32,
       "norm_label": "parse gtf attribute string into dict.",
       "id": "normalize_gtf_rationale_59"
     },
@@ -3169,7 +3511,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L72",
-      "community": 35,
+      "community": 33,
       "norm_label": "extract sequence from genome (1-based coords).",
       "id": "normalize_gtf_rationale_72"
     },
@@ -3178,7 +3520,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L82",
-      "community": 36,
+      "community": 34,
       "norm_label": "get cds features sorted by genomic position.",
       "id": "normalize_gtf_rationale_82"
     },
@@ -3187,7 +3529,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L89",
-      "community": 37,
+      "community": 35,
       "norm_label": "normalize cds boundaries for a transcript.      returns (normalized_features, is",
       "id": "normalize_gtf_rationale_89"
     },
@@ -3196,7 +3538,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L175",
-      "community": 38,
+      "community": 36,
       "norm_label": "update gene and transcript boundaries to match their features.",
       "id": "normalize_gtf_rationale_175"
     },
@@ -3205,7 +3547,7 @@
       "file_type": "rationale",
       "source_file": "scripts/normalize_gtf.py",
       "source_location": "L197",
-      "community": 39,
+      "community": 37,
       "norm_label": "write normalized gtf, preserving gene/transcript/feature order.",
       "id": "normalize_gtf_rationale_197"
     },
@@ -3214,7 +3556,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L321",
-      "community": 40,
+      "community": 38,
       "norm_label": "create a utr feature line with explicit start/end coordinates.      avoids the s",
       "id": "stringtie2utr_rationale_321"
     },
@@ -3223,7 +3565,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L446",
-      "community": 41,
+      "community": 39,
       "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers",
       "id": "stringtie2utr_rationale_446"
     },
@@ -3232,7 +3574,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L510",
-      "community": 42,
+      "community": 40,
       "norm_label": "print gtf lines based on gene_dict and gtf_dict.          args:     - filename (",
       "id": "stringtie2utr_rationale_510"
     },
@@ -3241,7 +3583,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L557",
-      "community": 43,
+      "community": 41,
       "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi",
       "id": "stringtie2utr_rationale_557"
     },
@@ -3250,7 +3592,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L565",
-      "community": 44,
+      "community": 42,
       "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
       "id": "stringtie2utr_rationale_565"
     },
@@ -3259,7 +3601,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L594",
-      "community": 45,
+      "community": 43,
       "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
       "id": "stringtie2utr_rationale_594"
     },
@@ -3268,7 +3610,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L627",
-      "community": 46,
+      "community": 44,
       "norm_label": "find transcripts that overlap with genes.",
       "id": "stringtie2utr_rationale_627"
     },
@@ -3277,7 +3619,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L646",
-      "community": 47,
+      "community": 45,
       "norm_label": "extract introns directly from stringtie_tx_dict.",
       "id": "stringtie2utr_rationale_646"
     },
@@ -3286,7 +3628,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L655",
-      "community": 48,
+      "community": 46,
       "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in",
       "id": "stringtie2utr_rationale_655"
     },
@@ -3295,7 +3637,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L312",
-      "community": 49,
+      "community": 47,
       "norm_label": "create a utr feature line with explicit start/end coordinates.      avoids the s",
       "id": "stringtie2utr_rationale_312"
     },
@@ -3304,7 +3646,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L330",
-      "community": 50,
+      "community": 48,
       "norm_label": "compute the utr features for each transcript in tsebra_gtf based on strand infor",
       "id": "stringtie2utr_rationale_330"
     },
@@ -3313,7 +3655,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L437",
-      "community": 51,
+      "community": 49,
       "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers",
       "id": "stringtie2utr_rationale_437"
     },
@@ -3322,7 +3664,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L493",
-      "community": 52,
+      "community": 50,
       "norm_label": "print gtf lines based on gene_dict and gtf_dict.          args:     - filename (",
       "id": "stringtie2utr_rationale_493"
     },
@@ -3331,7 +3673,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L540",
-      "community": 53,
+      "community": 51,
       "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi",
       "id": "stringtie2utr_rationale_540"
     },
@@ -3340,7 +3682,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L548",
-      "community": 54,
+      "community": 52,
       "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
       "id": "stringtie2utr_rationale_548"
     },
@@ -3349,7 +3691,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L577",
-      "community": 55,
+      "community": 53,
       "norm_label": "contructs a dictionary that has sequence name as first key, then strand as secon",
       "id": "stringtie2utr_rationale_577"
     },
@@ -3358,7 +3700,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L610",
-      "community": 56,
+      "community": 54,
       "norm_label": "find transcripts that overlap with genes.",
       "id": "stringtie2utr_rationale_610"
     },
@@ -3367,7 +3709,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L629",
-      "community": 57,
+      "community": 55,
       "norm_label": "extract introns directly from stringtie_tx_dict.",
       "id": "stringtie2utr_rationale_629"
     },
@@ -3376,7 +3718,7 @@
       "file_type": "rationale",
       "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
       "source_location": "L638",
-      "community": 58,
+      "community": 56,
       "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in",
       "id": "stringtie2utr_rationale_638"
     },
@@ -3385,7 +3727,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L300",
-      "community": 59,
+      "community": 57,
       "norm_label": "create a utr feature line with explicit start/end coordinates.      avoids the s",
       "id": "stringtie2utr_rationale_300"
     },
@@ -3394,7 +3736,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L318",
-      "community": 60,
+      "community": 58,
       "norm_label": "compute the utr features for each transcript in tsebra_gtf based on strand infor",
       "id": "stringtie2utr_rationale_318"
     },
@@ -3403,7 +3745,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L425",
-      "community": 61,
+      "community": 59,
       "norm_label": "the list of features in gtf_dict has been expanded compared to the original vers",
       "id": "stringtie2utr_rationale_425"
     },
@@ -3412,7 +3754,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L481",
-      "community": 62,
+      "community": 60,
       "norm_label": "print gtf lines based on gene_dict and gtf_dict.          args:     - filename (",
       "id": "stringtie2utr_rationale_481"
     },
@@ -3421,7 +3763,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L528",
-      "community": 63,
+      "community": 61,
       "norm_label": "build an interval tree from data. we will use that to quickly find the overlappi",
       "id": "stringtie2utr_rationale_528"
     },
@@ -3430,7 +3772,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L598",
-      "community": 64,
+      "community": 62,
       "norm_label": "find transcripts that overlap with genes.",
       "id": "stringtie2utr_rationale_598"
     },
@@ -3439,7 +3781,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L617",
-      "community": 65,
+      "community": 63,
       "norm_label": "extract introns directly from stringtie_tx_dict.",
       "id": "stringtie2utr_rationale_617"
     },
@@ -3448,7 +3790,7 @@
       "file_type": "rationale",
       "source_file": "scripts/stringtie2utr.py",
       "source_location": "L626",
-      "community": 66,
+      "community": 64,
       "norm_label": "check if the overlapping transcripts are compatible with the gene models.     in",
       "id": "stringtie2utr_rationale_626"
     },
@@ -3461,7 +3803,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 67,
+      "community": 65,
       "norm_label": ".gitignore (braker4)",
       "id": "gitignore_braker4"
     },
@@ -3474,7 +3816,7 @@
       "captured_at": null,
       "author": "Katharina Hoff",
       "contributor": null,
-      "community": 68,
+      "community": 66,
       "norm_label": "mit license (braker4)",
       "id": "license_mit"
     },
@@ -3487,7 +3829,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "migrating_from_braker3.md",
       "id": "migrating_guide"
     },
@@ -3500,7 +3842,7 @@
       "captured_at": null,
       "author": "Henning Krall, Katharina J. Hoff",
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "readme.md (braker4)",
       "id": "readme_braker4"
     },
@@ -3513,7 +3855,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "pipeline_overview.dot (graphviz dag)",
       "id": "pipeline_overview_dot"
     },
@@ -3526,7 +3868,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "requirements.txt (host python deps)",
       "id": "requirements_txt"
     },
@@ -3539,7 +3881,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "samples.csv (multi-sample input)",
       "id": "samples_csv"
     },
@@ -3552,7 +3894,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "test_data/readme.md",
       "id": "testdata_readme"
     },
@@ -3565,7 +3907,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "test_data/rnaseq.hints",
       "id": "testdata_rnaseq_hints"
     },
@@ -3578,7 +3920,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "test_data/genome.fa (a. thaliana chr5 fragment)",
       "id": "testdata_genome_fa"
     },
@@ -3591,7 +3933,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "test_data/isoseq.bam",
       "id": "testdata_isoseq_bam"
     },
@@ -3604,7 +3946,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "test_data/isoseq.fastq.gz",
       "id": "testdata_isoseq_fastq"
     },
@@ -3617,7 +3959,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "test_data/proteins.fa (orthodb subset)",
       "id": "testdata_proteins_fa"
     },
@@ -3630,7 +3972,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "test_data/reference.gtf",
       "id": "testdata_reference_gtf"
     },
@@ -3643,7 +3985,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "snakemake-based pipeline orchestration",
       "id": "concept_snakemake_workflow"
     },
@@ -3656,7 +3998,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 69,
+      "community": 67,
       "norm_label": "samples.csv + config.ini input specification",
       "id": "concept_samples_csv_config"
     },
@@ -3669,7 +4011,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "singularity container management",
       "id": "concept_singularity_containers"
     },
@@ -3682,7 +4024,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "genemark (es/et/ep+/etp modes)",
       "id": "concept_genemark"
     },
@@ -3695,7 +4037,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "augustus (training + hint-guided prediction)",
       "id": "concept_augustus"
     },
@@ -3708,7 +4050,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "tsebra gene-set merger",
       "id": "concept_tsebra"
     },
@@ -3721,7 +4063,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "et mode (rna-seq only / braker1 equivalent)",
       "id": "concept_et_mode"
     },
@@ -3734,7 +4076,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "ep mode (proteins only / braker2 equivalent)",
       "id": "concept_ep_mode"
     },
@@ -3747,7 +4089,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "etp mode (rna-seq + proteins / braker3 equivalent)",
       "id": "concept_etp_mode"
     },
@@ -3760,7 +4102,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "es mode (genome only / ab initio)",
       "id": "concept_es_mode"
     },
@@ -3773,7 +4115,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "isoseq mode (pacbio long reads + proteins)",
       "id": "concept_isoseq_mode"
     },
@@ -3786,7 +4128,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "dual mode (isoseq + short-read rna-seq + proteins)",
       "id": "concept_dual_mode"
     },
@@ -3799,7 +4141,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "repeat masking (repeatmodeler2+repeatmasker+trf or red)",
       "id": "concept_repeat_masking"
     },
@@ -3812,7 +4154,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "ncrna annotation (barrnap, trnascan-se, infernal, feelnc)",
       "id": "concept_ncrna_annotation"
     },
@@ -3825,7 +4167,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "qc pipeline (busco, compleasm, omark, gffcompare)",
       "id": "concept_qc_pipeline"
     },
@@ -3838,7 +4180,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "fantasia-lite functional annotation (gpu, go terms)",
       "id": "concept_fantasia"
     },
@@ -3851,7 +4193,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "compleasm cdspart hints for augustus",
       "id": "concept_compleasm_hints"
     },
@@ -3864,7 +4206,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "best_by_compleasm busco-rescue in tsebra merge",
       "id": "concept_best_by_compleasm"
     },
@@ -3877,7 +4219,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 23,
+      "community": 20,
       "norm_label": "translation table validation (codes 1, 6, 29 only)",
       "id": "concept_translation_table"
     },
@@ -3890,7 +4232,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "environment variable overrides (braker4_<key>)",
       "id": "concept_env_overrides"
     },
@@ -3903,7 +4245,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "minimap2 >= 2.29 for isoseq alignment",
       "id": "concept_minimap2"
     },
@@ -3916,7 +4258,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "minisplice cnn splice-site scorer",
       "id": "concept_minisplice"
     },
@@ -3929,7 +4271,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "snakemake slurm executor plugin",
       "id": "concept_slurm_executor"
     },
@@ -3942,7 +4284,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "orthodb protein database (partitioned v12)",
       "id": "concept_orthodb"
     },
@@ -3955,7 +4297,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "teambraker/braker3:v3.0.10 container image",
       "id": "concept_braker3_image"
     },
@@ -3968,7 +4310,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "varus automated rna-seq sra sampling",
       "id": "concept_varus"
     },
@@ -3981,7 +4323,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "utr annotation via stringtie2",
       "id": "concept_utr_annotation"
     },
@@ -3994,7 +4336,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "rationale: snakemake rewrite replaces monolithic braker.pl",
       "id": "rationale_snakemake_rewrite"
     },
@@ -4007,7 +4349,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "rationale: compleasm always runs (no kill-switch) for best_by_compleasm rescue",
       "id": "rationale_compleasm_always_runs"
     },
@@ -4020,7 +4362,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 23,
+      "community": 20,
       "norm_label": "rationale: restrict translation_table to {1,6,29} because gmes_petap.pl rejects others",
       "id": "rationale_translation_table_restriction"
     },
@@ -4033,7 +4375,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "braker4 test scenarios readme",
       "id": "readme_test_scenarios"
     },
@@ -4046,7 +4388,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "hpc test scenarios (scenarios 08-11, o. tauri genome)",
       "id": "readme_hpc_scenarios"
     },
@@ -4059,7 +4401,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "local test scenarios (scenarios 01-07, a. thaliana fragment)",
       "id": "readme_local_scenarios"
     },
@@ -4072,7 +4414,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "compute_profile.sh (cluster/compute knobs)",
       "id": "readme_compute_profile_sh"
     },
@@ -4085,7 +4427,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "config.ini (shared biology defaults)",
       "id": "readme_config_ini"
     },
@@ -4098,7 +4440,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "run_test.sh (per-scenario launcher)",
       "id": "readme_run_test_sh"
     },
@@ -4111,7 +4453,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "run_all_tests.sh (batch scenario launcher)",
       "id": "readme_run_all_tests_sh"
     },
@@ -4124,7 +4466,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "scenario_overrides.sh (per-scenario config overrides)",
       "id": "readme_scenario_overrides_sh"
     },
@@ -4137,7 +4479,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "braker4_config environment variable",
       "id": "readme_braker4_config_env"
     },
@@ -4150,7 +4492,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "braker4_* environment variable overrides for config",
       "id": "readme_env_overrides"
     },
@@ -4163,7 +4505,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "braker.gtf output file",
       "id": "readme_output_braker_gtf"
     },
@@ -4176,7 +4518,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "quality_control/ output directory (busco, compleasm, omark)",
       "id": "readme_output_quality_control"
     },
@@ -4189,7 +4531,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "gene_support.tsv per-gene evidence support output",
       "id": "readme_output_gene_support"
     },
@@ -4202,7 +4544,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "nohup-based scenario launcher for slurm resilience",
       "id": "readme_nohup_launcher"
     },
@@ -4215,7 +4557,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "rulegraph.png execution dag visualization per scenario",
       "id": "readme_rulegraph"
     },
@@ -4228,7 +4570,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "ostreococcus tauri genome (~12.6 mb, hpc test organism)",
       "id": "readme_ostreococcus_tauri_genome"
     },
@@ -4241,7 +4583,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "arabidopsis thaliana chr5 fragment (~1 mb, local test organism)",
       "id": "readme_arabidopsis_thaliana_fragment"
     },
@@ -4254,7 +4596,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "test_data/genome.fa (a. thaliana chr5 fragment, 8 contigs)",
       "id": "readme_test_data_genome_fa"
     },
@@ -4267,7 +4609,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "test_data/proteins.fa (orthodb protein subset, 2.6 mb)",
       "id": "readme_test_data_proteins_fa"
     },
@@ -4280,7 +4622,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "test_data/isoseq.bam (pacbio isoseq reads aligned to genome)",
       "id": "readme_test_data_isoseq_bam"
     },
@@ -4293,7 +4635,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "test_data/isoseq.fastq.gz (unaligned isoseq reads for minimap2)",
       "id": "readme_test_data_isoseq_fastq"
     },
@@ -4306,7 +4648,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "test_data/reference.gtf (reference annotation for gffcompare)",
       "id": "readme_test_data_reference_gtf"
     },
@@ -4319,7 +4661,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "test_data/ostreococcus_tauri.fa (13 mb, o. tauri genome)",
       "id": "readme_test_data_otauri_fa"
     },
@@ -4332,7 +4674,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "test_data/viridiplantae.fa (odb12 proteins, 5.3 gb)",
       "id": "readme_test_data_viridiplantae_fa"
     },
@@ -4345,7 +4687,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "test_data/rnaseq.bam (a. thaliana rna-seq alignments, 164 mb)",
       "id": "readme_test_data_rnaseq_bam"
     },
@@ -4358,7 +4700,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "test_data/luca.h5 (omamer database for omark, 8.8 gb)",
       "id": "readme_test_data_luca_h5"
     },
@@ -4371,7 +4713,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "shared_data/rfam/ (rfam covariance models, 650 mb)",
       "id": "readme_shared_data_rfam"
     },
@@ -4384,7 +4726,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "es mode (ab initio, no evidence)",
       "id": "readme_mode_es"
     },
@@ -4397,7 +4739,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "ep mode (proteins only)",
       "id": "readme_mode_ep"
     },
@@ -4410,7 +4752,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "et mode (rna-seq only)",
       "id": "readme_mode_et"
     },
@@ -4423,7 +4765,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "etp mode (rna-seq + proteins)",
       "id": "readme_mode_etp"
     },
@@ -4436,7 +4778,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "isoseq mode",
       "id": "readme_mode_isoseq"
     },
@@ -4449,7 +4791,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "dual mode (short-read + isoseq + proteins)",
       "id": "readme_mode_dual"
     },
@@ -4462,7 +4804,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "config.ini hpc shared biology config",
       "id": "config_ini_hpc"
     },
@@ -4475,7 +4817,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "[fantasia] section in hpc config.ini (fantasia-lite settings)",
       "id": "config_ini_hpc_fantasia"
     },
@@ -4488,7 +4830,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "[params] section in hpc config.ini",
       "id": "config_ini_hpc_params"
     },
@@ -4501,7 +4843,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "config.ini local shared biology config",
       "id": "config_ini_local"
     },
@@ -4514,7 +4856,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "[params] section in local config.ini",
       "id": "config_ini_local_params"
     },
@@ -4527,7 +4869,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "scenario_08_es samples.csv (es mode, o. tauri, pre-masked)",
       "id": "scenario_08_es_samples"
     },
@@ -4540,7 +4882,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "scenario_09_ep_masking samples.csv (ep mode, o. tauri, repeatmasker)",
       "id": "scenario_09_ep_masking_samples"
     },
@@ -4553,7 +4895,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "scenario_10_et_varus samples.csv (et mode, varus, o. tauri)",
       "id": "scenario_10_et_varus_samples"
     },
@@ -4566,7 +4908,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "scenario_11_etp_sra samples.csv (etp mode, sra+proteins, o. tauri)",
       "id": "scenario_11_etp_sra_samples"
     },
@@ -4579,7 +4921,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "scenario_12_multi_mode samples.csv (all modes, a. thaliana)",
       "id": "scenario_12_multi_mode_samples"
     },
@@ -4592,7 +4934,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "local scenario_01_es samples.csv (es mode, a. thaliana)",
       "id": "local_scenario_01_es_samples"
     },
@@ -4605,7 +4947,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "local scenario_02_ep samples.csv (ep mode, a. thaliana)",
       "id": "local_scenario_02_ep_samples"
     },
@@ -4618,7 +4960,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "local scenario_03_et_fastq samples.csv (et mode, fastq, a. thaliana)",
       "id": "local_scenario_03_et_fastq_samples"
     },
@@ -4631,7 +4973,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "local scenario_04_etp_bam samples.csv (etp mode, bam+proteins)",
       "id": "local_scenario_04_etp_bam_samples"
     },
@@ -4644,7 +4986,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "local scenario_05_isoseq_bam samples.csv (isoseq bam multi-lib + proteins)",
       "id": "local_scenario_05_isoseq_bam_samples"
     },
@@ -4657,7 +4999,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "local scenario_06_isoseq_fastq samples.csv (isoseq fastq + proteins)",
       "id": "local_scenario_06_isoseq_fastq_samples"
     },
@@ -4670,7 +5012,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "local scenario_07_dual samples.csv (dual mode: bam + isoseq + proteins)",
       "id": "local_scenario_07_dual_samples"
     },
@@ -4683,7 +5025,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "local scenario_08_ep_redmask samples.csv (ep mode, unmasked genome)",
       "id": "local_scenario_08_ep_redmask_samples"
     },
@@ -4696,7 +5038,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "braker4 pipeline overview diagram",
       "id": "pipeline_overview_pdf"
     },
@@ -4709,7 +5051,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "pipeline input: genome fasta",
       "id": "pipeline_input_genome_fasta"
     },
@@ -4722,7 +5064,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "pipeline input: short-read rna-seq",
       "id": "pipeline_input_rnaseq"
     },
@@ -4735,7 +5077,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "pipeline input: isoseq long reads",
       "id": "pipeline_input_isoseq"
     },
@@ -4748,7 +5090,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "pipeline input: protein fasta",
       "id": "pipeline_input_protein_fasta"
     },
@@ -4761,7 +5103,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "repeat masking step (repeatmodeler2 + repeatmasker + trf)",
       "id": "pipeline_step_repeat_masking"
     },
@@ -4774,7 +5116,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "read alignment step (hisat2 short reads, minimap2 isoseq)",
       "id": "pipeline_step_read_alignment"
     },
@@ -4787,7 +5129,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "evidence hints aggregation (rna-seq, proteins/prothint, isoseq, busco)",
       "id": "pipeline_step_evidence_hints"
     },
@@ -4800,7 +5142,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "genemark step (es/et/ep+/etp, auto-mode selection)",
       "id": "pipeline_step_genemark"
     },
@@ -4813,7 +5155,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "augustus training and prediction step (etraining, optimize, hint-guided)",
       "id": "pipeline_step_augustus"
     },
@@ -4826,7 +5168,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "tsebra merge step (augustus + genemark, filter, rename, gff3)",
       "id": "pipeline_step_tsebra"
     },
@@ -4839,7 +5181,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "utr annotation step (stringtie + stringtie2utr)",
       "id": "pipeline_step_utr_annotation"
     },
@@ -4852,7 +5194,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "ncrna annotation step (barrnap, trnascan-se, infernal+rfam, feelnc) - optional",
       "id": "pipeline_step_ncrna_annotation"
     },
@@ -4865,7 +5207,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "functional annotation step - fantasia-lite (prott5 embeddings to go terms, gpu only) - optional",
       "id": "pipeline_step_fantasia"
     },
@@ -4878,7 +5220,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "quality control step (busco, compleasm, omark optional, gffcompare optional, gene-support)",
       "id": "pipeline_step_quality_control"
     },
@@ -4891,7 +5233,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "pipeline output: braker.gtf, braker.gff3, braker.aa, braker.codingseq",
       "id": "pipeline_output_braker_gtf"
     },
@@ -4904,7 +5246,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "pipeline output: braker_utr.gtf",
       "id": "pipeline_output_braker_utr"
     },
@@ -4917,7 +5259,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "pipeline output: braker_with_ncrna.gff3",
       "id": "pipeline_output_ncrna_gff3"
     },
@@ -4930,7 +5272,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "pipeline output: braker.go.gff3, fantasia_go_terms.tsv",
       "id": "pipeline_output_fantasia_go"
     },
@@ -4943,7 +5285,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "pipeline output: html report + citations.bib + software_versions.tsv",
       "id": "pipeline_output_html_report"
     },
@@ -4956,7 +5298,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "varus rna-seq download tool",
       "id": "varus_tool"
     },
@@ -4969,7 +5311,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "sra accession srr33123034 (o. tauri rna-seq)",
       "id": "sra_accession_srr33123034"
     },
@@ -4982,7 +5324,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "fantasia-lite singularity container (fantasia_lite.sif)",
       "id": "fantasia_lite_sif"
     },
@@ -4995,7 +5337,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "huggingface cache directory for fantasia offline mode",
       "id": "fantasia_hf_cache"
     },
@@ -5008,7 +5350,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 2,
       "norm_label": "busco lineage eukaryota_odb12",
       "id": "busco_lineage_eukaryota_odb12"
     },
@@ -5021,7 +5363,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 22,
+      "community": 19,
       "norm_label": "braker4 hatched logo (chick with hammer, post-hatching)",
       "id": "img_hatched_logo"
     },
@@ -5034,7 +5376,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 22,
+      "community": 19,
       "norm_label": "braker4 hatching logo (hammer bursting from egg)",
       "id": "img_hatching_logo"
     },
@@ -5047,7 +5389,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 22,
+      "community": 19,
       "norm_label": "braker4 primary logo (hammer smashing decorated egg)",
       "id": "img_logo"
     },
@@ -5060,7 +5402,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "braker4 pipeline overview diagram (png raster)",
       "id": "img_pipeline_overview_png"
     },
@@ -5073,7 +5415,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "braker4 pipeline overview diagram (svg, graphviz-generated)",
       "id": "img_pipeline_overview_svg"
     },
@@ -5086,7 +5428,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "pipeline inputs cluster: short-read rna-seq, isoseq long reads, genome fasta, protein fasta",
       "id": "pipeline_node_inputs"
     },
@@ -5099,7 +5441,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "pipeline preprocessing cluster: read alignment (hisat2/minimap2), minisplice splice-site scoring, repeat masking (repeatmodeler2+repeatmasker+trf or red)",
       "id": "pipeline_node_preprocessing"
     },
@@ -5112,7 +5454,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "pipeline evidence hints node: rna-seq, proteins (prothint), isoseq, busco",
       "id": "pipeline_node_evidence_hints"
     },
@@ -5125,7 +5467,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "pipeline genemark node: es/et/ep+/etp modes, auto mode selection",
       "id": "pipeline_node_genemark"
     },
@@ -5138,7 +5480,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "pipeline augustus node: training + prediction (etraining, optimize, hint-guided prediction)",
       "id": "pipeline_node_augustus"
     },
@@ -5151,7 +5493,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "pipeline tsebra merge node: combines augustus + genemark, filter, rename, gff3",
       "id": "pipeline_node_tsebra"
     },
@@ -5164,7 +5506,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "pipeline qc node: busco+compleasm, omark, gffcompare, gene-support analysis",
       "id": "pipeline_node_qc"
     },
@@ -5177,7 +5519,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "pipeline utr annotation node (optional): stringtie + stringtie2utr",
       "id": "pipeline_node_utr"
     },
@@ -5190,7 +5532,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "pipeline ncrna annotation node (optional): barrnap, trnascan-se, infernal+rfam, feelnc",
       "id": "pipeline_node_ncrna"
     },
@@ -5203,7 +5545,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "pipeline functional annotation node (optional, gpu): fantasia-lite, prott5 embeddings, go terms, gff3 ontology_term decoration",
       "id": "pipeline_node_fantasia"
     },
@@ -5216,7 +5558,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "pipeline outputs cluster: braker.gtf, braker.gff3, braker.aa, braker.codingseq, braker_utr.gtf, braker_with_ncrna.gff3, braker.go.gff3, html report, citations.bib, software_versions.tsv",
       "id": "pipeline_node_outputs"
     },
@@ -5229,7 +5571,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "snakemake rulegraph for scenario_08 (es mode): rule dag showing run_genemark_es, copy_augustus_config, create_new_species, filter_genes_straining, redundancy_removal, downsample_training_genes, split_training_set, train_augustus, optimize_augustus, run_augustus_hints, get_anno_hints, fix_in_frame_stop_codons, run_tsebra, best_by_compleasm, both_agree_rescue, filter_internal_stop_codons, normalize_cds, gene_support_summary, fix_gtf, generate_splice_file, extract_final_sequences, convert_gtf_to_gff3, smaller_search, fantasia_available, fantasia_decorate_gff, run_ncrna, fantasia_summarize, busco_summary, access_completeness, collect_results, all",
       "id": "scenario_08_es_rulegraph"
     },
@@ -5242,7 +5584,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "snakemake rulegraph for scenario_09 (ep+ with masking): rule dag including run_masking, run_genemark_ep, run_genblast, prepare_genemark_hints_ep, run_genemark_ep2, filter_genemark, compute_flanking_region, convert_to_genbank, copy_augustus_config, create_new_species, filter_genes_straining, redundancy_removal, downsample_training_genes, split_training_set, train_augustus, optimize_augustus, run_augustus_hints, merge_hints, run_genblast_iter2, run_augustus_hints_iter2, get_anno_hints, fix_in_frame_stop_codons, run_tsebra, best_by_compleasm, both_agree_rescue, filter_internal_stop_codons, normalize_cds, gene_support_summary, fix_gtf, extract_final_sequences, convert_gtf_to_gff3, busco_summary, access_completeness, collect_results, all",
       "id": "scenario_09_ep_masking_rulegraph"
     },
@@ -5255,7 +5597,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "snakemake rulegraph for scenario_10 (et mode with varus/sra): rule dag including run_varus, bamtools, join_hints, filter_introns_find_phase, merge_hints, run_genemark_et, filter_genemark, copy_augustus_config, compute_flanking_region, create_new_species, convert_to_genbank, filter_genes_straining, redundancy_removal, downsample_training_genes, split_training_set, train_augustus, optimize_augustus, run_augustus_hints, get_anno_hints, fix_in_frame_stop_codons, run_tsebra, best_by_compleasm, both_agree_rescue, filter_internal_stop_codons, normalize_cds, add_utrs, gene_support_summary, fix_gtf, extract_final_sequences, convert_gtf_to_gff3, busco_proteins, busco_summary, access_completeness, collect_results, all",
       "id": "scenario_10_et_varus_rulegraph"
     },
@@ -5268,7 +5610,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "snakemake rulegraph for scenario_11 (etp with sra download): rule dag including hisat2_index, download_sra, hisat2_align, run_genemark_etp, compute_flanking_region, convert_to_genbank, copy_augustus_config, create_new_species, filter_genes_straining, redundancy_removal, downsample_training_genes, split_training_set, train_augustus, optimize_augustus, run_augustus_hints, merge_hints, get_anno_hints, fix_in_frame_stop_codons, run_tsebra, best_by_compleasm, both_agree_rescue, filter_internal_stop_codons, normalize_cds, add_utrs, gene_support_summary, fix_gtf, extract_final_sequences, convert_gtf_to_gff3, busco_proteins, busco_summary, access_completeness, collect_results, all",
       "id": "scenario_11_etp_sra_rulegraph"
     },
@@ -5281,7 +5623,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "snakemake rulegraph for scenario_12 (multi-mode, most complex): dense rule dag combining multiple genemark modes, multiple augustus training paths, multiple hint sources, and all optional annotation steps (ncrna, utr, functional annotation)",
       "id": "scenario_12_multi_mode_rulegraph"
     },
@@ -5294,7 +5636,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "local scenario_01 rulegraph (es mode, pre-masked genome): prepare_masked_genome, run_genemark_es, create_empty_hints, filter_genemark, compute_flanking_region, convert_to_genbank, copy_augustus_config, create_new_species, filter_genes_straining, redundancy_removal, downsample_training_genes, split_training_set, train_augustus, optimize_augustus, run_augustus_hints, run_compleasm, merge_hints, get_anno_hints, fix_in_frame_stop_codons, run_tsebra, best_by_compleasm, both_agree_rescue, filter_internal_stop_codons, normalize_cds, gene_support_summary, fix_gtf, extract_final_sequences, convert_gtf_to_gff3, access_completeness, collect_results, all",
       "id": "scenario_local_01_es_rulegraph"
     },
@@ -5307,7 +5649,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "local scenario_02 rulegraph (ep+ mode): prepare_masked_genome, run_genemark_es, run_genblast, prepare_genemark_hints_ep, run_genemark_ep, filter_genemark, compute_flanking_region, convert_to_genbank, copy_augustus_config, create_new_species, filter_genes_straining, redundancy_removal, downsample_training_genes, split_training_set, train_augustus, optimize_augustus, run_augustus_hints, merge_hints, run_genblast_iter2, run_augustus_hints_iter2, get_anno_hints, fix_in_frame_stop_codons, run_tsebra, best_by_compleasm, both_agree_rescue, filter_internal_stop_codons, normalize_cds, gene_support_summary, fix_gtf, extract_final_sequences, convert_gtf_to_gff3, access_completeness, collect_results, all",
       "id": "scenario_local_02_ep_rulegraph"
     },
@@ -5320,7 +5662,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "local scenario_03 rulegraph (et mode from fastq): hisat2_index, hisat2_align, bamtools, join_hints, filter_introns_find_phase, merge_hints, run_genemark_et, filter_genemark, compute_flanking_region, convert_to_genbank, copy_augustus_config, create_new_species, run_compleasm, run_stringtie, filter_genes_straining, redundancy_removal, downsample_training_genes, split_training_set, train_augustus, optimize_augustus, run_augustus_hints, get_anno_hints, fix_in_frame_stop_codons, run_tsebra, best_by_compleasm, both_agree_rescue, filter_internal_stop_codons, normalize_cds, add_utrs, gene_support_summary, fix_gtf, extract_final_sequences, convert_gtf_to_gff3, access_completeness, collect_results, all",
       "id": "scenario_local_03_et_fastq_rulegraph"
     },
@@ -5333,7 +5675,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "local scenario_04 rulegraph (etp mode from bam): check_bam_sorted, prepare_masked_genome, run_genemark_etp, compute_flanking_region, copy_augustus_config, create_new_species, convert_to_genbank, filter_genes_straining, redundancy_removal, downsample_training_genes, split_training_set, train_augustus, optimize_augustus, run_augustus_hints, merge_hints, get_anno_hints, fix_in_frame_stop_codons, run_tsebra, best_by_compleasm, both_agree_rescue, filter_internal_stop_codons, normalize_cds, add_utrs, gene_support_summary, fix_gtf, extract_final_sequences, get_longest_isoform, busco_proteins, busco_summary, access_completeness, convert_gtf_to_gff3, collect_results, all",
       "id": "scenario_local_04_etp_bam_rulegraph"
     },
@@ -5346,7 +5688,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 24,
+      "community": 21,
       "norm_label": "local scenario_05 rulegraph (isoseq bam input): check_nooverlap_bam, merge_isoseq_bams, run_genemark_etp, compute_flanking_region, copy_augustus_config, create_new_species, convert_to_genbank, filter_genes_straining, redundancy_removal, downsample_training_genes, split_training_set, train_augustus, optimize_augustus, run_augustus_hints, merge_hints, get_anno_hints, fix_in_frame_stop_codons, run_tsebra, best_by_compleasm, both_agree_rescue, filter_internal_stop_codons, normalize_cds, add_utrs, gene_support_summary, fix_gtf, extract_final_sequences, get_longest_isoform, busco_proteins, busco_summary, access_completeness, convert_gtf_to_gff3, collect_results, all",
       "id": "scenario_local_05_isoseq_bam_rulegraph"
     },
@@ -5359,7 +5701,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 24,
+      "community": 21,
       "norm_label": "local scenario_06 rulegraph (isoseq fastq input): prepare_masked_genome, minimap2_isoseq_align, sort_isoseq_bam, run_genemark_etp, compute_flanking_region, copy_augustus_config, create_new_species, convert_to_genbank, filter_genes_straining, redundancy_removal, downsample_training_genes, split_training_set, train_augustus, optimize_augustus, run_augustus_hints, merge_hints, get_anno_hints, fix_in_frame_stop_codons, run_tsebra, best_by_compleasm, both_agree_rescue, filter_internal_stop_codons, normalize_cds, add_utrs, gene_support_summary, fix_gtf, extract_final_sequences, get_longest_isoform, busco_proteins, busco_summary, access_completeness, convert_gtf_to_gff3, collect_results, all",
       "id": "scenario_local_06_isoseq_fastq_rulegraph"
     },
@@ -5372,7 +5714,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "local scenario_07 rulegraph (dual/combined mode): two genemark paths merged (run_genemark_etp_isoseq + run_genemark_etp), merge_dual_atp, check_bam_sorted, check_nooverlap_bam, run_tsebra_skip_per_run, run_tsebra, both_agree_rescue, filter_internal_stop_codons, normalize_cds, gene_support_summary, extract_final_sequences, add_utrs, busco_proteins, busco_summary, access_completeness, convert_gtf_to_gff3, collect_results, all",
       "id": "scenario_local_07_dual_rulegraph"
     },
@@ -5385,12 +5727,540 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 9,
       "norm_label": "local scenario_08 rulegraph (ep+ with red masking): prepare_genome, run_red_masking, run_genemark_es, run_genblast, prepare_genemark_hints_ep, run_genemark_ep, filter_genemark, compute_flanking_region, copy_augustus_config, create_new_species, convert_to_genbank, filter_genes_straining, redundancy_removal, downsample_training_genes, split_training_set, train_augustus, optimize_augustus, run_augustus_hints, merge_hints, run_augustus_hints_iter2, get_anno_hints, fix_in_frame_stop_codons, run_genblast_iter2, run_tsebra, best_by_compleasm, both_agree_rescue, filter_internal_stop_codons, normalize_cds, gene_support_summary, fix_gtf, extract_final_sequences, convert_gtf_to_gff3, access_completeness, collect_results, all",
       "id": "scenario_local_08_ep_redmask_rulegraph"
     }
   ],
   "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L45",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "_tgt": "merge_ncrna_gff3_parse_attrs",
+      "source": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "target": "merge_ncrna_gff3_parse_attrs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L54",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "_tgt": "merge_ncrna_gff3_format_attrs",
+      "source": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "target": "merge_ncrna_gff3_format_attrs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L60",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "_tgt": "merge_ncrna_gff3_read_gff3",
+      "source": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "target": "merge_ncrna_gff3_read_gff3",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L79",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "_tgt": "merge_ncrna_gff3_overlap",
+      "source": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "target": "merge_ncrna_gff3_overlap",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L83",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "_tgt": "merge_ncrna_gff3_intervalindex",
+      "source": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "target": "merge_ncrna_gff3_intervalindex",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L110",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "_tgt": "merge_ncrna_gff3_build_loci",
+      "source": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "target": "merge_ncrna_gff3_build_loci",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L140",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "_tgt": "merge_ncrna_gff3_rna_type_of",
+      "source": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "target": "merge_ncrna_gff3_rna_type_of",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L148",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "_tgt": "merge_ncrna_gff3_biotype_of",
+      "source": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "target": "merge_ncrna_gff3_biotype_of",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L154",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "_tgt": "merge_ncrna_gff3_normalize_locus",
+      "source": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "target": "merge_ncrna_gff3_normalize_locus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L190",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "_tgt": "merge_ncrna_gff3_main",
+      "source": "home_katharina_git_braker4_scripts_merge_ncrna_gff3_py",
+      "target": "merge_ncrna_gff3_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L114",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_build_loci",
+      "_tgt": "merge_ncrna_gff3_parse_attrs",
+      "source": "merge_ncrna_gff3_parse_attrs",
+      "target": "merge_ncrna_gff3_build_loci",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L143",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_rna_type_of",
+      "_tgt": "merge_ncrna_gff3_parse_attrs",
+      "source": "merge_ncrna_gff3_parse_attrs",
+      "target": "merge_ncrna_gff3_rna_type_of",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L149",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_biotype_of",
+      "_tgt": "merge_ncrna_gff3_parse_attrs",
+      "source": "merge_ncrna_gff3_parse_attrs",
+      "target": "merge_ncrna_gff3_biotype_of",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L162",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_normalize_locus",
+      "_tgt": "merge_ncrna_gff3_parse_attrs",
+      "source": "merge_ncrna_gff3_parse_attrs",
+      "target": "merge_ncrna_gff3_normalize_locus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L164",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_normalize_locus",
+      "_tgt": "merge_ncrna_gff3_format_attrs",
+      "source": "merge_ncrna_gff3_format_attrs",
+      "target": "merge_ncrna_gff3_normalize_locus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L201",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_main",
+      "_tgt": "merge_ncrna_gff3_read_gff3",
+      "source": "merge_ncrna_gff3_read_gff3",
+      "target": "merge_ncrna_gff3_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L61",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_rationale_61",
+      "_tgt": "merge_ncrna_gff3_read_gff3",
+      "source": "merge_ncrna_gff3_read_gff3",
+      "target": "merge_ncrna_gff3_rationale_61",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L86",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_intervalindex",
+      "_tgt": "merge_ncrna_gff3_intervalindex_init",
+      "source": "merge_ncrna_gff3_intervalindex",
+      "target": "merge_ncrna_gff3_intervalindex_init",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L89",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_intervalindex",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex",
+      "target": "merge_ncrna_gff3_intervalindex_add",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L92",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_intervalindex",
+      "_tgt": "merge_ncrna_gff3_intervalindex_covered_bp",
+      "source": "merge_ncrna_gff3_intervalindex",
+      "target": "merge_ncrna_gff3_intervalindex_covered_bp",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L202",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_main",
+      "_tgt": "merge_ncrna_gff3_intervalindex",
+      "source": "merge_ncrna_gff3_intervalindex",
+      "target": "merge_ncrna_gff3_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L84",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_rationale_84",
+      "_tgt": "merge_ncrna_gff3_intervalindex",
+      "source": "merge_ncrna_gff3_intervalindex",
+      "target": "merge_ncrna_gff3_rationale_84",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L205",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_main",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "merge_ncrna_gff3_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/both_agree_rescue.py",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_src": "both_agree_rescue_parse_intron_hints",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "both_agree_rescue_parse_intron_hints"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/both_agree_rescue.py",
+      "source_location": "L122",
+      "weight": 1.0,
+      "_src": "both_agree_rescue_extract_gene_blocks",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "both_agree_rescue_extract_gene_blocks"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
+      "source_location": "L276",
+      "weight": 1.0,
+      "_src": "generate_report_generate_methods_text",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "generate_report_generate_methods_text"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/katharina/git/BRAKER4/scripts/generate_report.py",
+      "source_location": "L742",
+      "weight": 1.0,
+      "_src": "generate_report_deduplicate_citations",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "generate_report_deduplicate_citations"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/katharina/git/BRAKER4/scripts/best_by_compleasm.py",
+      "source_location": "L470",
+      "weight": 1.0,
+      "_src": "best_by_compleasm_remove_internal_stop_genes",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "best_by_compleasm_remove_internal_stop_genes"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/katharina/git/BRAKER4/scripts/stringtie2utr.py",
+      "source_location": "L179",
+      "weight": 1.0,
+      "_src": "stringtie2utr_find_matching_transcripts",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "stringtie2utr_find_matching_transcripts"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/fantasia_decorate_gff3.py",
+      "source_location": "L79",
+      "weight": 1.0,
+      "_src": "fantasia_decorate_gff3_load_go_assignments",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "fantasia_decorate_gff3_load_go_assignments"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/analyze_hint_support.py",
+      "source_location": "L189",
+      "weight": 1.0,
+      "_src": "analyze_hint_support_load_hints",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "analyze_hint_support_load_hints"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/analyze_hint_support.py",
+      "source_location": "L273",
+      "weight": 1.0,
+      "_src": "analyze_hint_support_analyze_hint_support",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "analyze_hint_support_analyze_hint_support"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/katharina/git/BRAKER4/scripts/normalize_gtf.py",
+      "source_location": "L279",
+      "weight": 1.0,
+      "_src": "normalize_gtf_main",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "normalize_gtf_main"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/fantasia_summary.py",
+      "source_location": "L239",
+      "weight": 1.0,
+      "_src": "fantasia_summary_classify_proteins",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "fantasia_summary_classify_proteins"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/fantasia_summary.py",
+      "source_location": "L279",
+      "weight": 1.0,
+      "_src": "fantasia_summary_parse_results",
+      "_tgt": "merge_ncrna_gff3_intervalindex_add",
+      "source": "merge_ncrna_gff3_intervalindex_add",
+      "target": "fantasia_summary_parse_results"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L225",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_main",
+      "_tgt": "merge_ncrna_gff3_intervalindex_covered_bp",
+      "source": "merge_ncrna_gff3_intervalindex_covered_bp",
+      "target": "merge_ncrna_gff3_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L93",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_rationale_93",
+      "_tgt": "merge_ncrna_gff3_intervalindex_covered_bp",
+      "source": "merge_ncrna_gff3_intervalindex_covered_bp",
+      "target": "merge_ncrna_gff3_rationale_93",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L216",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_main",
+      "_tgt": "merge_ncrna_gff3_build_loci",
+      "source": "merge_ncrna_gff3_build_loci",
+      "target": "merge_ncrna_gff3_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L111",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_rationale_111",
+      "_tgt": "merge_ncrna_gff3_build_loci",
+      "source": "merge_ncrna_gff3_build_loci",
+      "target": "merge_ncrna_gff3_rationale_111",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L158",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_normalize_locus",
+      "_tgt": "merge_ncrna_gff3_rna_type_of",
+      "source": "merge_ncrna_gff3_rna_type_of",
+      "target": "merge_ncrna_gff3_normalize_locus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L141",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_rationale_141",
+      "_tgt": "merge_ncrna_gff3_rna_type_of",
+      "source": "merge_ncrna_gff3_rna_type_of",
+      "target": "merge_ncrna_gff3_rationale_141",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L163",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_normalize_locus",
+      "_tgt": "merge_ncrna_gff3_biotype_of",
+      "source": "merge_ncrna_gff3_biotype_of",
+      "target": "merge_ncrna_gff3_normalize_locus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L217",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_main",
+      "_tgt": "merge_ncrna_gff3_normalize_locus",
+      "source": "merge_ncrna_gff3_normalize_locus",
+      "target": "merge_ncrna_gff3_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/merge_ncrna_gff3.py",
+      "source_location": "L155",
+      "weight": 1.0,
+      "_src": "merge_ncrna_gff3_rationale_155",
+      "_tgt": "merge_ncrna_gff3_normalize_locus",
+      "source": "merge_ncrna_gff3_normalize_locus",
+      "target": "merge_ncrna_gff3_rationale_155",
+      "confidence_score": 1.0
+    },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -8995,7 +9865,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
-      "source_location": "L16",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_scripts_infernal_to_gff3_py",
+      "_tgt": "infernal_to_gff3_load_family_types",
+      "source": "home_katharina_git_braker4_scripts_infernal_to_gff3_py",
+      "target": "infernal_to_gff3_load_family_types",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
+      "source_location": "L39",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_scripts_infernal_to_gff3_py",
+      "_tgt": "infernal_to_gff3_rna_class",
+      "source": "home_katharina_git_braker4_scripts_infernal_to_gff3_py",
+      "target": "infernal_to_gff3_rna_class",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
+      "source_location": "L72",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_infernal_to_gff3_py",
       "_tgt": "infernal_to_gff3_parse_tblout",
@@ -9007,7 +9901,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
-      "source_location": "L80",
+      "source_location": "L135",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_infernal_to_gff3_py",
       "_tgt": "infernal_to_gff3_write_gff3",
@@ -9019,7 +9913,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
-      "source_location": "L100",
+      "source_location": "L164",
       "weight": 1.0,
       "_src": "home_katharina_git_braker4_scripts_infernal_to_gff3_py",
       "_tgt": "infernal_to_gff3_main",
@@ -9031,7 +9925,79 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
-      "source_location": "L112",
+      "source_location": "L178",
+      "weight": 1.0,
+      "_src": "infernal_to_gff3_main",
+      "_tgt": "infernal_to_gff3_load_family_types",
+      "source": "infernal_to_gff3_load_family_types",
+      "target": "infernal_to_gff3_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_src": "infernal_to_gff3_rationale_25",
+      "_tgt": "infernal_to_gff3_load_family_types",
+      "source": "infernal_to_gff3_load_family_types",
+      "target": "infernal_to_gff3_rationale_25",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L157",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_test_shipped_rfam_table_covers_all_families",
+      "_tgt": "infernal_to_gff3_load_family_types",
+      "source": "infernal_to_gff3_load_family_types",
+      "target": "test_merge_ncrna_gff3_test_shipped_rfam_table_covers_all_families"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
+      "source_location": "L143",
+      "weight": 1.0,
+      "_src": "infernal_to_gff3_write_gff3",
+      "_tgt": "infernal_to_gff3_rna_class",
+      "source": "infernal_to_gff3_rna_class",
+      "target": "infernal_to_gff3_write_gff3",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_src": "infernal_to_gff3_rationale_40",
+      "_tgt": "infernal_to_gff3_rna_class",
+      "source": "infernal_to_gff3_rna_class",
+      "target": "infernal_to_gff3_rationale_40",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L142",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_test_rfam_types_map_to_ncbi_feature_types",
+      "_tgt": "infernal_to_gff3_rna_class",
+      "source": "infernal_to_gff3_rna_class",
+      "target": "test_merge_ncrna_gff3_test_rfam_types_map_to_ncbi_feature_types"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
+      "source_location": "L182",
       "weight": 1.0,
       "_src": "infernal_to_gff3_main",
       "_tgt": "infernal_to_gff3_parse_tblout",
@@ -9043,19 +10009,19 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
-      "source_location": "L17",
+      "source_location": "L73",
       "weight": 1.0,
-      "_src": "infernal_to_gff3_rationale_17",
+      "_src": "infernal_to_gff3_rationale_73",
       "_tgt": "infernal_to_gff3_parse_tblout",
       "source": "infernal_to_gff3_parse_tblout",
-      "target": "infernal_to_gff3_rationale_17",
+      "target": "infernal_to_gff3_rationale_73",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/katharina/git/BRAKER4/scripts/infernal_to_gff3.py",
-      "source_location": "L113",
+      "source_location": "L183",
       "weight": 1.0,
       "_src": "infernal_to_gff3_main",
       "_tgt": "infernal_to_gff3_write_gff3",
@@ -10873,6 +11839,282 @@
       "_tgt": "test_best_by_compleasm_cutoffs_testloadlengthcutoff_test_missing_file_returns_empty_dict",
       "source": "test_best_by_compleasm_cutoffs_testloadlengthcutoff_test_missing_file_returns_empty_dict",
       "target": "test_best_by_compleasm_cutoffs_rationale_145",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L60",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "_tgt": "test_merge_ncrna_gff3_attrs",
+      "source": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "target": "test_merge_ncrna_gff3_attrs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L64",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "_tgt": "test_merge_ncrna_gff3_merge",
+      "source": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "target": "test_merge_ncrna_gff3_merge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L80",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "_tgt": "test_merge_ncrna_gff3_merged",
+      "source": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "target": "test_merge_ncrna_gff3_merged",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L85",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "_tgt": "test_merge_ncrna_gff3_test_coding_genes_are_copied_unchanged",
+      "source": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "target": "test_merge_ncrna_gff3_test_coding_genes_are_copied_unchanged",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L90",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "_tgt": "test_merge_ncrna_gff3_test_every_ncrna_has_a_gene_with_biotype",
+      "source": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "target": "test_merge_ncrna_gff3_test_every_ncrna_has_a_gene_with_biotype",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L104",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "_tgt": "test_merge_ncrna_gff3_test_exons_point_to_their_rna",
+      "source": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "target": "test_merge_ncrna_gff3_test_exons_point_to_their_rna",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L118",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "_tgt": "test_merge_ncrna_gff3_test_overlaps_are_resolved",
+      "source": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "target": "test_merge_ncrna_gff3_test_overlaps_are_resolved",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L128",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "_tgt": "test_merge_ncrna_gff3_test_non_rna_features_pass_through_without_gene",
+      "source": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "target": "test_merge_ncrna_gff3_test_non_rna_features_pass_through_without_gene",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L135",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "_tgt": "test_merge_ncrna_gff3_test_orphan_features_are_dropped_with_warning",
+      "source": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "target": "test_merge_ncrna_gff3_test_orphan_features_are_dropped_with_warning",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L141",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "_tgt": "test_merge_ncrna_gff3_test_rfam_types_map_to_ncbi_feature_types",
+      "source": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "target": "test_merge_ncrna_gff3_test_rfam_types_map_to_ncbi_feature_types",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L156",
+      "weight": 1.0,
+      "_src": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "_tgt": "test_merge_ncrna_gff3_test_shipped_rfam_table_covers_all_families",
+      "source": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "target": "test_merge_ncrna_gff3_test_shipped_rfam_table_covers_all_families",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_rationale_1",
+      "_tgt": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "source": "home_katharina_git_braker4_tests_test_merge_ncrna_gff3_py",
+      "target": "test_merge_ncrna_gff3_rationale_1",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L92",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_test_every_ncrna_has_a_gene_with_biotype",
+      "_tgt": "test_merge_ncrna_gff3_attrs",
+      "source": "test_merge_ncrna_gff3_attrs",
+      "target": "test_merge_ncrna_gff3_test_every_ncrna_has_a_gene_with_biotype",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L106",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_test_exons_point_to_their_rna",
+      "_tgt": "test_merge_ncrna_gff3_attrs",
+      "source": "test_merge_ncrna_gff3_attrs",
+      "target": "test_merge_ncrna_gff3_test_exons_point_to_their_rna",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L120",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_test_overlaps_are_resolved",
+      "_tgt": "test_merge_ncrna_gff3_attrs",
+      "source": "test_merge_ncrna_gff3_attrs",
+      "target": "test_merge_ncrna_gff3_test_overlaps_are_resolved",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L132",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_test_non_rna_features_pass_through_without_gene",
+      "_tgt": "test_merge_ncrna_gff3_attrs",
+      "source": "test_merge_ncrna_gff3_attrs",
+      "target": "test_merge_ncrna_gff3_test_non_rna_features_pass_through_without_gene",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L81",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_merged",
+      "_tgt": "test_merge_ncrna_gff3_merge",
+      "source": "test_merge_ncrna_gff3_merge",
+      "target": "test_merge_ncrna_gff3_merged",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L86",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_test_coding_genes_are_copied_unchanged",
+      "_tgt": "test_merge_ncrna_gff3_merged",
+      "source": "test_merge_ncrna_gff3_merged",
+      "target": "test_merge_ncrna_gff3_test_coding_genes_are_copied_unchanged",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L91",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_test_every_ncrna_has_a_gene_with_biotype",
+      "_tgt": "test_merge_ncrna_gff3_merged",
+      "source": "test_merge_ncrna_gff3_merged",
+      "target": "test_merge_ncrna_gff3_test_every_ncrna_has_a_gene_with_biotype",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L105",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_test_exons_point_to_their_rna",
+      "_tgt": "test_merge_ncrna_gff3_merged",
+      "source": "test_merge_ncrna_gff3_merged",
+      "target": "test_merge_ncrna_gff3_test_exons_point_to_their_rna",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L119",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_test_overlaps_are_resolved",
+      "_tgt": "test_merge_ncrna_gff3_merged",
+      "source": "test_merge_ncrna_gff3_merged",
+      "target": "test_merge_ncrna_gff3_test_overlaps_are_resolved",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L129",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_test_non_rna_features_pass_through_without_gene",
+      "_tgt": "test_merge_ncrna_gff3_merged",
+      "source": "test_merge_ncrna_gff3_merged",
+      "target": "test_merge_ncrna_gff3_test_non_rna_features_pass_through_without_gene",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/katharina/git/BRAKER4/tests/test_merge_ncrna_gff3.py",
+      "source_location": "L136",
+      "weight": 1.0,
+      "_src": "test_merge_ncrna_gff3_test_orphan_features_are_dropped_with_warning",
+      "_tgt": "test_merge_ncrna_gff3_merged",
+      "source": "test_merge_ncrna_gff3_merged",
+      "target": "test_merge_ncrna_gff3_test_orphan_features_are_dropped_with_warning",
       "confidence_score": 1.0
     },
     {

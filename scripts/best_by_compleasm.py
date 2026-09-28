@@ -226,6 +226,11 @@ def find_genemark_gtf(input_dir):
     return False, False
 
 
+# Offline fallback for cached lineages (issue #105) and removal of proteins
+# >= 100,000 aa that make hmmsearch abort (issues #91, #92).
+COMPLEASM_WRAPPER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "compleasm_wrapper.py")
+
+
 def run_compleasm(protein_files, threads, busco_db, tmp_dir):
     """
     Run compleasm on the specified protein files
@@ -256,7 +261,7 @@ def run_compleasm(protein_files, threads, busco_db, tmp_dir):
     else:
         lineage_dir = "mb_downloads/" + args.busco_db
         if not os.path.exists(lineage_dir):
-            compleasm_cmd = [args.compleasm_bin, "download", lineage_name, "--odb", odb]
+            compleasm_cmd = [sys.executable, COMPLEASM_WRAPPER, args.compleasm_bin, "download", lineage_name, "--odb", odb]
             run_simple_process(compleasm_cmd)
 
     # read key data of BUSCO lineage
@@ -274,7 +279,7 @@ def run_compleasm(protein_files, threads, busco_db, tmp_dir):
         # create a tool-specific output subdirectory
         tool = re.search(r'^([^.]+)\.', os.path.basename(protein_file)).group(1)
         tool_out_dir = args.tmp_dir + "/" + tool
-        compleasm_cmd = [args.compleasm_bin, "protein", "-p", protein_file, "-l", lineage_name, "--odb", odb, "-t", str(args.threads), "-o", tool_out_dir]
+        compleasm_cmd = [sys.executable, COMPLEASM_WRAPPER, args.compleasm_bin, "protein", "-p", protein_file, "-l", lineage_name, "--odb", odb, "-t", str(args.threads), "-o", tool_out_dir]
         if args.library_path is not None:
             compleasm_cmd.extend(["--library_path", args.library_path])
         run_simple_process(compleasm_cmd)

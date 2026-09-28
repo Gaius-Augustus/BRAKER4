@@ -130,6 +130,13 @@ rule run_genemark_etp:
         PROT_FILE=$WORKDIR/output/{wildcards.sample}/proteins.fa
         sed '/^>/!s/\\.$//' $PROTEINS_ABS > $PROT_FILE
 
+        # GeneMark-ETP only says "error in protein file parsing" on duplicated
+        # IDs or unexpected characters; report the offending records (#99).
+        if ! python3 {script_dir}/check_protein_fasta.py $PROT_FILE >> {log} 2>&1; then
+            echo "ERROR: fix the protein file {input.proteins} and rerun." >> {log}
+            exit 1
+        fi
+
         # Step 3: Create YAML config
         cat > $OUTDIR_ABS/etp_config.yaml << YAMLEOF
 ---

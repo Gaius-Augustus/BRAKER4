@@ -2,7 +2,9 @@
 # pyVARUS wrapper for Snakemake.
 #
 # Usage: run_varus_wrapper.sh <varus_dir> <genome> <genus> <species>
-#                             <threads> <output_bam> <log>
+#                             <threads> <output_bam> <log> [use_logan]
+#
+# use_logan: 1 runs the pyVARUS Logan pre-screen, 0 (default) passes --no-logan.
 #
 # NCBI Entrez email: set NCBI_EMAIL in the environment or it falls back to
 # the lab address below (used only for rate-limit courtesy, not authentication).
@@ -16,6 +18,7 @@ SPECIES="$4"
 THREADS="$5"
 OUTPUT_BAM="$6"
 LOGFILE="$7"
+USE_LOGAN="${8:-0}"
 
 EMAIL="${NCBI_EMAIL:-katharina.hoff@uni-greifswald.de}"
 SPECIES_NAME="$GENUS $SPECIES"
@@ -37,6 +40,10 @@ echo "[INFO] Species:  $SPECIES_NAME"     >> "$LOGFILE_ABS"
 echo "[INFO] Genome:   $GENOME_ABS"       >> "$LOGFILE_ABS"
 echo "[INFO] Threads:  $THREADS"          >> "$LOGFILE_ABS"
 echo "[INFO] Out BAM:  $OUTPUT_BAM_ABS"   >> "$LOGFILE_ABS"
+echo "[INFO] Logan:    $USE_LOGAN"        >> "$LOGFILE_ABS"
+
+LOGAN_ARGS=()
+[[ "$USE_LOGAN" == "1" ]] || LOGAN_ARGS=(--no-logan)
 
 # Step 1: fetch SRA run list from NCBI
 echo "[INFO] Fetching run list..." >> "$LOGFILE_ABS"
@@ -59,6 +66,7 @@ varus run "$SPECIES_NAME" "$GENOME_ABS" \
     --index   "$INDEX_DIR/hisatidx" \
     --outdir  "$VARUS_DIR_ABS" \
     --threads "$THREADS" \
+    "${LOGAN_ARGS[@]}" \
     >> "$LOGFILE_ABS" 2>&1
 
 # Step 4: sort and index

@@ -14,6 +14,21 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Under `sbatch run_all_tests.sh`, SLURM runs a copy of this script from its
+# spool directory (e.g. /var/spool/slurmd/job<ID>/), so BASH_SOURCE does not
+# point into the repository. Fall back to the submission directory, or to
+# BRAKER4_TEST_DIR if set (issue #88).
+if [ ! -f "$SCRIPT_DIR/compute_profile.sh" ]; then
+    if [ -n "${BRAKER4_TEST_DIR:-}" ] && [ -f "$BRAKER4_TEST_DIR/compute_profile.sh" ]; then
+        SCRIPT_DIR="$(cd "$BRAKER4_TEST_DIR" && pwd)"
+    elif [ -n "${SLURM_SUBMIT_DIR:-}" ] && [ -f "$SLURM_SUBMIT_DIR/compute_profile.sh" ]; then
+        SCRIPT_DIR="$SLURM_SUBMIT_DIR"
+    else
+        echo "ERROR: cannot locate the test_scenarios directory (no compute_profile.sh in $SCRIPT_DIR)." >&2
+        echo "       Submit from inside test_scenarios/ or set BRAKER4_TEST_DIR=/path/to/BRAKER4/test_scenarios." >&2
+        exit 1
+    fi
+fi
 PIPELINE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Configuration
@@ -22,7 +37,8 @@ PIPELINE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 # You can still override the partition list ad-hoc by exporting PARTITION
 # (singular) — it propagates through compute_profile.sh into each scenario.
 DRY_RUN=${DRY_RUN:-false}
-RESULTS_DIR="$SCRIPT_DIR/test_results_$(date +%Y%m%d_%H%M%S)"
+# Override the location of the per-scenario logs with RESULTS_DIR=/some/path.
+RESULTS_DIR="${RESULTS_DIR:-$SCRIPT_DIR/test_results_$(date +%Y%m%d_%H%M%S)}"
 PIDFILE="$SCRIPT_DIR/.running_tests.pid"
 
 ALL_SCENARIOS=(

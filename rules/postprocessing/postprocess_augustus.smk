@@ -193,7 +193,9 @@ rule assess_completeness:
         echo "[INFO] Library path: {params.library_path}" | tee -a {output.compleasm_log}
         echo "[INFO] Lineage: $COMPLEASM_NAME --odb $COMPLEASM_ODB" | tee -a {output.compleasm_log}
 
-        compleasm.py protein \
+        # compleasm_wrapper.py skips proteins >= 100,000 aa (hmmsearch limit,
+        # issues #91/#92) and restores the offline fallback (issue #105).
+        python3 {script_dir}/compleasm_wrapper.py protein \
             -p {input.braker_aa} \
             -l $COMPLEASM_NAME \
             --odb $COMPLEASM_ODB \

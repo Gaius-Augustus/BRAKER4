@@ -55,12 +55,18 @@ min_contig = 10000
 ; gm_max_intergenic = 10000
 ; Set to 1 to enable VARUS auto-download of RNA-Seq from SRA.
 use_varus = 0
+; Set to 1 to let pyVARUS run its Logan pre-screen before sampling (default 0:
+; plain online sampling, as used for the benchmark BAMs).
+varus_logan = 0
 ; Set to 1 to skip AUGUSTUS parameter optimization (saves time on large genomes).
 skip_optimize_augustus = 0
 ; Set to 1 to disable single-exon training-gene downsampling.
 skip_single_exon_downsampling = 0
 ; Poisson lambda for single-exon downsampling (lower = more aggressive).
 downsampling_lambda = 2
+; Drop single-exon genes without start- or stop-codon hint support in TSEBRA:
+; auto = only for genomes > 300 Mbp, 1 = always, 0 = never.
+filter_single_exon_genes = auto
 ; Set to 1 to use /dev/shm for temp files (faster I/O on systems with large RAM).
 use_dev_shm = 0
 ; Set to 0 to exclude BUSCO CDSpart hints from the AUGUSTUS hintsfile
