@@ -19,7 +19,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
 
-from stringtie2utr import merge_features, fix_feature_coordinates  # noqa: E402
+from stringtie2utr import merge_features, fix_feature_coordinates, print_gtf  # noqa: E402
 
 
 def _gtf_line(seqname, source, feature, start, end, score, strand, frame, attrs):
@@ -127,3 +127,35 @@ def test_fix_feature_coordinates_ignores_wrong_scaffold():
     assert int(tx_fields[4]) == 3200, f"Transcript end must be 3200, got {tx_fields[4]}"
     assert int(gene_fields[3]) == 1000, f"Gene start must be 1000, got {gene_fields[3]}"
     assert int(gene_fields[4]) == 3200, f"Gene end must be 3200, got {gene_fields[4]}"
+
+
+# ---------------------------------------------------------------------------
+# Test 3 – REGRESSION (#62): print_gtf must drop, not write, features whose
+#   sequence or strand differs from their transcript line.
+# ---------------------------------------------------------------------------
+
+def test_print_gtf_drops_foreign_features(tmp_path):
+    """Features on another scaffold or strand must not reach the output GTF."""
+
+    attrs = 'transcript_id "g1.t1"; gene_id "g1";'
+    tx_dict = {"g1.t1": _gtf_line("scaffold_1", "AUGUSTUS", "transcript",
+                                  1000, 3000, ".", "+", ".", "g1.t1")}
+    gene_dict = {"g1": _gtf_line("scaffold_1", "AUGUSTUS", "gene",
+                                 1000, 3000, ".", "+", ".", "g1")}
+    tx_to_gene_dict = {"g1.t1": "g1"}
+    gtf_dict = {"g1.t1": [
+        _gtf_line("scaffold_1", "AUGUSTUS", "CDS", 1000, 3000, ".", "+", "0", attrs),
+        _gtf_line("scaffold_1", "AUGUSTUS", "exon", 1000, 3000, ".", "+", ".", attrs),
+        # other scaffold
+        _gtf_line("scaffold_3", "StringTie", "five_prime_UTR", 500, 999, ".", "+", ".", attrs),
+        # other strand
+        _gtf_line("scaffold_1", "StringTie", "three_prime_UTR", 3001, 3500, ".", "-", ".", attrs),
+    ]}
+
+    out = tmp_path / "out.gtf"
+    dropped = print_gtf(str(out), gtf_dict, gene_dict, tx_to_gene_dict, tx_dict)
+    lines = [l.split('\t') for l in out.read_text().splitlines()]
+
+    assert dropped == 2
+    assert all(f[0] == "scaffold_1" and f[6] == "+" for f in lines)
+    assert not any("UTR" in f[2] for f in lines)

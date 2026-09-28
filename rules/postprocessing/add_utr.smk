@@ -5,7 +5,8 @@ Two-step process:
 1. StringTie transcript assembly:
    - ET mode: run StringTie on RNA-Seq BAMs (separate rule)
    - ETP/IsoSeq mode: use StringTie assembly from GeneMark-ETP (already exists)
-2. stringtie2utr.py: decorate BRAKER CDS predictions with UTRs from StringTie
+2. stringtie2utr.py: decorate BRAKER CDS predictions with UTRs from StringTie;
+   check_gtf_loci.py then fails the rule if a model spans several loci (#62)
 
 Container: teambraker/braker3:latest (contains stringtie, python3 + intervaltree)
 """
@@ -120,7 +121,8 @@ rule add_utr:
     benchmark:
         "benchmarks/{sample}/add_utr/add_utr.txt"
     params:
-        script=os.path.join(script_dir, "stringtie2utr.py")
+        script=os.path.join(script_dir, "stringtie2utr.py"),
+        check=os.path.join(script_dir, "check_gtf_loci.py")
     threads: 1
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -139,6 +141,9 @@ rule add_utr:
             -s {input.stringtie} \
             -o {output.utr_gtf} \
             2>> {log}
+
+        # Every gene and transcript on one sequence and strand, spans consistent (#62)
+        python3 {params.check} {output.utr_gtf} 2>> {log}
 
         n_genes=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {output.utr_gtf})
         n_utr=$(awk '$3=="five_prime_UTR"||$3=="three_prime_UTR"{{n++}}END{{print n+0}}' {output.utr_gtf})

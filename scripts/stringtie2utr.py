@@ -16,6 +16,7 @@ it under the terms of the Artistic License.
 
 import argparse
 import re
+import sys
 from intervaltree import IntervalTree, Interval
 
 
@@ -262,6 +263,13 @@ def overlap(exon_start, exon_end, cds_start, cds_end):
     return exon_start <= cds_end and exon_end >= cds_start
 
 
+def same_locus(feature, reference):
+    """True if two GTF lines share sequence name and strand (issue #62)."""
+    f = feature.split('\t')
+    r = reference.split('\t')
+    return f[0] == r[0] and f[6] == r[6]
+
+
 def merge_features(tsebra_gtf, stringtie_gtf, selected_transcripts, max_utr_extension=5000):
     for tsebra_tx, stringtie_tx in selected_transcripts.items():
         # Retrieve features for current transcripts
@@ -272,11 +280,10 @@ def merge_features(tsebra_gtf, stringtie_gtf, selected_transcripts, max_utr_exte
         # When StringTie is run per-scaffold and outputs are merged, MSTRG IDs
         # can collide: the same transcript_id appears on multiple scaffolds and
         # read_gtf() groups all those features under one key. Only keep StringTie
-        # exons that are on the same scaffold as the BRAKER transcript.
-        tsebra_seqname = tsebra_features[0].split('\t')[0] if tsebra_features else None
-        if tsebra_seqname:
+        # exons that are on the same scaffold and strand as the BRAKER transcript.
+        if tsebra_features:
             stringtie_exons = [e for e in stringtie_exons
-                               if e.split('\t')[0] == tsebra_seqname]
+                               if same_locus(e, tsebra_features[0])]
 
         # Clip StringTie exons so they cannot extend more than max_utr_extension bp
         # beyond the BRAKER CDS boundaries.  Very long StringTie exons arise from
@@ -485,14 +492,14 @@ def fix_feature_coordinates(gtf_dict, gene_dict, tx_to_gene_dict, tx_dict):
     """
     # 1. Update transcript coordinates based on feature coordinates in gtf_dict
     for tx_id, features in gtf_dict.items():
-        # Determine the expected scaffold from the transcript line so that any
-        # cross-scaffold features that slipped through cannot corrupt coordinates.
-        tx_seqname = tx_dict[tx_id].split('\t')[0] if tx_id in tx_dict else None
+        # Features on another scaffold or strand than the transcript line
+        # must not corrupt coordinates; print_gtf drops them.
+        tx_line = tx_dict.get(tx_id)
         starts = []
         ends = []
         for feature in features:
             fields = feature.split('\t')
-            if tx_seqname and fields[0] != tx_seqname:
+            if tx_line and not same_locus(feature, tx_line):
                 continue
             starts.append(int(fields[3]))
             ends.append(int(fields[4]))
@@ -543,10 +550,14 @@ def print_gtf(filename, gtf_dict, gene_dict, tx_to_gene_dict, tx_dict):
     - tx_to_gene_dict (dict): Dictionary with transcript IDs as keys and the corresponding gene ID as value, extracted from the last column of transcript feature lines.
     - tx_dict (dict): Dictionary with transcript IDs as keys and the corresponding transcript line as value. The entire last column is used as the transcript ID.
 
+    Features whose sequence or strand differs from their transcript line are
+    dropped, not written (issue #62).
+
     Returns:
-    None: Prints the GTF lines to stdout.
+    int: Number of dropped features.
     """
     printed_gene = {}
+    dropped = 0
     try:
         with open(filename, 'w') as f:
             # Iterate over gene_dict entries
@@ -567,6 +578,9 @@ def print_gtf(filename, gtf_dict, gene_dict, tx_to_gene_dict, tx_dict):
                 f.write('\t'.join(tx_fields) + "\n")
                 sorted_features = sorted(gtf_dict.get(tx_id, []), key=lambda x: int(x.split('\t')[3]))
                 for feature in sorted_features:
+                    if not same_locus(feature, tx_line):
+                        dropped += 1
+                        continue
                     # If the feature is a UTR line, remove the exon_number
                     if "UTR" in feature:
                         # split line into fields
@@ -578,6 +592,7 @@ def print_gtf(filename, gtf_dict, gene_dict, tx_to_gene_dict, tx_dict):
     except IOError:
         print("Could not write to file: " + filename)
         exit(1)
+    return dropped
 
 def build_tree(data):
     """Build an interval tree from data. We will use that to quickly find the overlapping single exon genes/transcript pairs."""
@@ -784,7 +799,10 @@ def main():
     tsebra_gene_line_dict, tsebra_tx_dict = fix_feature_coordinates(tsebra_gtf, tsebra_gene_line_dict, tsebra_tx_to_gene_dict, tsebra_tx_dict)
 
     # print the updated tsebra_gtf
-    print_gtf(args.output, tsebra_gtf, tsebra_gene_line_dict, tsebra_tx_to_gene_dict, tsebra_tx_dict)
+    dropped = print_gtf(args.output, tsebra_gtf, tsebra_gene_line_dict, tsebra_tx_to_gene_dict, tsebra_tx_dict)
+    if dropped:
+        print(f"Dropped {dropped} features on another sequence or strand than "
+              f"their transcript", file=sys.stderr)
 
 if __name__ == "__main__":
     main()
