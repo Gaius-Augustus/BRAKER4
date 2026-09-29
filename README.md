@@ -957,7 +957,7 @@ rfam_cm = /path/to/Rfam.cm
 rfam_clanin = /path/to/Rfam.clanin
 ```
 
-For backward compatibility, BRAKER4 also accepts `rfam_path = /path/to/rfam` if that directory contains both files. The Snakemake `infernal` rule indexes `Rfam.cm` with `cmpress` inside the Infernal container on first use. To download the Rfam files automatically into `shared_data/rfam/` (the default location), run `bash test_data/download_test_data.sh` before starting the pipeline.
+For backward compatibility, BRAKER4 also accepts `rfam_path = /path/to/rfam` if that directory contains both files. The Snakemake `infernal` rule indexes `Rfam.cm` with `cmpress` inside the Infernal container on first use. To download the Rfam files automatically into `shared_data/rfam/` (the default location), run `bash test_data/download_test_data.sh` before starting the pipeline. The script fetches Rfam 15.1, which matches the family-type table `scripts/rfam_family_types.tsv` used to assign ncRNA types and `gene_biotype`. Other Rfam releases also work, but hits to families missing from that table get no type.
 
 ### masking_tool
 

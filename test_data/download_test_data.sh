@@ -132,20 +132,23 @@ if [ "$LOCAL_ONLY" != "1" ]; then
     RFAM_DIR="$(cd "$TESTDATA_DIR/.." && pwd)/shared_data/rfam"
     RFAM_CM="$RFAM_DIR/Rfam.cm"
     RFAM_CLANIN="$RFAM_DIR/Rfam.clanin"
+    # Pinned to match scripts/rfam_family_types.tsv (built from Rfam 15.1
+    # family.txt). Regenerate that table when bumping this version.
+    RFAM_VERSION="15.1"
 
     if [ ! -f "$RFAM_CM" ]; then
         mkdir -p "$RFAM_DIR"
 
         if [ ! -f "$RFAM_CM" ]; then
-            echo "Downloading Rfam covariance models (~30 MB)..."
-            wget -q "https://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.cm.gz" -O "$RFAM_CM.gz"
+            echo "Downloading Rfam ${RFAM_VERSION} covariance models (~30 MB)..."
+            wget -q "https://ftp.ebi.ac.uk/pub/databases/Rfam/${RFAM_VERSION}/Rfam.cm.gz" -O "$RFAM_CM.gz"
             gunzip "$RFAM_CM.gz"
             echo "  Downloaded: $RFAM_CM ($(du -h "$RFAM_CM" | cut -f1))"
         fi
 
         if [ ! -f "$RFAM_CLANIN" ]; then
             echo "Downloading Rfam clan info..."
-            wget -q "https://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.clanin" -O "$RFAM_CLANIN"
+            wget -q "https://ftp.ebi.ac.uk/pub/databases/Rfam/${RFAM_VERSION}/Rfam.clanin" -O "$RFAM_CLANIN"
             echo "  Downloaded: $RFAM_CLANIN"
         fi
 
