@@ -42,7 +42,7 @@ config_parser.read(config_ini_path)
 # config.ini. Variables follow the pattern BRAKER4_<SECTION>_<KEY>, except
 # for the well-known SLURM_ARGS keys which use the short BRAKER4_<KEY> form.
 # Anything set in the environment wins over the file.
-for section in ('PARAMS', 'SLURM_ARGS', 'fantasia', 'OMARK'):
+for section in ('paths', 'PARAMS', 'SLURM_ARGS', 'fantasia', 'OMARK'):
     if not config_parser.has_section(section):
         config_parser.add_section(section)
 
@@ -56,6 +56,7 @@ _env_overrides = {
     'BRAKER4_MIN_CONTIG':                     ('PARAMS', 'min_contig'),
     'BRAKER4_SKIP_OPTIMIZE_AUGUSTUS':         ('PARAMS', 'skip_optimize_augustus'),
     'BRAKER4_USE_DEV_SHM':                    ('PARAMS', 'use_dev_shm'),
+    'BRAKER4_TMP_DIR':                        ('paths', 'tmp_dir'),
     'BRAKER4_GM_MAX_INTERGENIC':              ('PARAMS', 'gm_max_intergenic'),
     'BRAKER4_USE_COMPLEASM_HINTS':            ('PARAMS', 'use_compleasm_hints'),
     'BRAKER4_SKIP_BUSCO':                     ('PARAMS', 'skip_busco'),
@@ -98,6 +99,21 @@ for _env_name, (_section, _key) in _env_overrides.items():
         config_parser.set(_section, _key, os.environ[_env_name])
 
 augustus_config_path = os.path.abspath(config_parser['paths'].get('augustus_config_path', 'augustus_config'))
+
+# Node-local scratch root ([paths] tmp_dir, used through scripts/tmp_dir.sh).
+# Empty: each job's $TMPDIR, else /tmp.
+config['tmp_dir'] = config_parser.get('paths', 'tmp_dir', fallback='').strip()
+TMP_ROOT = config['tmp_dir']
+# Singularity binds /tmp and $HOME by default; any other scratch root must be
+# bound into the containers explicitly. A root that does not exist where
+# Snakemake runs is not bound (Singularity refuses missing bind sources); the
+# jobs then fall back to output/<sample>/ with a WARNING.
+if (TMP_ROOT and os.path.isdir(TMP_ROOT)
+        and not TMP_ROOT.startswith(('/tmp/', '/home/')) and TMP_ROOT not in ('/tmp', '/home')):
+    for _var in ('SINGULARITY_BIND', 'APPTAINER_BIND'):
+        _have = [b for b in os.environ.get(_var, '').split(',') if b]
+        if TMP_ROOT not in _have:
+            os.environ[_var] = ','.join(_have + [TMP_ROOT])
 
 # Pass config to Snakemake config dict
 config['samples_file'] = config_parser['paths'].get('samples_file', 'samples.csv')
