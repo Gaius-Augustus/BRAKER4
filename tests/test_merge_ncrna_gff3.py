@@ -16,7 +16,7 @@ import sys
 SCRIPTS = os.path.join(os.path.dirname(__file__), "..", "scripts")
 sys.path.insert(0, SCRIPTS)
 
-from infernal_to_gff3 import load_family_types, rna_class  # noqa: E402
+from infernal_to_gff3 import load_family_types, parse_tblout, rna_class  # noqa: E402
 
 MERGE = os.path.join(SCRIPTS, "merge_ncrna_gff3.py")
 
@@ -152,6 +152,39 @@ def test_rfam_types_map_to_ncbi_feature_types():
     assert rna_class("Intron;") == ("autocatalytically_spliced_intron", None)
     assert rna_class("") == ("ncRNA", "ncRNA")
 
+
+def _tblout_row(idx, model, acc, olp, seq_from, seq_to, strand, score, evalue, inc="!"):
+    """One cmscan --fmt 2 tblout line, the 29 fields of Infernal 1.1.5."""
+    return " ".join(str(f) for f in (
+        idx, model, acc, "X1", "-", "CL00112", "cm", 1, 2900,
+        seq_from, seq_to, strand, "no", 1, "0.52", "0.0", score, evalue, inc,
+        olp, "-", "-", "-", "-", "-", "-", 2900, 1000000,
+        model.replace("_", " ")))
+
+
+def test_overlap_losers_are_dropped_but_winners_kept(tmp_path):
+    """Of an overlapping set only '=' is dropped, after the LSU rRNA example of
+    the Infernal guide: the best hit is marked '^', not '*', and keeping only
+    '*' lost the locus entirely."""
+    tblout = tmp_path / "infernal.tblout"
+    tblout.write_text(
+        "#idx target name  accession  query name ...\n"
+        # the winner of the overlapping set: '^', must be kept
+        + _tblout_row(1, "LSU_rRNA_archaea", "RF02540", "^", 762872, 765862, "+", "2763.9", "0") + "\n"
+        # overlaps hit 1 and scores worse: '=', must be dropped
+        + _tblout_row(2, "LSU_rRNA_bacteria", "RF02541", "=", 762874, 765862, "+", "1872.5", "0") + "\n"
+        + _tblout_row(3, "LSU_rRNA_eukarya", "RF02543", "=", 762947, 765766, "+", "1361.0", "0") + "\n"
+        # overlaps a worse-scoring loser only: '$', must be kept
+        + _tblout_row(4, "LSU_rRNA_eukarya", "RF02543", "$", 765700, 766400, "+", "140.2", "1e-30") + "\n"
+        # no overlap at all, on the minus strand with seq from > seq to
+        + _tblout_row(5, "tRNA", "RF00005", "*", 5084, 5001, "-", "48.7", "1e-10") + "\n"
+        # below the inclusion threshold: dropped whatever its olp says
+        + _tblout_row(6, "U2", "RF00004", "^", 9000, 9100, "+", "20.0", "3.0", inc="?") + "\n"
+    )
+    hits = parse_tblout(str(tblout))
+    assert [h['rfam_acc'] for h in hits] == ["RF02540", "RF02543", "RF00005"]
+    assert [(h['start'], h['end'], h['strand']) for h in hits] == [
+        (762872, 765862, '+'), (765700, 766400, '+'), (5001, 5084, '-')]
 
 def test_shipped_rfam_table_covers_all_families():
     types = load_family_types(os.path.join(SCRIPTS, "rfam_family_types.tsv"))
