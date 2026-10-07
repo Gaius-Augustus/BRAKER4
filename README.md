@@ -398,8 +398,12 @@ G = genome FASTA, P = protein FASTA, B = RNA-Seq BAMs, H = hints file. NEED is t
 | `sort_isoseq_sam` | sort chunks, sorted BAM | BAM and `.csi` | 3 x `.sam.gz` + 5 |
 | `run_stringtie` (several BAMs) | merged and sorted BAM | nothing | 3 x B + 5 |
 | `download_sra` | `.sra`, FASTQ | FASTQ | 100 |
+| `merge_hints` | GNU `sort` temporary files | nothing | 5 x hint files + 5 |
+| `best_by_compleasm` | staging area, compleasm protein-mode runs | nothing (the staging area with `no_cleanup = 1`) | 10 |
+| `run_feelnc` | FEELnc work dir | nothing (outputs are written directly) | 10 |
+| `fantasia_annotate` | FANTASIA-Lite chunk dirs | nothing | 10 |
 
-**`TMPDIR` for `merge_hints`:** `merge_hints` (four GNU `sort` passes over the merged hints file) still spills to `$TMPDIR` through the `tmpdir` resource. Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation; if that path is not user-writable, or is not bound into the Singularity container, this rule fails with a permission error on `/local/scratch/...`. Pick a writable directory, set it as the default `tmpdir` resource in your SLURM profile, and add the same path to `--singularity-args`:
+**`TMPDIR`:** With `[paths] tmp_dir` empty, each job uses its `$TMPDIR` as the scratch root; Snakemake sets it from the `tmpdir` resource. Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation. If that path is not writable inside the Singularity container, the jobs still run but work in `output/<sample>/` (look for the `WARNING: working in` line). Either set `[paths] tmp_dir` to a node-local path that exists on every node (BRAKER4 binds it into the containers), or set the default `tmpdir` resource in your SLURM profile and add the same path to `--singularity-args`:
 
 ```yaml
 # profiles/slurm/config.yaml

@@ -50,7 +50,16 @@ def _bbc_genemark_inputs(wildcards):
 
 
 rule best_by_compleasm:
-    """Run best_by_compleasm to rescue missing BUSCOs from AUGUSTUS / GeneMark sets."""
+    """Run best_by_compleasm to rescue missing BUSCOs from AUGUSTUS / GeneMark sets.
+
+    Scratch: the staging area (per-pass gene sets, compleasm protein-mode
+    runs) is a private directory on the node-local disk
+    (scripts/tmp_dir.sh, [paths] tmp_dir); only the outputs are written to
+    the run directory, plus the whole staging area to
+    output/<sample>/best_by_compleasm_tmp when no_cleanup = 1. NEED 10 GB;
+    with less free the job works in output/<sample>/best_by_compleasm_tmp as
+    before.
+    """
     input:
         unpack(lambda w: {
             "braker_raw":  f"output/{w.sample}/braker.tsebra.raw.gtf",
@@ -75,7 +84,8 @@ rule best_by_compleasm:
         busco_lineage=lambda w: get_busco_lineage(w),
         library_path=config['compleasm_download_path'],
         tmp_dir=lambda w: f"output/{w.sample}/best_by_compleasm_tmp",
-        script=os.path.join(script_dir, "best_by_compleasm.py")
+        script=os.path.join(script_dir, "best_by_compleasm.py"),
+        tmp_root=TMP_ROOT
     container:
         BRAKER3_CONTAINER
     shell:
@@ -95,9 +105,17 @@ rule best_by_compleasm:
             exit 0
         fi
 
-        TMP={params.tmp_dir}
-        rm -rf "$TMP"
-        mkdir -p "$TMP"
+        # Staging area on the node-local disk
+        source {script_dir}/tmp_dir.sh
+        scratch_dir outDir "bbc_{wildcards.sample}" "{params.tmp_root}" 10 \
+            "$PWD/{params.tmp_dir}" 2>> {log}
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+        TMP=$outDir
+        if [ -z "$SCRATCH" ]; then
+            # fallback: clear an earlier attempt's staging area
+            rm -rf "$TMP"
+            mkdir -p "$TMP"
+        fi
 
         # ---- helper: run one best_by_compleasm pass ------------------------
         # $1 = stage label (e.g. "sr", "iso", "final")
@@ -254,8 +272,11 @@ rule best_by_compleasm:
             cp {input.braker_raw} {output.braker_merged_gtf}
         fi
 
-        # Clean up the staging area unless no_cleanup is set
-        if [ "{config[no_cleanup]}" != "True" ]; then
+        # Clean up the staging area unless no_cleanup is set. On scratch the
+        # EXIT trap removes it; with no_cleanup it is copied to the run dir.
+        if [ "{config[no_cleanup]}" = "True" ]; then
+            copy_back "$TMP" "$PWD/{params.tmp_dir}"
+        elif [ -z "$SCRATCH" ]; then
             rm -rf "$TMP"
         fi
 

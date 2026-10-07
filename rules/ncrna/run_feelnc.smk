@@ -28,7 +28,18 @@ def _get_feelnc_stringtie_gtf(wildcards):
 
 
 rule run_feelnc:
-    """Run FEELnc to identify long non-coding RNAs from StringTie assembly."""
+    """Run FEELnc to identify long non-coding RNAs from StringTie assembly.
+
+    Scratch: the FEELnc work dir (filtered candidates, codpot_out/) is a
+    private directory on the node-local disk (scripts/tmp_dir.sh, [paths]
+    tmp_dir); the outputs are written to their run-dir paths directly.
+    NEED 10 GB (fixed: the busybox FEELnc container has no stat for
+    need_gb); with less free the job works in
+    output/<sample>/ncrna/feelnc_work as before. In the FEELnc image
+    /var/tmp is a symlink to /tmp, so Singularity's /var/tmp bind shadows
+    /tmp: with tmp_dir empty and no $TMPDIR the scratch directory (and the
+    free-space check) is on the host's /var/tmp.
+    """
     input:
         stringtie=_get_feelnc_stringtie_gtf,
         braker_gtf="output/{sample}/braker.gtf",
@@ -46,13 +57,18 @@ rule run_feelnc:
         runtime=int(config['slurm_args']['max_runtime'])
     params:
         sample="{sample}",
-        workdir=lambda wildcards: f"output/{wildcards.sample}/ncrna/feelnc_work"
+        workdir=lambda wildcards: f"output/{wildcards.sample}/ncrna/feelnc_work",
+        tmp_root=TMP_ROOT
     container:
         FEELNC_CONTAINER
     shell:
         r"""
         set -euo pipefail
-        mkdir -p {params.workdir}
+        source {script_dir}/tmp_dir.sh
+        WORKDIR=$PWD
+        LOG_ABS=$WORKDIR/{log}
+        CLASSIFIER_ABS=$WORKDIR/{output.classifier}
+        LNCRNA_GFF_ABS=$WORKDIR/{output.lncrna_gff}
 
         GENOME_ABS=$(readlink -f {input.genome})
         STRINGTIE_ABS=$(readlink -f {input.stringtie})
@@ -62,7 +78,11 @@ rule run_feelnc:
         echo "[INFO] StringTie input: $STRINGTIE_ABS" >> {log}
         echo "[INFO] Reference mRNA: $BRAKER_ABS" >> {log}
 
-        cd {params.workdir}
+        # FEELnc's work dir goes to the node-local disk
+        scratch_dir outDir "feelnc_{wildcards.sample}" "{params.tmp_root}" 10 \
+            "$WORKDIR/{params.workdir}" 2>> {log}
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+        cd "$outDir"
 
         # Fix braker.gtf: AUGUSTUS transcript/gene lines have bare IDs without
         # transcript_id/gene_id attributes. FEELnc requires standard GTF format.
@@ -76,11 +96,11 @@ rule run_feelnc:
             print
         }}' $BRAKER_ABS > braker_fixed.gtf
         BRAKER_ABS=$(readlink -f braker_fixed.gtf)
-        echo "[INFO] Fixed braker.gtf attributes for FEELnc compatibility" >> $OLDPWD/{log}
+        echo "[INFO] Fixed braker.gtf attributes for FEELnc compatibility" >> "$LOG_ABS"
 
         # Step 1: Filter — remove short transcripts and those overlapping
         # protein-coding exons
-        echo "[INFO] Step 1: FEELnc_filter.pl..." >> $OLDPWD/{log}
+        echo "[INFO] Step 1: FEELnc_filter.pl..." >> "$LOG_ABS"
         FEELnc_filter.pl \
             -i $STRINGTIE_ABS \
             -a $BRAKER_ABS \
@@ -88,17 +108,17 @@ rule run_feelnc:
             --size=200 \
             -p {threads} \
             > candidate_lncrna.gtf \
-            2>> $OLDPWD/{log} || true
+            2>> "$LOG_ABS" || true
 
         n_candidates=$(awk -F'\t' '$3=="transcript"' candidate_lncrna.gtf 2>/dev/null | wc -l || echo 0)
-        echo "[INFO] Filter produced $n_candidates candidate transcripts" >> $OLDPWD/{log}
+        echo "[INFO] Filter produced $n_candidates candidate transcripts" >> "$LOG_ABS"
 
         FEELNC_STATUS="no_candidates"
         n_final=0
 
         if [ "$n_candidates" -gt 0 ]; then
             # Step 2: Coding potential — classify as coding or non-coding
-            echo "[INFO] Step 2: FEELnc_codpot.pl..." >> $OLDPWD/{log}
+            echo "[INFO] Step 2: FEELnc_codpot.pl..." >> "$LOG_ABS"
             FEELnc_codpot.pl \
                 -i candidate_lncrna.gtf \
                 -a $BRAKER_ABS \
@@ -106,21 +126,21 @@ rule run_feelnc:
                 --mode=shuffle \
                 --outdir=codpot_out \
                 -p {threads} \
-                2>> $OLDPWD/{log} || true
+                2>> "$LOG_ABS" || true
 
             LNCRNA_GTF=$(find codpot_out -name "*_lncRNA.gtf" 2>/dev/null | head -1)
 
             if [ -n "$LNCRNA_GTF" ] && [ -s "$LNCRNA_GTF" ]; then
                 n_lncrna=$(awk -F'\t' '$3=="transcript"' "$LNCRNA_GTF" 2>/dev/null | wc -l || echo 0)
-                echo "[INFO] Coding potential filter: $n_lncrna lncRNA transcripts" >> $OLDPWD/{log}
+                echo "[INFO] Coding potential filter: $n_lncrna lncRNA transcripts" >> "$LOG_ABS"
 
                 # Step 3: Classify — categorize lncRNAs by relationship to mRNAs
-                echo "[INFO] Step 3: FEELnc_classifier.pl..." >> $OLDPWD/{log}
+                echo "[INFO] Step 3: FEELnc_classifier.pl..." >> "$LOG_ABS"
                 FEELnc_classifier.pl \
                     -i "$LNCRNA_GTF" \
                     -a $BRAKER_ABS \
-                    > $OLDPWD/{output.classifier} \
-                    2>> $OLDPWD/{log} || true
+                    > "$CLASSIFIER_ABS" \
+                    2>> "$LOG_ABS" || true
 
                 # Convert lncRNA GTF to GFF3 with proper IDs: lnc_RNA + exons,
                 # exons linked by Parent via their transcript_id. POSIX awk
@@ -152,18 +172,18 @@ rule run_feelnc:
                         $9 = "ID=" lid ".exon" k[lid] ";Parent=" lid
                         print
                     }}
-                ' "$LNCRNA_GTF" > $OLDPWD/{output.lncrna_gff}
+                ' "$LNCRNA_GTF" > "$LNCRNA_GFF_ABS"
 
-                n_final=$(grep -c 'biotype=lncRNA' $OLDPWD/{output.lncrna_gff} || echo 0)
-                echo "[INFO] FEELnc identified $n_final lncRNA transcripts" >> $OLDPWD/{log}
+                n_final=$(grep -c 'biotype=lncRNA' "$LNCRNA_GFF_ABS" || echo 0)
+                echo "[INFO] FEELnc identified $n_final lncRNA transcripts" >> "$LOG_ABS"
                 FEELNC_STATUS="success"
             else
-                echo "[INFO] No lncRNAs identified by coding potential filter" >> $OLDPWD/{log}
+                echo "[INFO] No lncRNAs identified by coding potential filter" >> "$LOG_ABS"
                 FEELNC_STATUS="no_lncrna"
             fi
         fi
 
-        cd $OLDPWD
+        cd "$WORKDIR"
 
         # Create empty output files if FEELnc didn't produce results
         if [ ! -f {output.lncrna_gff} ]; then
@@ -173,8 +193,10 @@ rule run_feelnc:
             echo "# No lncRNA candidates" > {output.classifier}
         fi
 
-        # Clean up working directory
-        rm -rf {params.workdir}
+        # Clean up working directory (fallback; on scratch the EXIT trap does)
+        if [ -z "$SCRATCH" ]; then
+            rm -rf {params.workdir}
+        fi
 
         # Record software version (no flock — not available in FEELnc container)
         VERSIONS_FILE=output/{wildcards.sample}/software_versions.tsv

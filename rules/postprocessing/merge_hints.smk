@@ -53,6 +53,11 @@ rule merge_hints:
     intron_support=1.0 threshold in braker3.cfg). On A. thaliana the wrong
     treatment costs ~3 percentage points of locus-level sensitivity.
 
+    Scratch: the four GNU sort passes spill to a private directory on the
+    node-local disk (scripts/tmp_dir.sh, [paths] tmp_dir) via sort -T;
+    nothing is copied back. NEED 5 x the input hint files + 5 GB; with less
+    free sort spills to output/<sample>/.
+
     Container: teambraker/braker3:latest (provides join_mult_hints.pl)
 
     Output:
@@ -66,6 +71,8 @@ rule merge_hints:
         hints_stats = "output/{sample}/hints_statistics.txt"
     benchmark:
         "benchmarks/{sample}/merge_hints/merge_hints.txt"
+    params:
+        tmp_root=TMP_ROOT
     threads: 1
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']) // int(config['slurm_args']['cpus_per_task']),
@@ -78,6 +85,12 @@ rule merge_hints:
 
         echo "[INFO] ========== MERGING HINTS FILES ==========" | tee {output.hints_stats}
         echo "[INFO] Merging hints from multiple sources..." | tee -a {output.hints_stats}
+
+        # sort's temporary files go to the node-local disk
+        source {script_dir}/tmp_dir.sh
+        scratch_dir outDir "mergehints_{wildcards.sample}" "{params.tmp_root}" \
+            "$(need_gb 5 {input})" "$PWD/$(dirname {output.hintsfile})"
+        trap 'rm -rf -- "$SCRATCH"' EXIT
 
         # Concatenate all input hint files into a temporary unsorted file
         TMP_RAW={output.hintsfile}.raw
@@ -129,10 +142,10 @@ rule merge_hints:
         set +e
         set +o pipefail
         cat "$TMP_MERGE" \
-            | sort -n -k 4,4 \
-            | sort -s -n -k 5,5 \
-            | sort -s -n -k 3,3 \
-            | sort -s -k 1,1 \
+            | sort -T "$outDir" -n -k 4,4 \
+            | sort -T "$outDir" -s -n -k 5,5 \
+            | sort -T "$outDir" -s -n -k 3,3 \
+            | sort -T "$outDir" -s -k 1,1 \
             | join_mult_hints.pl \
             > "$TMP_JOINED"
         JOIN_EXIT=$?

@@ -4,12 +4,13 @@ singularity-args: '--no-mount resolv-conf -B /home --env "PREPEND_PATH=/opt/cond
 # Cluster-specific SLURM directives (uncomment and adjust as needed).
 # slurm_account and slurm_qos are recognized by snakemake-executor-plugin-slurm
 # and translate to #SBATCH --account / #SBATCH --qos in every submitted job.
-# tmpdir overrides $TMPDIR for all rules. merge_hints (four GNU sort passes)
-# spills to $TMPDIR; the other I/O-heavy rules use [paths] tmp_dir in
-# config.ini. Many SLURM clusters set TMPDIR=/local/scratch/$USER per
-# allocation, and that path is often not user-writable or not bound into
-# the Singularity container. Point tmpdir at a directory you can write, and
-# add that same path to the -B list in singularity-args above.
+# tmpdir overrides $TMPDIR for all rules. With [paths] tmp_dir empty in
+# config.ini, $TMPDIR is the node-local scratch root of the I/O-heavy rules.
+# Many SLURM clusters set TMPDIR=/local/scratch/$USER per allocation, and
+# that path is often not user-writable or not bound into the Singularity
+# container; jobs then work in output/<sample>/ with a WARNING. Point tmpdir
+# at a directory you can write, and add that same path to the -B list in
+# singularity-args above, or set [paths] tmp_dir instead.
 # default-resources:
 #   slurm_account: "your_account"
 #   slurm_qos: "standby"

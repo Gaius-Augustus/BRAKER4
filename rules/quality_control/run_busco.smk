@@ -81,7 +81,10 @@ rule busco_genome:
         # as soon as this mode finishes and a failure further down the DAG
         # does not leave it behind.
         mapfile -t _keep < <(cd "$outDir" && find genome -name 'short_summary*.txt')
-        copy_back "$outDir" "$finalDir" "${{_keep[@]}}"
+        # copy_back without names copies everything: only call it with names
+        if [ ${{#_keep[@]}} -gt 0 ]; then
+            copy_back "$outDir" "$finalDir" "${{_keep[@]}}"
+        fi
         if ! find "$finalDir/genome" -name 'short_summary*.txt' 2>/dev/null | grep -q .; then
             echo "ERROR: no BUSCO short_summary*.txt in $finalDir/genome" >> {log}
             exit 1
@@ -243,7 +246,11 @@ rule busco_proteins:
         # Keep only short_summary*.txt (see busco_genome) and the list of
         # proteins skipped for length.
         mapfile -t _keep < <(cd "$outDir" && find proteins -name 'short_summary*.txt')
-        copy_back "$outDir" "$finalDir" "${{_keep[@]}}" busco_skipped_long_proteins.txt
+        _keep+=(busco_skipped_long_proteins.txt)
+        # copy_back without names copies everything: only call it with names
+        if [ ${{#_keep[@]}} -gt 0 ]; then
+            copy_back "$outDir" "$finalDir" "${{_keep[@]}}"
+        fi
         if ! find "$finalDir/proteins" -name 'short_summary*.txt' 2>/dev/null | grep -q .; then
             echo "ERROR: no BUSCO short_summary*.txt in $finalDir/proteins" >> {log}
             exit 1

@@ -34,7 +34,14 @@ FANTASIA_MIN_SCORE  = float(config['fantasia'].get('min_score', 0.5))
 
 
 rule fantasia_annotate:
-    """Embed proteins with ProtT5 and assign GO terms via FANTASIA-Lite (GPU)."""
+    """Embed proteins with ProtT5 and assign GO terms via FANTASIA-Lite (GPU).
+
+    Scratch: the per-chunk FASTA, embedding, result, config and failure
+    dirs are in a private directory on the node-local disk
+    (scripts/tmp_dir.sh, [paths] tmp_dir), bound into the container;
+    nothing from them is kept. NEED 10 GB; with less free the job uses
+    output/<sample>/fantasia/tmp as before.
+    """
     input:
         proteins="output/{sample}/braker.aa"
     output:
@@ -49,7 +56,8 @@ rule fantasia_annotate:
         hf_cache=FANTASIA_HF_CACHE,
         lookup_dir=FANTASIA_LOOKUP_DIR,
         add_params=FANTASIA_ADD_PARAMS,
-        outdir=lambda wc: f"output/{wc.sample}/fantasia"
+        outdir=lambda wc: f"output/{wc.sample}/fantasia",
+        tmp_root=TMP_ROOT
     threads:
         int(config['fantasia'].get('cpus_per_task', config['slurm_args']['cpus_per_task']))
     resources:
@@ -79,6 +87,11 @@ rule fantasia_annotate:
         mkdir -p {params.outdir}
         OUTDIR=$(readlink -f {params.outdir})
         PROTEINS=$(readlink -f {input.proteins})
+
+        # Chunk working dirs go to the node-local disk
+        source {script_dir}/tmp_dir.sh
+        scratch_dir outDir "fantasia_{wildcards.sample}" "{params.tmp_root}" 10 "$OUTDIR/tmp" 2>> {log}
+        trap 'rm -rf -- "$SCRATCH"' EXIT
 
         # SIGBUS root cause: safetensors mmap's the model file; CUDA async H2D
         # copies from mmap-backed pages fail with SIGBUS when the kernel refuses
@@ -165,6 +178,7 @@ rule fantasia_annotate:
         PATCHED_EMBED="{script_dir}/generate_embeddings.py"
         singularity exec --nv \
             -B "$PWD":"$PWD" \
+            -B "$outDir":"$outDir" \
             -B "{params.hf_cache}":"{params.hf_cache}":ro \
             -B "{params.lookup_dir}":"{params.lookup_dir}" \
             -B "$PATCHED_EMBED":/opt/fantasia-lite/src/generate_embeddings.py:ro \
@@ -186,11 +200,11 @@ rule fantasia_annotate:
                 --results-csv "$OUTDIR/results.csv" \
                 --topgo \
                 --topgo-dir "$OUTDIR/topgo" \
-                --chunk-dir "$OUTDIR/tmp/fasta_chunks" \
-                --chunk-embed-dir "$OUTDIR/tmp/chunk_embeddings" \
-                --chunk-results-dir "$OUTDIR/tmp/chunk_results" \
-                --chunk-config-dir "$OUTDIR/tmp/chunk_configs" \
-                --chunk-failure-dir "$OUTDIR/tmp/failures" \
+                --chunk-dir "$outDir/fasta_chunks" \
+                --chunk-embed-dir "$outDir/chunk_embeddings" \
+                --chunk-results-dir "$outDir/chunk_results" \
+                --chunk-config-dir "$outDir/chunk_configs" \
+                --chunk-failure-dir "$outDir/failures" \
                 --failure-report "$OUTDIR/failed_sequences.csv" \
                 {params.add_params} \
                 "$PROTEINS" \
@@ -205,9 +219,12 @@ rule fantasia_annotate:
         cite fantasia "$REPORT_DIR"
         cite fantasia_methods "$REPORT_DIR"
 
-        # Remove chunk working dirs and the full embedding matrix; results.csv
-        # and topgo/ are kept (copied by collect_results and read by downstream rules).
-        rm -rf "$OUTDIR/tmp" 2>/dev/null || true
+        # Remove chunk working dirs (fallback; on scratch the EXIT trap does)
+        # and the full embedding matrix; results.csv and topgo/ are kept
+        # (copied by collect_results and read by downstream rules).
+        if [ -z "$SCRATCH" ]; then
+            rm -rf "$OUTDIR/tmp" 2>/dev/null || true
+        fi
         rm -f  "$OUTDIR/query_embeddings.npz" 2>/dev/null || true
         """
 

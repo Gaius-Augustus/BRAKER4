@@ -221,7 +221,7 @@ def test_copy_back_is_a_noop_for_the_same_directory(tmp_path):
     assert (d / "f").read_text() == "1\n"
 
 
-# ── Rules converted to node-local scratch (SCRATCH_PLAN.md, Tiers 1, 2) ───
+# ── Rules converted to node-local scratch (SCRATCH_PLAN.md, Tiers 1-3) ────
 
 import re
 
@@ -250,6 +250,10 @@ SCRATCH_RULES = {
     "sort_isoseq_sam": "rules/preprocessing/minimap2_isoseq_align.smk",
     "run_stringtie": "rules/postprocessing/add_utr.smk",
     "download_sra": "rules/preprocessing/download_sra.smk",
+    "fantasia_annotate": "rules/postprocessing/run_fantasia.smk",
+    "run_feelnc": "rules/ncrna/run_feelnc.smk",
+    "best_by_compleasm": "rules/postprocessing/best_by_compleasm.smk",
+    "merge_hints": "rules/postprocessing/merge_hints.smk",
 }
 
 

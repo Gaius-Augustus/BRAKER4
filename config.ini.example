@@ -18,7 +18,8 @@ samples_file = samples.csv
 augustus_config_path = augustus_config
 ; Node-local scratch root for the rules that write many or large temporary
 ; files (GeneMark, ProtHint, AUGUSTUS prediction and optimization, BUSCO,
-; compleasm, VARUS, alignment and BAM sorting). Each job works in a private
+; compleasm, VARUS, alignment and BAM sorting, SRA downloads, hint merging,
+; best_by_compleasm, FEELnc, FANTASIA). Each job works in a private
 ; directory under it and copies only the kept files to output/<sample>/.
 ; Empty: each job's $TMPDIR, else /tmp. A job that finds less free space
 ; than it needs works in output/<sample>/ instead and says so with a
