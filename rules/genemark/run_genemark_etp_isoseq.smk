@@ -109,7 +109,8 @@ rule run_genemark_etp_isoseq:
         scratch_dir outDir "gmetp_isoseq_{wildcards.sample}" "{params.tmp_root}" \
             "$(( $(need_gb 1 {input.bams} {input.sr_bams}) + $(need_gb 10 "$GENOME_ABS") + $(need_gb 5 "$PROTEINS_ABS") ))" \
             "$finalDir" 2>> "$LOG_ABS"
-        trap 'rm -rf -- "$SCRATCH"' EXIT
+        # also the ProtHint shadow tree next to the scratch dir ($outDir.bin)
+        trap 'rm -rf -- "$SCRATCH" ${{SCRATCH:+"$SCRATCH.bin"}}' EXIT
         mkdir -p "$outDir/etp_lr_data" # isoseq reads
         mkdir -p "$outDir/etp_sr_data" # short reads
 

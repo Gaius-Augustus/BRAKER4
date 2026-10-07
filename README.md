@@ -372,7 +372,7 @@ We want to be transparent about version sensitivity. Snakemake, the SLURM execut
 --singularity-args "-B /home -B /scratch -B /data"
 ```
 
-**Node-local scratch (`[paths] tmp_dir`):** Several rules write thousands of small files (GeneMark, ProtHint, BUSCO, AUGUSTUS) or large intermediates (VARUS). On network file systems with slow small-file writes this can dominate the runtime. These rules therefore work in a private directory on the node-local disk, copy only the files BRAKER4 keeps to `output/<sample>/`, and remove the scratch directory when the job ends, also on failure.
+**Node-local scratch (`[paths] tmp_dir`):** Several rules write thousands of small files (GeneMark, ProtHint, BUSCO, AUGUSTUS) or large intermediates (VARUS, read alignment, BAM sorting, SRA downloads). On network file systems with slow small-file writes this can dominate the runtime. These rules therefore work in a private directory on the node-local disk, copy only the files BRAKER4 keeps to `output/<sample>/`, and remove the scratch directory when the job ends, also on failure.
 
 - The scratch root is `[paths] tmp_dir` in `config.ini` (or the environment variable `BRAKER4_TMP_DIR`). Empty (the default) means each job's `$TMPDIR`, else `/tmp`.
 - Before it starts, each job checks the free space under the root (see the table). With less free space, or when the root is not writable, the job works in `output/<sample>/` as BRAKER4 did before and writes a line starting with `WARNING: working in` to its log. A job that got scratch logs `scratch directory: <path>`.
@@ -392,8 +392,14 @@ G = genome FASTA, P = protein FASTA, B = RNA-Seq BAMs, H = hints file. NEED is t
 | `busco_genome`, `busco_proteins` | BUSCO run dir | `short_summary*.txt` | 20 / 10 |
 | `run_compleasm` | compleasm work dir | `summary.txt` | 5 x G + 5 |
 | `run_varus` | pyVARUS index, batches, BAMs | sorted BAM and `.csi`, `Coverage.csv`, `RunStatistics.csv`, `introns.gff` | 10 x G + 55 |
+| `hisat2_align` | sorted BAM, sort chunks | BAM and `.csi` | 2 x FASTQ + 5 |
+| `check_bam_sorted`, `check_isoseq_bam` | sorted BAM, sort chunks (only when the BAM needs sorting) | BAM and `.csi` | 2 x B + 5 |
+| `minimap2_isoseq_align` | gzip-compressed SAM | `.sam.gz` | 2 x reads + 5 |
+| `sort_isoseq_sam` | sort chunks, sorted BAM | BAM and `.csi` | 3 x `.sam.gz` + 5 |
+| `run_stringtie` (several BAMs) | merged and sorted BAM | nothing | 3 x B + 5 |
+| `download_sra` | `.sra`, FASTQ | FASTQ | 100 |
 
-**`TMPDIR` for sort steps:** `merge_hints` (four GNU `sort` passes over the merged hints file) and all `samtools sort` calls (`hisat2_align`, `check_bam_sorted`, `check_isoseq_bam`, `minimap2_isoseq_align`, `add_utr`) still spill to `$TMPDIR` through the `tmpdir` resource. Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation; if that path is not user-writable, or is not bound into the Singularity container, these rules fail with a permission error on `/local/scratch/...`. Pick a writable directory, set it as the default `tmpdir` resource in your SLURM profile, and add the same path to `--singularity-args`:
+**`TMPDIR` for `merge_hints`:** `merge_hints` (four GNU `sort` passes over the merged hints file) still spills to `$TMPDIR` through the `tmpdir` resource. Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation; if that path is not user-writable, or is not bound into the Singularity container, this rule fails with a permission error on `/local/scratch/...`. Pick a writable directory, set it as the default `tmpdir` resource in your SLURM profile, and add the same path to `--singularity-args`:
 
 ```yaml
 # profiles/slurm/config.yaml

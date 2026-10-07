@@ -113,7 +113,8 @@ rule run_prothint_iter2:
         # ProtHint's work files (DIAMOND, Spaln) go to the node-local disk.
         scratch_dir outDir "prothint2_{wildcards.sample}" "{params.tmp_root}" \
             "$(need_gb 10 "$GENOME_ABS" "$PROTEINS_ABS")" "$finalDir" 2>> $WORKDIR/{log}
-        trap 'rm -rf -- "$SCRATCH"' EXIT
+        # also the ProtHint shadow tree next to the scratch dir ($outDir.bin)
+        trap 'rm -rf -- "$SCRATCH" ${{SCRATCH:+"$SCRATCH.bin"}}' EXIT
 
         # Same Spaln dispatcher fix as in run_prothint (#98).
         SHADOW_DIR=$outDir.bin

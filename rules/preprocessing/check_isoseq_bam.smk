@@ -18,6 +18,13 @@ def get_input_isoseq_bam_by_id(wildcards):
     raise ValueError(f"No IsoSeq BAM found for id {wildcards.isoseq_id} in sample {wildcards.sample}")
 
 rule check_isoseq_bam:
+    """Sort and index an IsoSeq BAM.
+
+    Scratch: the sorted BAM, its .csi and the sort chunks are written to a
+    private directory on the node-local disk (scripts/tmp_dir.sh, [paths]
+    tmp_dir) and copied to their output paths. NEED 2 x BAM + 5 GB; with
+    less free the job writes in output/<sample>/isoseq_sorted/ directly.
+    """
     input:
         bam=get_input_isoseq_bam_by_id
     output:
@@ -27,6 +34,8 @@ rule check_isoseq_bam:
         "logs/{sample}/check_isoseq_bam/{isoseq_id}.log"
     benchmark:
         "benchmarks/{sample}/check_isoseq_bam/{isoseq_id}.txt"
+    params:
+        tmp_root=TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -42,11 +51,31 @@ rule check_isoseq_bam:
         BAM_ABS=$(readlink -f {input.bam})
 
         echo "Sorting IsoSeq BAM file {wildcards.isoseq_id}..." > {log}
-        samtools sort -@ {threads} -T {resources.tmpdir}/{wildcards.sample}_{wildcards.isoseq_id} -o {output.bam} "$BAM_ABS" 2>> {log}
+
+        # Sort chunks and the sorted BAM go to the node-local disk
+        source {script_dir}/tmp_dir.sh
+        OUT_BAM_ABS=$PWD/{output.bam}
+        OUT_CSI_ABS=$PWD/{output.csi}
+        scratch_dir outDir "bamsort_{wildcards.sample}_{wildcards.isoseq_id}" "{params.tmp_root}" \
+            "$(need_gb 2 "$BAM_ABS")" "$(dirname "$OUT_BAM_ABS")" 2>> {log}
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+        SORTED_BAM="$outDir/{wildcards.isoseq_id}.sorted.bam"
+
+        samtools sort -@ {threads} -T "$outDir/sort" -o "$SORTED_BAM" "$BAM_ABS" 2>> {log}
         echo "Sorting complete" >> {log}
 
-        samtools index -c -@ {threads} {output.bam} 2>> {log}
+        samtools index -c -@ {threads} "$SORTED_BAM" 2>> {log}
         echo "Indexing complete" >> {log}
+        if [ -n "$SCRATCH" ]; then
+            cp "$SORTED_BAM" "$OUT_BAM_ABS.tmp"
+            mv "$OUT_BAM_ABS.tmp" "$OUT_BAM_ABS"
+            cp "$SORTED_BAM.csi" "$OUT_CSI_ABS.tmp"
+            mv "$OUT_CSI_ABS.tmp" "$OUT_CSI_ABS"
+        fi
+        if [ ! -s "$OUT_BAM_ABS" ] || [ ! -s "$OUT_CSI_ABS" ]; then
+            echo "ERROR: {output.bam} or its .csi missing after the copy back" >> {log}
+            exit 1
+        fi
         """
 
 

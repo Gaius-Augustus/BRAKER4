@@ -78,7 +78,14 @@ def _get_align_deps(wildcards):
 
 
 rule hisat2_align:
-    """Align FASTQ reads with HISAT2 and produce sorted BAM."""
+    """Align FASTQ reads with HISAT2 and produce sorted BAM.
+
+    Scratch: the sorted BAM, its .csi and the sort chunks are written to a
+    private directory on the node-local disk (scripts/tmp_dir.sh, [paths]
+    tmp_dir); BAM and .csi are then copied to their output paths. NEED
+    2 x the FASTQ files + 5 GB; with less free the job writes in
+    output/<sample>/hisat2_aligned/ directly.
+    """
     input:
         index="output/{sample}/hisat2/.index_complete",
         deps=_get_align_deps
@@ -96,7 +103,8 @@ rule hisat2_align:
         r2=lambda wildcards: get_fastq_r2(wildcards.sample, wildcards.align_id) if wildcards.align_id in get_fastq_ids(wildcards.sample) else "",
         index_prefix=lambda wildcards: f"output/{wildcards.sample}/hisat2/genome",
         hisat2_threads=lambda wildcards, threads: max(1, threads // 2),
-        sort_threads=lambda wildcards, threads: max(1, threads - threads // 2)
+        sort_threads=lambda wildcards, threads: max(1, threads - threads // 2),
+        tmp_root=TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -109,6 +117,16 @@ rule hisat2_align:
 
         echo "Aligning {wildcards.align_id} (source: {params.source})..." > {log}
 
+        # Sort chunks and the sorted BAM go to the node-local disk
+        source {script_dir}/tmp_dir.sh
+        BAM_ABS=$PWD/{output.bam}
+        CSI_ABS=$PWD/{output.csi}
+        scratch_dir outDir "hisat2_{wildcards.sample}_{wildcards.align_id}" "{params.tmp_root}" \
+            "$(need_gb 2 {params.r1} {params.r2} {params.sra_dir}/{wildcards.align_id}_1.fastq {params.sra_dir}/{wildcards.align_id}_2.fastq {params.sra_dir}/{wildcards.align_id}.fastq)" \
+            "$(dirname "$BAM_ABS")" 2>> {log}
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+        SORTED_BAM="$outDir/{wildcards.align_id}.sorted.bam"
+
         if [ "{params.source}" = "sra" ]; then
             # SRA-derived FASTQs: check for paired vs unpaired
             if [ -f "{params.sra_dir}/{wildcards.align_id}_1.fastq" ] && \
@@ -119,14 +137,14 @@ rule hisat2_align:
                     -2 {params.sra_dir}/{wildcards.align_id}_2.fastq \
                     --dta -p {params.hisat2_threads} \
                     2>> {log} | \
-                    samtools sort -@ {params.sort_threads} -T {resources.tmpdir}/{wildcards.sample}_{wildcards.align_id} -o {output.bam}
+                    samtools sort -@ {params.sort_threads} -T "$outDir/sort" -o "$SORTED_BAM"
             elif [ -f "{params.sra_dir}/{wildcards.align_id}.fastq" ]; then
                 echo "Single-end SRA alignment" >> {log}
                 hisat2 -x {params.index_prefix} \
                     -U {params.sra_dir}/{wildcards.align_id}.fastq \
                     --dta -p {params.hisat2_threads} \
                     2>> {log} | \
-                    samtools sort -@ {params.sort_threads} -T {resources.tmpdir}/{wildcards.sample}_{wildcards.align_id} -o {output.bam}
+                    samtools sort -@ {params.sort_threads} -T "$outDir/sort" -o "$SORTED_BAM"
             else
                 echo "ERROR: No FASTQ files found for SRA ID {wildcards.align_id}" >> {log}
                 ls -la {params.sra_dir}/ >> {log} 2>&1 || true
@@ -140,13 +158,23 @@ rule hisat2_align:
                 -2 {params.r2} \
                 --dta -p {params.hisat2_threads} \
                 2>> {log} | \
-                samtools sort -@ {params.sort_threads} -T {resources.tmpdir}/{wildcards.sample}_{wildcards.align_id} -o {output.bam}
+                samtools sort -@ {params.sort_threads} -T "$outDir/sort" -o "$SORTED_BAM"
         fi
 
         # Index the BAM
-        samtools index -c -@ {threads} {output.bam} 2>> {log}
+        samtools index -c -@ {threads} "$SORTED_BAM" 2>> {log}
 
-        N_READS=$(samtools view -c {output.bam})
+        N_READS=$(samtools view -c "$SORTED_BAM")
+        if [ -n "$SCRATCH" ]; then
+            cp "$SORTED_BAM" "$BAM_ABS.tmp"
+            mv "$BAM_ABS.tmp" "$BAM_ABS"
+            cp "$SORTED_BAM.csi" "$CSI_ABS.tmp"
+            mv "$CSI_ABS.tmp" "$CSI_ABS"
+        fi
+        if [ ! -s "$BAM_ABS" ] || [ ! -s "$CSI_ABS" ]; then
+            echo "ERROR: {output.bam} or its .csi missing after the copy back" >> {log}
+            exit 1
+        fi
         echo "Alignment complete: $N_READS reads mapped" >> {log}
 
         # Record software versions

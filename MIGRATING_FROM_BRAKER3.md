@@ -353,6 +353,8 @@ Add `mem_mb=...` to `--default-resources`:
 
 Set `no_cleanup = 1` in `[PARAMS]`. By default the `collect_results` rule moves the important outputs into `results/` and deletes the intermediate state. With `no_cleanup = 1`, everything in `output/{sample_name}/` is preserved. Disk-hungry — only enable for debugging.
 
+The minimap2 alignment of IsoSeq FASTQ reads is kept as gzip-compressed SAM (`output/{sample_name}/minimap2_aligned/<id>.sam.gz`, a temporary file) instead of plain SAM; samtools reads it directly.
+
 ### "I had a `--workingdir` separate from my source code"
 
 In BRAKER4, your "working directory" is whatever directory you `cd` into before running snakemake. It contains `samples.csv` and `config.ini`, and Snakemake creates `output/`, `logs/`, `benchmarks/`, `.snakemake/` underneath it. Pick any directory you like — it does not have to be inside the cloned BRAKER4 repository. Reference the Snakefile via its absolute path (`--snakefile /path/to/BRAKER4/Snakefile`).

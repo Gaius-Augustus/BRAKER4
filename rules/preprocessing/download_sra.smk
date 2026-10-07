@@ -18,6 +18,14 @@ Container: teambraker/braker3:latest (contains SRA Toolkit)
 """
 
 rule download_sra:
+    """Download an SRA run and convert it to FASTQ.
+
+    Scratch: prefetch's .sra and fastq-dump's FASTQ files are written to a
+    private directory on the node-local disk (scripts/tmp_dir.sh, [paths]
+    tmp_dir); the FASTQ files are copied to output/<sample>/sra_fastq/.
+    NEED 100 GB (the size is unknown before prefetch); with less free the
+    job works in output/<sample>/sra_fastq/ as before.
+    """
     output:
         marker="output/{sample}/sra_fastq/{sra_id}/.download_complete"
     log:
@@ -25,7 +33,8 @@ rule download_sra:
     benchmark:
         "benchmarks/{sample}/download_sra/{sra_id}.txt"
     params:
-        outdir=lambda wildcards: f"output/{wildcards.sample}/sra_fastq"
+        outdir=lambda wildcards: f"output/{wildcards.sample}/sra_fastq",
+        tmp_root=TMP_ROOT
     threads: 1
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']) // int(config['slurm_args']['cpus_per_task']),
@@ -40,15 +49,23 @@ rule download_sra:
 
         echo "Downloading SRA accession {wildcards.sra_id}..." > {log}
 
+        # .sra and FASTQ files go to the node-local disk
+        source {script_dir}/tmp_dir.sh
+        finalDir=$PWD/{params.outdir}
+        MARKER_ABS=$PWD/{output.marker}
+        scratch_dir outDir "sra_{wildcards.sample}_{wildcards.sra_id}" "{params.tmp_root}" 100 \
+            "$finalDir" 2>> {log}
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+
         # Step 1: prefetch the .sra file
         prefetch \
             --max-size 35G \
             {wildcards.sra_id} \
-            --output-directory {params.outdir} \
+            --output-directory "$outDir" \
             >> {log} 2>&1
 
         # Verify download
-        if [ ! -f "{params.outdir}/{wildcards.sra_id}/{wildcards.sra_id}.sra" ]; then
+        if [ ! -f "$outDir/{wildcards.sra_id}/{wildcards.sra_id}.sra" ]; then
             echo "ERROR: prefetch failed - .sra file not found" >> {log}
             exit 1
         fi
@@ -61,27 +78,44 @@ rule download_sra:
         rm -f {params.outdir}/{wildcards.sra_id}_1.fastq {params.outdir}/{wildcards.sra_id}_2.fastq {params.outdir}/{wildcards.sra_id}.fastq
         fastq-dump \
             --split-3 \
-            {params.outdir}/{wildcards.sra_id}/{wildcards.sra_id}.sra \
-            --outdir {params.outdir} \
+            "$outDir/{wildcards.sra_id}/{wildcards.sra_id}.sra" \
+            --outdir "$outDir" \
             >> {log} 2>&1
 
         # Verify FASTQ output
-        if [ -f "{params.outdir}/{wildcards.sra_id}_1.fastq" ] && \
-           [ -f "{params.outdir}/{wildcards.sra_id}_2.fastq" ]; then
+        if [ -f "$outDir/{wildcards.sra_id}_1.fastq" ] && \
+           [ -f "$outDir/{wildcards.sra_id}_2.fastq" ]; then
             echo "Paired-end FASTQ files created" >> {log}
-        elif [ -f "{params.outdir}/{wildcards.sra_id}.fastq" ]; then
+            FASTQS="{wildcards.sra_id}_1.fastq {wildcards.sra_id}_2.fastq"
+        elif [ -f "$outDir/{wildcards.sra_id}.fastq" ]; then
             echo "Single-end FASTQ file created" >> {log}
+            FASTQS="{wildcards.sra_id}.fastq"
         else
             echo "ERROR: fastq-dump produced no FASTQ files" >> {log}
             exit 1
         fi
 
-        # Create marker before cleanup (marker is inside the SRA subdir)
-        mkdir -p $(dirname {output.marker})
-        touch {output.marker}
+        # Copy the FASTQ files to the run directory (cp to .tmp, then mv)
+        for fq in $FASTQS; do
+            if [ -n "$SCRATCH" ]; then
+                cp "$outDir/$fq" "$finalDir/$fq.tmp"
+                mv "$finalDir/$fq.tmp" "$finalDir/$fq"
+            fi
+            if [ ! -s "$finalDir/$fq" ]; then
+                echo "ERROR: $finalDir/$fq missing after the copy back" >> {log}
+                exit 1
+            fi
+        done
 
-        # Clean up .sra file to save space (keep marker dir)
-        rm -f {params.outdir}/{wildcards.sra_id}/{wildcards.sra_id}.sra
+        # Create marker before cleanup (marker is inside the SRA subdir)
+        mkdir -p $(dirname "$MARKER_ABS")
+        touch "$MARKER_ABS"
+
+        # Clean up .sra file to save space (keep marker dir). Fallback only;
+        # on scratch the EXIT trap removes it.
+        if [ -z "$SCRATCH" ]; then
+            rm -f "$outDir/{wildcards.sra_id}/{wildcards.sra_id}.sra"
+        fi
         echo "SRA download complete for {wildcards.sra_id}" >> {log}
 
         # Record software versions

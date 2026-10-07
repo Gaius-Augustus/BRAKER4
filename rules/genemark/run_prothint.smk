@@ -68,7 +68,8 @@ rule run_prothint:
         : > "$LOG_ABS"
         scratch_dir outDir "prothint_{wildcards.sample}" "{params.tmp_root}" \
             "$(need_gb 10 "$GENOME_ABS" "$PROTEINS_ABS")" "$finalDir" 2>> "$LOG_ABS"
-        trap 'rm -rf -- "$SCRATCH"' EXIT
+        # also the ProtHint shadow tree next to the scratch dir ($outDir.bin)
+        trap 'rm -rf -- "$SCRATCH" ${{SCRATCH:+"$SCRATCH.bin"}}' EXIT
 
         # ProtHint's Perl-threads Spaln dispatcher can hang after the last
         # batch is enqueued (#98). Run ProtHint from a symlinked copy of the

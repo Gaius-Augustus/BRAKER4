@@ -26,6 +26,14 @@ def get_input_bam(wildcards):
     raise ValueError(f"No BAM file found for bam_id {wildcards.bam_id}")
 
 rule check_bam_sorted:
+    """Link a coordinate-sorted BAM, or sort it.
+
+    Scratch: when the BAM must be sorted, the sorted BAM, its .csi and the
+    sort chunks are written to a private directory on the node-local disk
+    (scripts/tmp_dir.sh, [paths] tmp_dir) and copied to their output
+    paths. NEED 2 x BAM + 5 GB; with less free the job writes in
+    output/<sample>/bam_sorted/ directly. The symlink branch is unchanged.
+    """
     input:
         bam=get_input_bam,
         genome_fai="output/{sample}/genome.fa.fai"
@@ -36,6 +44,8 @@ rule check_bam_sorted:
         "logs/{sample}/check_bam_sorted/{bam_id}.log"
     benchmark:
         "benchmarks/{sample}/check_bam_sorted/{bam_id}.txt"
+    params:
+        tmp_root=TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -100,19 +110,38 @@ rule check_bam_sorted:
         if [ "$IS_SORTED" = "false" ]; then
             echo "Sorting BAM file..." >> {log}
 
+            # Sort chunks and the sorted BAM go to the node-local disk
+            source {script_dir}/tmp_dir.sh
+            BAM_ABS=$PWD/{output.bam}
+            CSI_ABS=$PWD/{output.csi}
+            scratch_dir outDir "bamsort_{wildcards.sample}_{wildcards.bam_id}" "{params.tmp_root}" \
+                "$(need_gb 2 {input.bam})" "$(dirname "$BAM_ABS")" 2>> {log}
+            trap 'rm -rf -- "$SCRATCH"' EXIT
+            SORTED_BAM="$outDir/{wildcards.bam_id}.sorted.bam"
+
             # Sort with parallel threads (fixes BRAKER issue: was -@ 0)
             samtools sort \
                 -@ {threads} \
-                -T {resources.tmpdir}/{wildcards.sample}_{wildcards.bam_id} \
-                -o {output.bam} \
+                -T "$outDir/sort" \
+                -o "$SORTED_BAM" \
                 {input.bam} \
                 2>> {log}
 
             echo "Sorting complete" >> {log}
 
             # Create index
-            samtools index -c -@ {threads} {output.bam} 2>> {log}
+            samtools index -c -@ {threads} "$SORTED_BAM" 2>> {log}
             echo "Indexing complete" >> {log}
+            if [ -n "$SCRATCH" ]; then
+                cp "$SORTED_BAM" "$BAM_ABS.tmp"
+                mv "$BAM_ABS.tmp" "$BAM_ABS"
+                cp "$SORTED_BAM.csi" "$CSI_ABS.tmp"
+                mv "$CSI_ABS.tmp" "$CSI_ABS"
+            fi
+            if [ ! -s "$BAM_ABS" ] || [ ! -s "$CSI_ABS" ]; then
+                echo "ERROR: {output.bam} or its .csi missing after the copy back" >> {log}
+                exit 1
+            fi
         fi
 
         echo "Final BAM file: {output.bam}" >> {log}

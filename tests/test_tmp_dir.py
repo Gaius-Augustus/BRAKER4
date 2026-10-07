@@ -221,7 +221,7 @@ def test_copy_back_is_a_noop_for_the_same_directory(tmp_path):
     assert (d / "f").read_text() == "1\n"
 
 
-# ── Rules converted to node-local scratch (SCRATCH_PLAN.md, Tier 1) ───────
+# ── Rules converted to node-local scratch (SCRATCH_PLAN.md, Tiers 1, 2) ───
 
 import re
 
@@ -243,6 +243,13 @@ SCRATCH_RULES = {
     "optimize_augustus": "rules/augustus_training/optimize_augustus.smk",
     "run_compleasm": "rules/quality_control/run_compleasm.smk",
     "run_varus": "rules/preprocessing/run_varus.smk",
+    "hisat2_align": "rules/preprocessing/hisat2_align.smk",
+    "check_bam_sorted": "rules/genemark/check_bam_sorted.smk",
+    "check_isoseq_bam": "rules/preprocessing/check_isoseq_bam.smk",
+    "minimap2_isoseq_align": "rules/preprocessing/minimap2_isoseq_align.smk",
+    "sort_isoseq_sam": "rules/preprocessing/minimap2_isoseq_align.smk",
+    "run_stringtie": "rules/postprocessing/add_utr.smk",
+    "download_sra": "rules/preprocessing/download_sra.smk",
 }
 
 
@@ -269,6 +276,33 @@ def test_rule_uses_scratch_dir_safely(name):
     i = 0
     while lines[i].rstrip().endswith("\\"):
         i += 1
-    assert lines[i + 1].strip() == "trap 'rm -rf -- \"$SCRATCH\"' EXIT"
+    trap = lines[i + 1].strip()
+    if trap.startswith("#"):  # comment explaining an extended trap
+        trap = lines[i + 2].strip()
+    allowed = ["trap 'rm -rf -- \"$SCRATCH\"' EXIT"]
+    if "SHADOW_DIR=$outDir.bin" in shell:
+        # the ProtHint shadow tree next to the scratch dir is removed too
+        # (braces doubled: Snakemake shell template)
+        allowed = ["trap 'rm -rf -- \"$SCRATCH\" ${{SCRATCH:+\"$SCRATCH.bin\"}}' EXIT"]
+    assert trap in allowed
     assert len(re.findall(r"^\s*trap ", shell, re.M)) == 1
+    # Snakemake formats the shell block: a literal ${VAR...} must be ${{...}}
+    assert not re.search(r"\$\{(?!\{)", shell), "single-brace ${ in shell block"
     assert "{resources.tmpdir}" not in shell
+
+
+def test_shadow_trap_removes_bin_dir_only_on_scratch(tmp_path):
+    # Scratch: both the scratch dir and its .bin sibling go on exit.
+    proc = _bash(f'scratch_dir d s "{tmp_path}" 0 "{tmp_path}/fb"; '
+                 'trap \'rm -rf -- "$SCRATCH" ${SCRATCH:+"$SCRATCH.bin"}\' EXIT; '
+                 'mkdir "$d.bin"; echo "$d"')
+    assert proc.returncode == 0, proc.stderr
+    d = Path(proc.stdout.strip())
+    assert not d.exists() and not Path(f"{d}.bin").exists()
+    # Fallback: nothing is removed.
+    fb = tmp_path / "fb2"
+    proc = _bash(f'scratch_dir d s "{tmp_path}/none" 0 "{fb}"; '
+                 'trap \'rm -rf -- "$SCRATCH" ${SCRATCH:+"$SCRATCH.bin"}\' EXIT; '
+                 'mkdir "$d.bin"')
+    assert proc.returncode == 0, proc.stderr
+    assert fb.is_dir() and Path(f"{fb}.bin").is_dir()

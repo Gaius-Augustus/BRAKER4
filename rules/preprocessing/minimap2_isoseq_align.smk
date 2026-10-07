@@ -37,17 +37,26 @@ def _minimap2_inputs(wildcards):
 
 
 rule minimap2_isoseq_align:
-    """Align IsoSeq reads with minimap2, output SAM."""
+    """Align IsoSeq reads with minimap2, output gzip-compressed SAM.
+
+    Scratch: minimap2 writes the SAM through gzip -1 to a private directory
+    on the node-local disk (scripts/tmp_dir.sh, [paths] tmp_dir); the
+    .sam.gz is copied to its output path, because sort_isoseq_sam runs in
+    another container and possibly on another node. NEED 2 x reads + 5 GB;
+    with less free the job writes in output/<sample>/minimap2_aligned/
+    directly.
+    """
     input:
         unpack(_minimap2_inputs)
     output:
-        sam=temp("output/{sample}/minimap2_aligned/{isoseq_fastq_id}.sam")
+        sam=temp("output/{sample}/minimap2_aligned/{isoseq_fastq_id}.sam.gz")
     log:
         "logs/{sample}/minimap2/{isoseq_fastq_id}_align.log"
     benchmark:
         "benchmarks/{sample}/minimap2/{isoseq_fastq_id}_align.txt"
     params:
         spsc_flag=lambda wildcards, input: f"--spsc={input.splice_scores}" if hasattr(input, 'splice_scores') else "",
+        tmp_root=TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -65,13 +74,30 @@ rule minimap2_isoseq_align:
             echo "Using minisplice splice scores: {params.spsc_flag}" >> {log}
         fi
 
+        # The SAM (~3 x the reads) is written gzip -1 compressed on the
+        # node-local disk and copied to the run directory in one cp.
+        source {script_dir}/tmp_dir.sh
+        SAM_ABS=$PWD/{output.sam}
+        scratch_dir outDir "minimap2_{wildcards.sample}_{wildcards.isoseq_fastq_id}" "{params.tmp_root}" \
+            "$(need_gb 2 {input.isoseq_reads})" "$(dirname "$SAM_ABS")" 2>> {log}
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+        SAM_TMP="$outDir/{wildcards.isoseq_fastq_id}.sam.gz"
+
         minimap2 -ax splice:hq -uf \
             -t {threads} \
             {params.spsc_flag} \
             {input.genome} \
             {input.isoseq_reads} \
-            > {output.sam} \
-            2>> {log}
+            2>> {log} \
+            | gzip -1 > "$SAM_TMP"
+        if [ -n "$SCRATCH" ]; then
+            cp "$SAM_TMP" "$SAM_ABS.tmp"
+            mv "$SAM_ABS.tmp" "$SAM_ABS"
+        fi
+        if [ ! -s "$SAM_ABS" ]; then
+            echo "ERROR: {output.sam} missing after the copy back" >> {log}
+            exit 1
+        fi
 
         echo "minimap2 alignment complete" >> {log}
 
@@ -88,9 +114,17 @@ rule minimap2_isoseq_align:
 
 
 rule sort_isoseq_sam:
-    """Convert SAM to sorted BAM and index."""
+    """Convert SAM to sorted BAM and index.
+
+    The input is gzip-compressed SAM, which htslib reads directly.
+
+    Scratch: the sort chunks, the sorted BAM and its .csi are written to a
+    private directory on the node-local disk (scripts/tmp_dir.sh, [paths]
+    tmp_dir) and copied to their output paths. NEED 3 x sam.gz + 5 GB; with
+    less free the job writes in output/<sample>/minimap2_aligned/ directly.
+    """
     input:
-        sam="output/{sample}/minimap2_aligned/{isoseq_fastq_id}.sam"
+        sam="output/{sample}/minimap2_aligned/{isoseq_fastq_id}.sam.gz"
     output:
         bam="output/{sample}/minimap2_aligned/{isoseq_fastq_id}.sorted.bam",
         csi="output/{sample}/minimap2_aligned/{isoseq_fastq_id}.sorted.bam.csi"
@@ -99,7 +133,8 @@ rule sort_isoseq_sam:
     benchmark:
         "benchmarks/{sample}/minimap2/{isoseq_fastq_id}_sort.txt"
     params:
-        sort_threads=lambda wildcards, threads: max(1, threads - 1)
+        sort_threads=lambda wildcards, threads: max(1, threads - 1),
+        tmp_root=TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -111,10 +146,29 @@ rule sort_isoseq_sam:
         set -euo pipefail
         echo "Converting SAM to sorted BAM..." > {log}
 
+        # Sort chunks and the sorted BAM go to the node-local disk
+        source {script_dir}/tmp_dir.sh
+        BAM_ABS=$PWD/{output.bam}
+        CSI_ABS=$PWD/{output.csi}
+        scratch_dir outDir "isosort_{wildcards.sample}_{wildcards.isoseq_fastq_id}" "{params.tmp_root}" \
+            "$(need_gb 3 {input.sam})" "$(dirname "$BAM_ABS")" 2>> {log}
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+        SORTED_BAM="$outDir/{wildcards.isoseq_fastq_id}.sorted.bam"
+
         samtools view -bS --threads 1 {input.sam} | \
-            samtools sort -@ {params.sort_threads} -T {resources.tmpdir}/{wildcards.sample}_{wildcards.isoseq_fastq_id} -o {output.bam} 2>> {log}
+            samtools sort -@ {params.sort_threads} -T "$outDir/sort" -o "$SORTED_BAM" 2>> {log}
 
-        samtools index -c -@ {threads} {output.bam} 2>> {log}
+        samtools index -c -@ {threads} "$SORTED_BAM" 2>> {log}
 
-        echo "IsoSeq BAM: $(samtools view -c {output.bam}) reads" >> {log}
+        echo "IsoSeq BAM: $(samtools view -c "$SORTED_BAM") reads" >> {log}
+        if [ -n "$SCRATCH" ]; then
+            cp "$SORTED_BAM" "$BAM_ABS.tmp"
+            mv "$BAM_ABS.tmp" "$BAM_ABS"
+            cp "$SORTED_BAM.csi" "$CSI_ABS.tmp"
+            mv "$CSI_ABS.tmp" "$CSI_ABS"
+        fi
+        if [ ! -s "$BAM_ABS" ] || [ ! -s "$CSI_ABS" ]; then
+            echo "ERROR: {output.bam} or its .csi missing after the copy back" >> {log}
+            exit 1
+        fi
         """

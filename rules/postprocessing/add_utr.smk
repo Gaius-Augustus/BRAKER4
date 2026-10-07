@@ -39,7 +39,14 @@ def _get_stringtie_bam(wildcards):
 
 
 rule run_stringtie:
-    """Run StringTie to assemble transcripts from RNA-Seq BAMs (ET mode only)."""
+    """Run StringTie to assemble transcripts from RNA-Seq BAMs (ET mode only).
+
+    Scratch: with several BAMs, the merged BAM, the sorted merged BAM and
+    its .csi are written to a private directory on the node-local disk
+    (scripts/tmp_dir.sh, [paths] tmp_dir) and StringTie reads them there;
+    nothing is copied back. NEED 3 x BAMs + 5 GB; with less free the job
+    works in output/<sample>/stringtie/ as before.
+    """
     input:
         bams=_get_stringtie_bam
     output:
@@ -48,6 +55,8 @@ rule run_stringtie:
         "logs/{sample}/stringtie/stringtie.log"
     benchmark:
         "benchmarks/{sample}/stringtie/stringtie.txt"
+    params:
+        tmp_root=TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -60,14 +69,21 @@ rule run_stringtie:
         export PATH=/opt/conda/bin:$PATH
         export PYTHONNOUSERSITE=1
         mkdir -p $(dirname {output.assembly})
+        source {script_dir}/tmp_dir.sh
 
         if [ $(echo {input.bams} | wc -w) -gt 1 ]; then
             echo "Merging $(echo {input.bams} | wc -w) BAM files..." > {log}
-            samtools merge -@ {threads} output/{wildcards.sample}/stringtie/merged.bam {input.bams} 2>> {log}
-            samtools sort -@ {threads} -T {resources.tmpdir}/{wildcards.sample}_addutr -o output/{wildcards.sample}/stringtie/merged.s.bam output/{wildcards.sample}/stringtie/merged.bam 2>> {log}
-            samtools index -c -@ {threads} output/{wildcards.sample}/stringtie/merged.s.bam 2>> {log}
-            INPUT_BAM=output/{wildcards.sample}/stringtie/merged.s.bam
-            rm -f output/{wildcards.sample}/stringtie/merged.bam
+            # Merged and sorted BAMs go to the node-local disk
+            scratch_dir outDir "stringtie_{wildcards.sample}" "{params.tmp_root}" \
+                "$(need_gb 3 {input.bams})" "$PWD/output/{wildcards.sample}/stringtie" 2>> {log}
+            trap 'rm -rf -- "$SCRATCH"' EXIT
+            samtools merge -@ {threads} "$outDir/merged.bam" {input.bams} 2>> {log}
+            samtools sort -@ {threads} -T "$outDir/sort" -o "$outDir/merged.s.bam" "$outDir/merged.bam" 2>> {log}
+            samtools index -c -@ {threads} "$outDir/merged.s.bam" 2>> {log}
+            INPUT_BAM="$outDir/merged.s.bam"
+            if [ -z "$SCRATCH" ]; then
+                rm -f "$outDir/merged.bam"
+            fi
         else
             INPUT_BAM={input.bams}
             echo "Using single BAM: $INPUT_BAM" > {log}
@@ -87,7 +103,10 @@ rule run_stringtie:
         ST_VER=$(stringtie --version 2>&1 | head -1 || echo "unknown")
         ( flock 9; printf "StringTie\t%s\n" "$ST_VER" >> "$VERSIONS_FILE" ) 9>"$VERSIONS_FILE.lock"
 
-        rm -f output/{wildcards.sample}/stringtie/merged.s.bam output/{wildcards.sample}/stringtie/merged.s.bam.csi
+        # Fallback only; on scratch the EXIT trap removes the merged BAMs
+        if [ -z "$SCRATCH" ]; then
+            rm -f output/{wildcards.sample}/stringtie/merged.s.bam output/{wildcards.sample}/stringtie/merged.s.bam.csi
+        fi
         """
 
 

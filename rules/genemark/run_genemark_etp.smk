@@ -141,7 +141,8 @@ rule run_genemark_etp:
         scratch_dir outDir "gmetp_{wildcards.sample}" "{params.tmp_root}" \
             "$(( $(need_gb 1 {input.bams}) + $(need_gb 10 "$GENOME_ABS") + $(need_gb 5 "$PROTEINS_ABS") ))" \
             "$finalDir" 2>> "$LOG_ABS"
-        trap 'rm -rf -- "$SCRATCH"' EXIT
+        # also the ProtHint shadow tree next to the scratch dir ($outDir.bin)
+        trap 'rm -rf -- "$SCRATCH" ${{SCRATCH:+"$SCRATCH.bin"}}' EXIT
         mkdir -p "$outDir/etp_data"
 
         # The scratch dir is gone when the job ends: keep the logs needed to
