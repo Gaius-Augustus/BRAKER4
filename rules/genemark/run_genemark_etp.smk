@@ -74,6 +74,19 @@ def _get_etp_bam_files(wildcards):
 
 
 rule run_genemark_etp:
+    """GeneMark-ETP.
+
+    Scratch: the whole gmetp.pl work dir (BAM copies, StringTie per
+    library, DIAMOND, Spaln, model dirs) and the ProtHint shadow tree are
+    on the node-local disk (scripts/tmp_dir.sh, [paths] tmp_dir).
+    get_etp_hints.py reads the work dir there; genemark.gtf and
+    rnaseq/stringtie/transcripts_merged.gff are copied back to
+    output/<sample>/GeneMark-ETP/, training.gtf and hc.gff are copied to
+    their output paths. On failure gms.log, etp_config.yaml and the
+    StringTie GFFs go to output/<sample>/GeneMark-ETP/failed_run_debug/.
+    NEED 1 x BAMs + 10 x genome + 5 x proteins (+ 5 GB each); with less
+    free the job works in output/<sample>/GeneMark-ETP/ as before.
+    """
     input:
         genome=lambda wildcards: get_masked_genome(wildcards.sample),
         proteins=lambda wildcards: get_protein_fasta(wildcards.sample),
@@ -96,7 +109,8 @@ rule run_genemark_etp:
         outdir=lambda wildcards: f"output/{wildcards.sample}/GeneMark-ETP",
         species_name=lambda wildcards: get_species_name(wildcards),
         fungus="--fungus" if config.get("fungus", False) else "",
-        translation_table=config.get("translation_table", 1)
+        translation_table=config.get("translation_table", 1),
+        tmp_root=TMP_ROOT
     container:
         GENEMARK_ETP_CONTAINER
     shell:
@@ -107,19 +121,46 @@ rule run_genemark_etp:
         set +e
         set +o pipefail
         WORKDIR=$(pwd)
-        mkdir -p {params.outdir}/etp_data
+        source {script_dir}/tmp_dir.sh
+        mkdir -p {params.outdir}
 
-        OUTDIR_ABS=$(readlink -f {params.outdir})
+        finalDir=$(readlink -f {params.outdir})
+        rm -rf "$finalDir/failed_run_debug"
         GENOME_ABS=$(readlink -f {input.genome})
         PROTEINS_ABS=$(readlink -f {input.proteins})
+        LOG_ABS=$WORKDIR/{log}
+        TRAINING_ABS=$WORKDIR/{output.training}
+        HC_GFF_ABS=$WORKDIR/{output.hc_gff}
+        ETP_HINTS_ABS=$WORKDIR/{output.etp_hints}
 
         # Step 1: Copy/sort BAM files into etp_data/
         echo "Preparing BAM files for GeneMark-ETP..." > {log}
+
+        # The gmetp.pl work dir runs on the node-local disk; only the outputs
+        # are copied back to $finalDir.
+        scratch_dir outDir "gmetp_{wildcards.sample}" "{params.tmp_root}" \
+            "$(( $(need_gb 1 {input.bams}) + $(need_gb 10 "$GENOME_ABS") + $(need_gb 5 "$PROTEINS_ABS") ))" \
+            "$finalDir" 2>> "$LOG_ABS"
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+        mkdir -p "$outDir/etp_data"
+
+        # The scratch dir is gone when the job ends: keep the logs needed to
+        # debug a failed GeneMark-ETP run.
+        save_debug() {{
+            local _dbg=(etp_config.yaml) f
+            for f in $(find "$outDir" -name gms.log -not -path "*/failed_run_debug/*") "$outDir"/rnaseq/stringtie/*.gff; do
+                [ -e "$f" ] && _dbg+=("${{f#"$outDir"/}}")
+            done
+            mkdir -p "$finalDir/failed_run_debug"
+            copy_back "$outDir" "$finalDir/failed_run_debug" "${{_dbg[@]}}"
+            echo "Debug files (gms.log, etp_config.yaml, StringTie GFFs) copied to $finalDir/failed_run_debug/" >> "$LOG_ABS"
+        }}
+
         BAM_IDS=""
         for bam in {input.bams}; do
             BAM_ABS=$(readlink -f $bam)
             LIB=$(basename $bam .sorted.bam)
-            cp $BAM_ABS $OUTDIR_ABS/etp_data/${{LIB}}.bam
+            cp $BAM_ABS $outDir/etp_data/${{LIB}}.bam
             if [ -z "$BAM_IDS" ]; then
                 BAM_IDS="$LIB"
             else
@@ -144,7 +185,7 @@ rule run_genemark_etp:
         fi
 
         # Step 3: Create YAML config
-        cat > $OUTDIR_ABS/etp_config.yaml << YAMLEOF
+        cat > $outDir/etp_config.yaml << YAMLEOF
 ---
 RepeatMasker_path: ''
 annot_path: ''
@@ -162,7 +203,7 @@ YAMLEOF
         # that can hang after the last batch is enqueued (#98). Run gmetp.pl
         # from a symlinked copy of the container's ETP bin tree in which only
         # ProtHint's run_spliced_alignment.pl is replaced.
-        SHADOW_DIR=$OUTDIR_ABS.bin
+        SHADOW_DIR=$outDir.bin
         if bash {script_dir}/make_prothint_shadow.sh $SHADOW_DIR >> {log} 2>&1 && [ -x $SHADOW_DIR/gmetp.pl ]; then
             GMETP=$SHADOW_DIR/gmetp.pl
             echo "[INFO] ProtHint will use the process-based Spaln dispatcher (#98)" >> {log}
@@ -172,12 +213,12 @@ YAMLEOF
         fi
 
         # Step 4: Run GeneMark-ETP
-        cd $OUTDIR_ABS
+        cd $outDir
 
         if $GMETP \
-            --cfg $OUTDIR_ABS/etp_config.yaml \
-            --workdir $OUTDIR_ABS \
-            --bam $OUTDIR_ABS/etp_data/ \
+            --cfg $outDir/etp_config.yaml \
+            --workdir $outDir \
+            --bam $outDir/etp_data/ \
             --cores {threads} \
             --softmask \
             {params.fungus} \
@@ -190,7 +231,7 @@ YAMLEOF
 
         cd $WORKDIR
 
-        if [ ! -f $OUTDIR_ABS/genemark.gtf ]; then
+        if [ ! -f $outDir/genemark.gtf ]; then
             echo "ERROR: GeneMark-ETP failed (exit=$ETP_EXIT), no genemark.gtf" >> {log}
             if grep -q "Illegal division by zero" $WORKDIR/{log} 2>/dev/null; then
                 N_TRAIN=$(grep "genes found for training:" $WORKDIR/{log} | tail -1 | awk '{{print $NF}}' 2>/dev/null || echo "unknown")
@@ -202,7 +243,7 @@ YAMLEOF
                 echo "    3. Protein database too distant: ProtHint yields too few HC introns" >> {log}
                 echo "  See https://github.com/gatech-genemark/GeneMark-ETP/issues" >> {log}
             else
-                TSEQ=$OUTDIR_ABS/rnaseq/stringtie/transcripts_merged.fasta
+                TSEQ=$outDir/rnaseq/stringtie/transcripts_merged.fasta
                 if [ -f "$TSEQ" ]; then
                     TSEQ_SIZE=$(wc -c < "$TSEQ")
                     echo "DIAGNOSTIC: transcripts_merged.fasta size: $TSEQ_SIZE bytes" >> {log}
@@ -232,36 +273,37 @@ YAMLEOF
                     echo "DIAGNOSTIC: transcripts_merged.fasta not found -- GeneMark-ETP likely crashed before StringTie completed." >> {log}
                 fi
             fi
-            GMS_LOG=$(find $OUTDIR_ABS -name "gms.log" | head -1)
+            GMS_LOG=$(find $outDir -name "gms.log" | head -1)
             if [ -n "$GMS_LOG" ]; then
                 echo "DIAGNOSTIC: last lines of gms.log ($GMS_LOG):" >> {log}
                 tail -10 "$GMS_LOG" >> {log}
             fi
+            save_debug
             exit 1
         fi
 
-        n_genes=$(grep -c $'\\tgene\\t' $OUTDIR_ABS/genemark.gtf || echo "0")
+        n_genes=$(grep -c $'\\tgene\\t' $outDir/genemark.gtf || echo "0")
         echo "GeneMark-ETP predicted $n_genes genes (exit=$ETP_EXIT)" >> {log}
 
         # Step 5: Find and copy training genes and HC genes
         # GeneMark-ETP creates a directory named after the protein file
         # (e.g. proteins.fa/) containing model/training.gtf and model/hc.gff
-        ETP_MODEL=$(find $OUTDIR_ABS -path "*/model/training.gtf" -not -path "*/etr/*" | head -1 | xargs dirname 2>/dev/null || echo "")
+        ETP_MODEL=$(find $outDir -path "*/model/training.gtf" -not -path "*/etr/*" | head -1 | xargs dirname 2>/dev/null || echo "")
 
         if [ -n "$ETP_MODEL" ] && [ -f "$ETP_MODEL/training.gtf" ]; then
-            cp "$ETP_MODEL/training.gtf" {output.training}
+            cp "$ETP_MODEL/training.gtf" "$TRAINING_ABS"
             echo "Found training.gtf at $ETP_MODEL" >> {log}
         else
             echo "WARNING: No model/training.gtf found, using genemark.gtf" >> {log}
-            cp $OUTDIR_ABS/genemark.gtf {output.training}
+            cp $outDir/genemark.gtf "$TRAINING_ABS"
         fi
 
         if [ -n "$ETP_MODEL" ] && [ -f "$ETP_MODEL/hc.gff" ]; then
-            cp "$ETP_MODEL/hc.gff" {output.hc_gff}
+            cp "$ETP_MODEL/hc.gff" "$HC_GFF_ABS"
             echo "Found hc.gff at $ETP_MODEL" >> {log}
         else
             echo "WARNING: No model/hc.gff found" >> {log}
-            touch {output.hc_gff}
+            touch "$HC_GFF_ABS"
         fi
 
         # Step 6: Extract hints for AUGUSTUS using get_etp_hints.py
@@ -284,8 +326,8 @@ YAMLEOF
         rm -f {output.etp_hints}
         if get_etp_hints.py \
             --genemark_scripts /opt/ETP/bin \
-            --out {output.etp_hints} \
-            --etp_wdir $OUTDIR_ABS \
+            --out "$ETP_HINTS_ABS" \
+            --etp_wdir $outDir \
             >> {log} 2>&1
         then
             HINTS_EXIT=0
@@ -300,7 +342,13 @@ YAMLEOF
         # error and let the user investigate, not paper over it.
         if [ ! -s {output.etp_hints} ]; then
             echo "[ERROR] get_etp_hints.py failed (exit=$HINTS_EXIT) and produced no hints." >> {log}
-            echo "[ERROR] Inspect $OUTDIR_ABS for the GeneMark-ETP run state." >> {log}
+            save_debug
+            exit 1
+        fi
+
+        copy_back "$outDir" "$finalDir" genemark.gtf rnaseq/stringtie/transcripts_merged.gff
+        if [ ! -s "$finalDir/genemark.gtf" ] || [ ! -f "$finalDir/rnaseq/stringtie/transcripts_merged.gff" ]; then
+            echo "ERROR: genemark.gtf or rnaseq/stringtie/transcripts_merged.gff missing in $finalDir" >> {log}
             exit 1
         fi
 
@@ -340,12 +388,14 @@ YAMLEOF
         # Remove GeneMark-ETP internal working files and etp_data/ BAM copies.
         # Tracked outputs kept: genemark.gtf, training.gtf, hc.gff,
         # rnaseq/stringtie/transcripts_merged.gff (etp_hints.gff is outside outdir).
-        find $OUTDIR_ABS -mindepth 1 -type f \
-            ! -name 'genemark.gtf' \
-            ! -name 'training.gtf' \
-            ! -name 'hc.gff' \
-            ! -path '*/rnaseq/stringtie/transcripts_merged.gff' \
-            -delete 2>/dev/null || true
-        find $OUTDIR_ABS -mindepth 1 -type d -empty -delete 2>/dev/null || true
+        if [ -z "$SCRATCH" ]; then
+            find "$finalDir" -mindepth 1 -type f \
+                ! -name 'genemark.gtf' \
+                ! -name 'training.gtf' \
+                ! -name 'hc.gff' \
+                ! -path '*/rnaseq/stringtie/transcripts_merged.gff' \
+                -delete 2>/dev/null || true
+            find "$finalDir" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+        fi
         rm -rf $SHADOW_DIR
         """

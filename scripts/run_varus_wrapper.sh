@@ -6,6 +6,11 @@
 #
 # use_logan: 1 runs the pyVARUS Logan pre-screen, 0 (default) passes --no-logan.
 #
+# <varus_dir> may be a node-local scratch directory: the BAM is sorted and
+# indexed there and then copied to <output_bam>; the run list and the stats
+# are written next to <output_bam>. The log is appended to (the rule
+# truncates it).
+#
 # NCBI Entrez email: set NCBI_EMAIL in the environment or it falls back to
 # the lab address below (used only for rate-limit courtesy, not authentication).
 
@@ -35,7 +40,7 @@ mkdir -p "$VARUS_DIR_ABS" "$(dirname "$OUTPUT_BAM_ABS")" "$(dirname "$LOGFILE_AB
 
 INDEX_DIR="$VARUS_DIR_ABS/genome"
 
-echo "[INFO] pyVARUS wrapper start"        > "$LOGFILE_ABS"
+echo "[INFO] pyVARUS wrapper start"       >> "$LOGFILE_ABS"
 echo "[INFO] Species:  $SPECIES_NAME"     >> "$LOGFILE_ABS"
 echo "[INFO] Genome:   $GENOME_ABS"       >> "$LOGFILE_ABS"
 echo "[INFO] Threads:  $THREADS"          >> "$LOGFILE_ABS"
@@ -69,20 +74,27 @@ varus run "$SPECIES_NAME" "$GENOME_ABS" \
     "${LOGAN_ARGS[@]}" \
     >> "$LOGFILE_ABS" 2>&1
 
-# Step 4: sort and index
+# Step 4: sort and index in <varus_dir>, then copy to <output_bam>
+SORTED_BAM="$VARUS_DIR_ABS/varus.sorted.bam"
 echo "[INFO] Sorting BAM..." >> "$LOGFILE_ABS"
-samtools sort -@ "$THREADS" -o "$OUTPUT_BAM_ABS" "$VARUS_DIR_ABS/VARUS.bam" \
+samtools sort -@ "$THREADS" -o "$SORTED_BAM" "$VARUS_DIR_ABS/VARUS.bam" \
     >> "$LOGFILE_ABS" 2>&1
 
 echo "[INFO] Indexing BAM (CSI)..." >> "$LOGFILE_ABS"
-samtools index -c -@ "$THREADS" "$OUTPUT_BAM_ABS" >> "$LOGFILE_ABS" 2>&1
+samtools index -c -@ "$THREADS" "$SORTED_BAM" >> "$LOGFILE_ABS" 2>&1
+
+# Same file when <varus_dir> is the output directory (no scratch)
+if [ ! "$SORTED_BAM" -ef "$OUTPUT_BAM_ABS" ]; then
+    cp "$SORTED_BAM" "$OUTPUT_BAM_ABS"
+    cp "$SORTED_BAM.csi" "$OUTPUT_BAM_ABS.csi"
+fi
 
 # Step 5: copy run list to standard output location for reports
 cp "$VARUS_DIR_ABS/Runlist.tsv" "$(dirname "$OUTPUT_BAM_ABS")/varus_runlist.tsv"
 
 # Step 6: write summary stats
 N_SRA=$(tail -n +2 "$VARUS_DIR_ABS/Runlist.tsv" | wc -l)
-TOTAL_READS=$(samtools view -c "$OUTPUT_BAM_ABS" 2>/dev/null || echo 0)
+TOTAL_READS=$(samtools view -c "$SORTED_BAM" 2>/dev/null || echo 0)
 cat > "$(dirname "$OUTPUT_BAM_ABS")/varus_stats.txt" <<STATSEOF
 pyVARUS Run Summary
 ===================

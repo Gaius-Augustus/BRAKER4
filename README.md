@@ -372,9 +372,28 @@ We want to be transparent about version sensitivity. Snakemake, the SLURM execut
 --singularity-args "-B /home -B /scratch -B /data"
 ```
 
-**HPC scratch / `TMPDIR`:** Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation, and several BRAKER4 rules spill intermediate data to `$TMPDIR`: `merge_hints` (four GNU `sort` passes over the merged hints file) and all `samtools sort` calls (`hisat2_align`, `check_bam_sorted`, `check_isoseq_bam`, `minimap2_isoseq_align`, `add_utr`). If that path is not user-writable, or is not bound into the Singularity container, affected rules fail with a permission error on `/local/scratch/...`.
+**Node-local scratch (`[paths] tmp_dir`):** Several rules write thousands of small files (GeneMark, ProtHint, BUSCO, AUGUSTUS) or large intermediates (VARUS). On network file systems with slow small-file writes this can dominate the runtime. These rules therefore work in a private directory on the node-local disk, copy only the files BRAKER4 keeps to `output/<sample>/`, and remove the scratch directory when the job ends, also on failure.
 
-To work around this, pick a writable directory and set it as the default `tmpdir` resource in your SLURM profile, and add the same path to `--singularity-args`:
+- The scratch root is `[paths] tmp_dir` in `config.ini` (or the environment variable `BRAKER4_TMP_DIR`). Empty (the default) means each job's `$TMPDIR`, else `/tmp`.
+- Before it starts, each job checks the free space under the root (see the table). With less free space, or when the root is not writable, the job works in `output/<sample>/` as BRAKER4 did before and writes a line starting with `WARNING: working in` to its log. A job that got scratch logs `scratch directory: <path>`.
+- Singularity binds `/tmp` and `$HOME` by default. Any other `tmp_dir` is added to `SINGULARITY_BIND`/`APPTAINER_BIND` automatically. The path must exist on every compute node.
+- Check the node-local space of a partition with `srun -p <partition> -N1 -n1 df -h /tmp`. Several jobs can share a node, and the free-space check runs when each job starts.
+- When a GeneMark-ETP job fails, its `gms.log`, `etp_config.yaml` and StringTie GFFs are copied to `output/<sample>/GeneMark-ETP*/failed_run_debug/`, because the scratch directory is gone afterwards.
+
+G = genome FASTA, P = protein FASTA, B = RNA-Seq BAMs, H = hints file. NEED is the free space a job requires, in GB, rounded up, including 5 GB headroom.
+
+| Rule | On scratch | Copied back | NEED |
+|---|---|---|---|
+| `run_genemark_es`, `_et`, `_ep` | `gmes_petap.pl` work dir | `genemark.gtf` | 10 x G + 5 |
+| `run_genemark_etp`, `run_genemark_etp_isoseq` | `gmetp.pl` work dir incl. BAM copies | `genemark.gtf`, `training.gtf`, `hc.gff`, `rnaseq/stringtie/transcripts_merged.gff`, ETP hints | B + 10 x G + 5 x P + 15 |
+| `run_prothint`, `run_prothint_iter2` | DIAMOND and Spaln work files | `prothint.gff`, `Spaln/spaln.gff` (iteration 1), hints | 10 x (G + P) + 5 |
+| `run_augustus_hints`, `run_augustus_hints_iter2` | genome split, per-chunk hints, job scripts and GFFs | job list, joined predictions | 3 x (G + H) + 5 |
+| `optimize_augustus` | `optimize_augustus.pl` buckets | nothing (parameters live in the AUGUSTUS config) | 20 |
+| `busco_genome`, `busco_proteins` | BUSCO run dir | `short_summary*.txt` | 20 / 10 |
+| `run_compleasm` | compleasm work dir | `summary.txt` | 5 x G + 5 |
+| `run_varus` | pyVARUS index, batches, BAMs | sorted BAM and `.csi`, `Coverage.csv`, `RunStatistics.csv`, `introns.gff` | 10 x G + 55 |
+
+**`TMPDIR` for sort steps:** `merge_hints` (four GNU `sort` passes over the merged hints file) and all `samtools sort` calls (`hisat2_align`, `check_bam_sorted`, `check_isoseq_bam`, `minimap2_isoseq_align`, `add_utr`) still spill to `$TMPDIR` through the `tmpdir` resource. Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation; if that path is not user-writable, or is not bound into the Singularity container, these rules fail with a permission error on `/local/scratch/...`. Pick a writable directory, set it as the default `tmpdir` resource in your SLURM profile, and add the same path to `--singularity-args`:
 
 ```yaml
 # profiles/slurm/config.yaml
@@ -468,6 +487,7 @@ augustus_config_path = augustus_config
 # rfam_cm = /path/to/Rfam.cm                           # optional, required when run_ncrna = 1
 # rfam_clanin = /path/to/Rfam.clanin                   # optional, required when run_ncrna = 1
 # rfam_path = /path/to/rfam                            # optional legacy alternative (directory with both files)
+# tmp_dir = /path/on/every/node                        # optional node-local scratch root, see "Node-local scratch" below
 
 [containers]
 # Replace any docker:// URI with an absolute path to a local .sif file to
@@ -496,7 +516,7 @@ skip_single_exon_downsampling = 0   # set to 1 to disable single-exon training-g
 downsampling_lambda = 2             # Poisson lambda for single-exon downsampling (lower = more aggressive)
 downsampling_single_exon_skip_threshold = 95  # auto-skip downsampling when >= this % of training genes are single-exon
 filter_single_exon_genes = auto     # TSEBRA drops single-exon genes without start/stop hint: auto (> 300 Mbp), 1 (always), 0 (never)
-use_dev_shm = 0                     # set to 1 to use /dev/shm for temp files (faster I/O)
+use_dev_shm = 0                     # set to 1 to use /dev/shm as scratch for masking and AUGUSTUS
 use_compleasm_hints = 1             # 0 to keep BUSCO CDSpart hints out of AUGUSTUS hintsfile (compleasm still runs)
 skip_busco = 0                      # set to 1 to skip the (slow) full BUSCO pipeline
 run_omark = 0                       # set to 1 to run OMArk (requires LUCA.h5 database, ~8.8 GB)
@@ -804,7 +824,7 @@ Set to `1` to let pyVARUS run its Logan pre-screen, which ranks candidate SRA ru
 
 ### use_dev_shm
 
-Set to `1` to use `/dev/shm` (shared memory) for temporary files during RepeatModeler2/RepeatMasker runs. This can speed up masking on systems where `/dev/shm` is large enough. Only relevant when `masking_tool = repeatmasker` and the genome is unmasked; the Red masker is fast enough that it does not benefit from `/dev/shm`.
+Set to `1` to use `/dev/shm` (shared memory) instead of the node-local disk as the scratch root of three rules: `run_masking` (RepeatModeler2/RepeatMasker; only relevant when `masking_tool = repeatmasker` and the genome is unmasked), `optimize_augustus` and `run_augustus_hints`. All other rules use `[paths] tmp_dir` (see "Node-local scratch" above), which is the general mechanism. If `/dev/shm` has too little free space, `optimize_augustus` and `run_augustus_hints` work in `output/<sample>/` instead.
 
 On SLURM clusters where systemd-logind runs with `RemoveIPC=yes` (the default on many distributions), files you own in `/dev/shm` are deleted whenever another of your sessions or jobs on the same node ends. The masking job then fails silently and loses its progress. If other jobs of yours can land on the same node, either keep `use_dev_shm = 0`, request the node exclusively for `run_masking`, or ask your admins to set `RemoveIPC=no` in `logind.conf` (see issue #43).
 

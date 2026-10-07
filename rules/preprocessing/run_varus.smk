@@ -26,7 +26,15 @@ def get_varus_species(sample):
 
 
 rule run_varus:
-    """Run VARUS to auto-select, download, and align RNA-Seq from SRA."""
+    """Run VARUS to auto-select, download, and align RNA-Seq from SRA.
+
+    Scratch: the pyVARUS outdir (HISAT2 index, batches/, VARUS.bam, the
+    sorted BAM) is a private directory on the node-local disk
+    (scripts/tmp_dir.sh, [paths] tmp_dir). The sorted BAM and its .csi go
+    to their output paths; Coverage.csv, RunStatistics.csv and introns.gff
+    are copied back to output/<sample>/varus/. NEED 10 x genome + 55 GB;
+    with less free the job works in output/<sample>/varus/ as before.
+    """
     input:
         genome=lambda wildcards: get_genome(wildcards.sample)
     output:
@@ -41,7 +49,8 @@ rule run_varus:
         species=lambda wildcards: get_varus_species(wildcards.sample),
         varus_dir=lambda wildcards: f"output/{wildcards.sample}/varus",
         use_logan=1 if config.get('varus_logan', False) else 0,
-        wrapper=os.path.join(script_dir, "run_varus_wrapper.sh")
+        wrapper=os.path.join(script_dir, "run_varus_wrapper.sh"),
+        tmp_root=TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -51,15 +60,35 @@ rule run_varus:
     shell:
         r"""
         set -euo pipefail
+        source {script_dir}/tmp_dir.sh
+        WORKDIR=$PWD
+        finalDir=$WORKDIR/{params.varus_dir}
+        BAM_ABS=$WORKDIR/{output.bam}
+        mkdir -p "$finalDir" "$(dirname $WORKDIR/{log})"
+        GENOME_ABS=$(readlink -f {input.genome})
+
+        # pyVARUS works on the node-local disk; downloads are not known in
+        # advance, hence the fixed 50 GB on top of the index.
+        : > {log}
+        scratch_dir outDir "varus_{wildcards.sample}" "{params.tmp_root}" \
+            "$(( $(need_gb 10 "$GENOME_ABS") + 50 ))" "$finalDir" 2>> {log}
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+
         bash {params.wrapper} \
-            {params.varus_dir} \
+            "$outDir" \
             {input.genome} \
             {params.genus} \
             {params.species} \
             {threads} \
-            {output.bam} \
+            "$BAM_ABS" \
             {log} \
             {params.use_logan}
+
+        copy_back "$outDir" "$finalDir" Coverage.csv RunStatistics.csv introns.gff
+        if [ ! -s "$BAM_ABS" ] || [ ! -s "$BAM_ABS.csi" ]; then
+            echo "[ERROR] {output.bam} or its .csi missing after the copy back" >> {log}
+            exit 1
+        fi
 
         # Record software version
         VERSIONS_FILE=output/{wildcards.sample}/software_versions.tsv
@@ -81,11 +110,14 @@ rule run_varus:
         #
         # Keep: varus.sorted.bam, .csi, varus_stats.txt, varus_runlist.tsv,
         #       Coverage.csv, RunStatistics.csv, introns.gff (small, diagnostic).
-        VARUS_DIR_ABS=$(readlink -f output/{wildcards.sample}/varus)
-        rm -rf "$VARUS_DIR_ABS/batches"    2>/dev/null || true
-        rm -rf "$VARUS_DIR_ABS/genome"     2>/dev/null || true
-        rm -f  "$VARUS_DIR_ABS/VARUS.bam"  2>/dev/null || true
-        rm -f  "$VARUS_DIR_ABS/Runlist.tsv" 2>/dev/null || true
-        rm -f  "$VARUS_DIR_ABS/intronDB.splice_sites" \
-               "$VARUS_DIR_ABS/intronDB.junc.bed" 2>/dev/null || true
+        # Fallback only; on scratch the EXIT trap removes the work dir.
+        if [ -z "$SCRATCH" ]; then
+            VARUS_DIR_ABS=$(readlink -f output/{wildcards.sample}/varus)
+            rm -rf "$VARUS_DIR_ABS/batches"    2>/dev/null || true
+            rm -rf "$VARUS_DIR_ABS/genome"     2>/dev/null || true
+            rm -f  "$VARUS_DIR_ABS/VARUS.bam"  2>/dev/null || true
+            rm -f  "$VARUS_DIR_ABS/Runlist.tsv" 2>/dev/null || true
+            rm -f  "$VARUS_DIR_ABS/intronDB.splice_sites" \
+                   "$VARUS_DIR_ABS/intronDB.junc.bed" 2>/dev/null || true
+        fi
         """

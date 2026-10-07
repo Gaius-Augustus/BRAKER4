@@ -17,6 +17,14 @@ Output:
 """
 
 rule run_augustus_hints_iter2:
+    """AUGUSTUS prediction with the iteration-2 hints (EP mode).
+
+    Scratch: the genome split, the per-chunk hints, job scripts and GFFs
+    are on the node-local disk (scripts/tmp_dir.sh, [paths] tmp_dir); only
+    the joined predictions reach output/<sample>/. NEED 3 x (genome +
+    hintsfile) + 5 GB; with less free the job works in
+    output/<sample>/augustus_work_iter2/ and removes it at the end.
+    """
     input:
         genome=lambda w: get_masked_genome(w.sample),
         hintsfile="output/{sample}/hintsfile_iter2.gff",
@@ -37,7 +45,8 @@ rule run_augustus_hints_iter2:
         # iter1 rule needs the speedup because it processes the entire
         # genome from scratch; iter2 only refines an already-completed
         # prediction, so the disk-vs-RAM difference is negligible.
-        allow_hinted_splicesites=config.get('allow_hinted_splicesites', 'gcag,atac')
+        allow_hinted_splicesites=config.get('allow_hinted_splicesites', 'gcag,atac'),
+        tmp_root=TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -53,9 +62,22 @@ rule run_augustus_hints_iter2:
         echo "[INFO] ===== AUGUSTUS PREDICTION ITERATION 2 (EP mode) ====="
         echo "[INFO] Using updated hints from ProtHint iteration 2"
 
+        # Temporary storage: node-local scratch, removed on exit;
+        # output/<sample>/augustus_work_iter2 when short of space.
+        source {script_dir}/tmp_dir.sh
+        WORKDIR=$PWD
+        AUG_GFF_ABS=$WORKDIR/{output.augustus_gff}
+        scratch_dir outDir "aughints2_{wildcards.sample}" "{params.tmp_root}" \
+            "$(need_gb 3 {input.genome} {input.hintsfile})" "$WORKDIR/{params.output_dir}/augustus_work_iter2"
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+
         # Split genome (same as iter1 but into iter2 temp dir)
-        GENOME_SPLIT="{params.output_dir}/genome_split_iter2"
-        AUGUSTUS_TMP="{params.output_dir}/augustus_tmp_iter2"
+        GENOME_SPLIT="$outDir/genome_split"
+        AUGUSTUS_TMP="$outDir/augustus_tmp"
+        if [ -z "$SCRATCH" ]; then
+            # Leftovers of an earlier attempt would be joined into the result
+            rm -rf "$GENOME_SPLIT" "$AUGUSTUS_TMP"
+        fi
         mkdir -p "$GENOME_SPLIT" "$AUGUSTUS_TMP"
 
         splitMfasta.pl {input.genome} --outputpath="$GENOME_SPLIT" 2>/dev/null
@@ -131,11 +153,13 @@ rule run_augustus_hints_iter2:
         wait
 
         # Join predictions
+        AUG_GFF_TMP="$outDir/augustus.hints_iter2.gff.tmp"
+        rm -f "$AUG_GFF_TMP"
         for gff in "$AUGUSTUS_TMP_ABS"/*.gff; do
-            [ -f "$gff" ] && cat "$gff" >> {output.augustus_gff}.tmp
+            [ -f "$gff" ] && cat "$gff" >> "$AUG_GFF_TMP"
         done
-        cat {output.augustus_gff}.tmp | join_aug_pred.pl > {output.augustus_gff}
-        rm {output.augustus_gff}.tmp
+        cat "$AUG_GFF_TMP" | join_aug_pred.pl > "$AUG_GFF_ABS"
+        rm "$AUG_GFF_TMP"
 
         # Convert to GTF
         grep -v "^#" {output.augustus_gff} | \
@@ -145,8 +169,10 @@ rule run_augustus_hints_iter2:
         GENES=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {output.augustus_gtf})
         echo "[INFO] Iteration 2: $GENES genes predicted"
 
-        # Cleanup
-        rm -rf "$GENOME_SPLIT" "$AUGUSTUS_TMP"
+        # Cleanup (fallback; on scratch the EXIT trap removes the work dir)
+        if [ -z "$SCRATCH" ]; then
+            rm -rf "$outDir"
+        fi
 
         # Report
         REPORT_DIR=output/{wildcards.sample}

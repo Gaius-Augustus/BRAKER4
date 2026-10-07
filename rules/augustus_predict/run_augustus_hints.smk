@@ -22,6 +22,13 @@ rule run_augustus_hints:
     - --exonnames=on: Add exon names to output
     - --codingseq=on: Include coding sequence in output
 
+    Scratch: the genome split, the per-chunk hints, job scripts and GFFs
+    are on the node-local disk (scripts/tmp_dir.sh, [paths] tmp_dir; /dev/shm
+    when use_dev_shm = 1). Only the job list and the joined predictions
+    reach output/<sample>/. NEED 3 x (genome + hintsfile) + 5 GB; with less
+    free the job works in output/<sample>/augustus_work/ and removes it at
+    the end.
+
     Resources:
         - Uses all available CPUs for parallel execution
         - Full node memory allocation
@@ -55,9 +62,8 @@ rule run_augustus_hints:
         chunksize = config['augustus_chunksize'],
         overlap = config['augustus_overlap'],
         use_dev_shm = config['use_dev_shm'],
-        dev_shm_path = lambda w: f"/dev/shm/{w.sample}/augustus_hints" if config['use_dev_shm'] else get_output_dir(w),
-        username = config['username'],
-        allow_hinted_splicesites = config.get('allow_hinted_splicesites', 'gcag,atac')
+        allow_hinted_splicesites = config.get('allow_hinted_splicesites', 'gcag,atac'),
+        tmp_root = lambda w: "/dev/shm" if config['use_dev_shm'] else TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -76,28 +82,19 @@ rule run_augustus_hints:
         echo "[INFO] Chunksize: {params.chunksize}"
         echo "[INFO] Use /dev/shm: {params.use_dev_shm}"
 
-        # Setup temporary storage
-        if [ "{params.use_dev_shm}" = "True" ]; then
-            TMP_DIR="{params.dev_shm_path}/{wildcards.sample}"
-            echo "[INFO] Using /dev/shm for temporary storage: $TMP_DIR"
-
-            # Clean up any leftover data from previous runs
-            if [ -d "$TMP_DIR" ]; then
-                echo "[INFO] Cleaning up leftover data from previous run in /dev/shm..."
-                rm -rf "$TMP_DIR"
-            fi
-
-            mkdir -p "$TMP_DIR"
-
-            # Setup cleanup trap that runs on EXIT (success, error, or signal)
-            trap "echo '[INFO] Cleaning up /dev/shm...'; rm -rf $TMP_DIR; echo '[INFO] /dev/shm cleanup completed'" EXIT
-
-            GENOME_SPLIT_TMP="$TMP_DIR/genome_split"
-            AUGUSTUS_TMP="$TMP_DIR/augustus_tmp"
-        else
-            echo "[INFO] Using regular storage for temporary files"
-            GENOME_SPLIT_TMP="{params.output_dir}/genome_split"
-            AUGUSTUS_TMP="{params.output_dir}/augustus_tmp"
+        # Temporary storage: node-local scratch (/dev/shm with use_dev_shm),
+        # removed on exit; output/<sample>/augustus_work when short of space.
+        source {script_dir}/tmp_dir.sh
+        WORKDIR=$PWD
+        AUG_GFF_ABS=$WORKDIR/{output.augustus_gff}
+        scratch_dir outDir "aughints_{wildcards.sample}" "{params.tmp_root}" \
+            "$(need_gb 3 {input.genome} {input.hintsfile})" "$WORKDIR/{params.output_dir}/augustus_work"
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+        GENOME_SPLIT_TMP="$outDir/genome_split"
+        AUGUSTUS_TMP="$outDir/augustus_tmp"
+        if [ -z "$SCRATCH" ]; then
+            # Leftovers of an earlier attempt would be joined into the result
+            rm -rf "$GENOME_SPLIT_TMP" "$AUGUSTUS_TMP"
         fi
 
         # Step 1: Split genome into chunks for parallel processing
@@ -136,11 +133,7 @@ rule run_augustus_hints:
         EXTRINSIC_ABS="{params.extrinsic_cfg}"
 
         # aug_hints.lst also goes to temp location (must be absolute path)
-        if [ "{params.use_dev_shm}" = "True" ]; then
-            AUG_LST="$TMP_DIR/aug_hints.lst"
-        else
-            AUG_LST="$AUGUSTUS_TMP_ABS/aug_hints.lst"
-        fi
+        AUG_LST="$outDir/aug_hints.lst"
 
         echo "[INFO] Using absolute paths:"
         echo "[INFO]   Genome split: $GENOME_SPLIT_ABS"
@@ -169,12 +162,8 @@ rule run_augustus_hints:
         # Step 3: Create AUGUSTUS job list using createAugustusJoblist.pl
         echo "[INFO] Creating AUGUSTUS job list..."
 
-        # Job list and scripts go to temp location if using /dev/shm
-        if [ "{params.use_dev_shm}" = "True" ]; then
-            JOB_LST_TMP="$TMP_DIR/augustus_hints.job.lst"
-        else
-            JOB_LST_TMP="{output.job_lst}"
-        fi
+        # Job list and scripts go to the temp location
+        JOB_LST_TMP="$outDir/augustus_hints.job.lst"
         JOB_LST_ABS=$(readlink -f "$JOB_LST_TMP" 2>/dev/null || realpath "$JOB_LST_TMP")
 
         # Change to temp directory to ensure job scripts are created there
@@ -207,10 +196,8 @@ rule run_augustus_hints:
             exit 1
         fi
 
-        # Copy job list to output for Snakemake (only if using /dev/shm)
-        if [ "{params.use_dev_shm}" = "True" ]; then
-            cp "$JOB_LST_ABS" {output.job_lst}
-        fi
+        # Copy job list to output for Snakemake
+        cp "$JOB_LST_ABS" {output.job_lst}
 
         # Step 3: Run AUGUSTUS jobs in parallel
         echo "[INFO] Running AUGUSTUS jobs in parallel (threads={threads})..."
@@ -255,15 +242,17 @@ rule run_augustus_hints:
         echo "[INFO] Joining AUGUSTUS predictions..."
 
         # Concatenate all GFF files from temp location
+        AUG_GFF_TMP="$outDir/augustus.hints.gff.tmp"
+        rm -f "$AUG_GFF_TMP"
         for chr_dir in "$AUGUSTUS_TMP_ABS"/*.gff; do
             if [ -f "$chr_dir" ]; then
-                cat "$chr_dir" >> {output.augustus_gff}.tmp
+                cat "$chr_dir" >> "$AUG_GFF_TMP"
             fi
         done
 
         # Run join_aug_pred.pl to merge overlapping predictions
-        cat {output.augustus_gff}.tmp | join_aug_pred.pl > {output.augustus_gff}
-        rm {output.augustus_gff}.tmp
+        cat "$AUG_GFF_TMP" | join_aug_pred.pl > "$AUG_GFF_ABS"
+        rm "$AUG_GFF_TMP"
 
         GENES_PREDICTED=$(grep -c "^[^#]" {output.augustus_gff} || echo 0)
         echo "[INFO] Predicted genes in GFF: $GENES_PREDICTED lines"
@@ -296,10 +285,10 @@ rule run_augustus_hints:
         AUG_COMMIT=$(grep 'refs/remotes/origin/master' /opt/Augustus/.git/packed-refs 2>/dev/null | awk '{{print substr($1,1,7)}}' || true)
         ( flock 9; printf "AUGUSTUS\t%s (commit %s)\n" "$AUG_VER" "$AUG_COMMIT" >> "$VERSIONS_FILE" ) 9>"$VERSIONS_FILE.lock"
 
-        # Remove genome_split/ and augustus_tmp/ working dirs (disk mode).
-        # In /dev/shm mode the EXIT trap already handles cleanup of $TMP_DIR.
-        if [ "{params.use_dev_shm}" != "True" ]; then
-            rm -rf "$GENOME_SPLIT_TMP" "$AUGUSTUS_TMP" 2>/dev/null || true
+        # Remove the augustus_work dir (fallback). On scratch the EXIT trap
+        # removes it.
+        if [ -z "$SCRATCH" ]; then
+            rm -rf "$outDir" 2>/dev/null || true
         fi
 
         # Report

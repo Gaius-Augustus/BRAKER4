@@ -31,6 +31,15 @@ Container: teambraker/braker3:latest (contains prothint.py)
 """
 
 rule run_prothint_iter2:
+    """ProtHint iteration 2.
+
+    Scratch: prothint.py and the ProtHint shadow tree run on the
+    node-local disk (scripts/tmp_dir.sh, [paths] tmp_dir). Nothing from the
+    work dir is kept: prothint_augustus.gff goes to the hints output,
+    prothint_iter2_run.log into the rule log. NEED 10 x (genome + proteins)
+    + 5 GB; with less free the job works in output/<sample>/prothint_iter2/
+    as before.
+    """
     input:
         genome=lambda wildcards: get_masked_genome(wildcards.sample),
         proteins=lambda wildcards: get_protein_fasta(wildcards.sample),
@@ -46,7 +55,8 @@ rule run_prothint_iter2:
     benchmark:
         "benchmarks/{sample}/prothint_iter2/prothint_iter2.txt"
     params:
-        outdir=lambda wildcards: f"output/{wildcards.sample}/prothint_iter2"
+        outdir=lambda wildcards: f"output/{wildcards.sample}/prothint_iter2",
+        tmp_root=TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -62,7 +72,10 @@ rule run_prothint_iter2:
         # confuse the downstream DAG).
         set -euo pipefail
         WORKDIR=$(pwd)
+        source {script_dir}/tmp_dir.sh
         mkdir -p {params.outdir}
+        finalDir=$WORKDIR/{params.outdir}
+        HINTS_ABS=$WORKDIR/{output.hints}
 
         GENOME_ABS=$(readlink -f {input.genome})
         PROTEINS_ABS=$(readlink -f {input.proteins})
@@ -97,8 +110,13 @@ rule run_prothint_iter2:
             echo "[WARNING] was invoked with --cleanup, or whether something deleted the file." >> $WORKDIR/{log}
         fi
 
+        # ProtHint's work files (DIAMOND, Spaln) go to the node-local disk.
+        scratch_dir outDir "prothint2_{wildcards.sample}" "{params.tmp_root}" \
+            "$(need_gb 10 "$GENOME_ABS" "$PROTEINS_ABS")" "$finalDir" 2>> $WORKDIR/{log}
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+
         # Same Spaln dispatcher fix as in run_prothint (#98).
-        SHADOW_DIR=$(readlink -f {params.outdir}).bin
+        SHADOW_DIR=$outDir.bin
         SHADOW_MSG=$(bash {script_dir}/make_prothint_shadow.sh $SHADOW_DIR 2>&1) || true
         if [ -x $SHADOW_DIR/gmes/ProtHint/bin/prothint.py ]; then
             PROTHINT=$SHADOW_DIR/gmes/ProtHint/bin/prothint.py
@@ -109,7 +127,7 @@ rule run_prothint_iter2:
         fi
 
         # Run ProtHint iteration 2 (briefly disable strict mode for prothint.py only)
-        cd {params.outdir}
+        cd "$outDir"
         set +e
         set +o pipefail
         $PROTHINT \
@@ -125,15 +143,15 @@ rule run_prothint_iter2:
 
         cd $WORKDIR
         mkdir -p $(dirname {log})
-        cp {params.outdir}/prothint_iter2_run.log {log} 2>/dev/null || true
+        cat "$outDir/prothint_iter2_run.log" >> {log} 2>/dev/null || true
         echo "$SHADOW_MSG" >> {log}
 
-        if [ ! -f {params.outdir}/prothint_augustus.gff ]; then
+        if [ ! -f "$outDir/prothint_augustus.gff" ]; then
             echo "ERROR: ProtHint iter2 failed (exit=$PROTHINT_EXIT)" >> {log}
             exit 1
         fi
 
-        cp {params.outdir}/prothint_augustus.gff {output.hints}
+        cp "$outDir/prothint_augustus.gff" "$HINTS_ABS"
         echo "ProtHint iter2 generated $(wc -l < {output.hints}) hints (exit=$PROTHINT_EXIT)" >> {log}
 
         # Build updated hintsfile: remove old ProtHint hints, add new ones.
@@ -163,7 +181,8 @@ rule run_prothint_iter2:
         source {script_dir}/report_citations.sh || true
         cite prothint "$REPORT_DIR" || true
 
-        # Remove iter2 working directory (not a Snakemake output).
+        # Remove iter2 working directory (not a Snakemake output). On scratch
+        # the trap removes the work dir; {params.outdir} is then empty.
         rm -rf {params.outdir} $SHADOW_DIR 2>/dev/null || true
         # Remove the Spaln output that iter1 preserved for us; iter2 is done with it.
         # Leave prothint.gff (Snakemake output from iter1) in place.

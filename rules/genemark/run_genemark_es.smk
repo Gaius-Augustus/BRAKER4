@@ -17,6 +17,14 @@ Container: teambraker/braker3:latest (contains gmes_petap.pl)
 """
 
 rule run_genemark_es:
+    """GeneMark-ES.
+
+    Scratch: gmes_petap.pl runs in a private directory on the node-local
+    disk (scripts/tmp_dir.sh, [paths] tmp_dir); only genemark.gtf is copied
+    back to output/<sample>/GeneMark-ES/ (gmes.log is written there
+    directly). NEED 10 x genome + 5 GB; with less free the job works in
+    output/<sample>/GeneMark-ES/ as before.
+    """
     input:
         genome=lambda wildcards: get_masked_genome(wildcards.sample)
     output:
@@ -36,7 +44,8 @@ rule run_genemark_es:
         fungus="--fungus" if config.get("fungus", False) else "",
         gm_max_intergenic=f"--max_intergenic {config.get('gm_max_intergenic')}" if config.get("gm_max_intergenic") else "",
         gcode=f"--gcode {config.get('translation_table')}" if config.get("translation_table", 1) != 1 else "",
-        gc_donor=config.get("gc_donor", 0.001)
+        gc_donor=config.get("gc_donor", 0.001),
+        tmp_root=TMP_ROOT
     container:
         BRAKER3_CONTAINER
     shell:
@@ -48,9 +57,16 @@ rule run_genemark_es:
         LOG_FILE_ABS=$(readlink -f {output.log_file})
         LOG_ABS=$(readlink -f {log})
 
+        : > $LOG_ABS
+        source {script_dir}/tmp_dir.sh
+        finalDir=$WORKDIR/{params.outdir}
+        scratch_dir outDir "gmes_{wildcards.sample}" "{params.tmp_root}" \
+            "$(need_gb 10 "$GENOME_ABS")" "$finalDir" 2>> $LOG_ABS
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+
         GMES_CORES=$(python3 -c "txt=open('/proc/cpuinfo').read(); c=[l.split(':')[-1].strip() for l in txt.splitlines() if l.startswith('cpu cores')]; s=set(l.split(':')[-1].strip() for l in txt.splitlines() if l.startswith('physical id')); total=int(c[0])*max(1,len(s)) if c else 0; print(min({threads},total) if 0<total<{threads} else {threads})" 2>/dev/null || echo {threads})
 
-        cd {params.outdir}
+        cd "$outDir"
 
         gmes_petap.pl \
             --verbose \
@@ -64,7 +80,7 @@ rule run_genemark_es:
             --soft_mask auto \
             --gc_donor {params.gc_donor} \
             1> $LOG_FILE_ABS \
-            2> $LOG_ABS
+            2>> $LOG_ABS
         GM_EXIT=$?
 
         if [ $GM_EXIT -ne 0 ] || [ ! -f genemark.gtf ]; then
@@ -87,8 +103,14 @@ rule run_genemark_es:
             exit 1
         fi
 
-        # Record software versions
         cd $WORKDIR
+        copy_back "$outDir" "$finalDir" genemark.gtf
+        if [ ! -f "$finalDir/genemark.gtf" ]; then
+            echo "ERROR: genemark.gtf missing in $finalDir after the copy back" >> $LOG_ABS
+            exit 1
+        fi
+
+        # Record software versions
         VERSIONS_FILE=output/{wildcards.sample}/software_versions.tsv
         GM_VER=$(grep -m1 '# GeneMark-ES Suite version' $(which gmes_petap.pl) 2>/dev/null | grep -oP 'version \K\S+' || true)
         GM_COMMIT=$(grep 'refs/remotes/origin/main' /opt/ETP/.git/packed-refs 2>/dev/null | awk '{{print substr($1,1,7)}}' || true)
@@ -105,8 +127,10 @@ rule run_genemark_es:
 
         # Remove GeneMark-ES working files; keep only Snakemake-tracked outputs.
         # Iteration directories (itr_1/ etc.) and model files account for most inodes.
-        find {params.outdir} -mindepth 1 -type f \
-            ! -name 'genemark.gtf' ! -name 'gmes.log' \
-            -delete 2>/dev/null || true
-        find {params.outdir} -mindepth 1 -type d -empty -delete 2>/dev/null || true
+        if [ -z "$SCRATCH" ]; then
+            find {params.outdir} -mindepth 1 -type f \
+                ! -name 'genemark.gtf' ! -name 'gmes.log' \
+                -delete 2>/dev/null || true
+            find {params.outdir} -mindepth 1 -type d -empty -delete 2>/dev/null || true
+        fi
         """

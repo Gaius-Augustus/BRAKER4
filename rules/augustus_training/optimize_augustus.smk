@@ -22,6 +22,13 @@ rule optimize_augustus:
     - 600-1000 genes: 200 for each test set
     - > 1000 genes: 300 for each test set
 
+    Scratch: optimize_augustus.pl writes tmp_opt_<species>/ (buckets,
+    predictions) in its working directory, which is a private directory on
+    the node-local disk (scripts/tmp_dir.sh, [paths] tmp_dir; /dev/shm when
+    use_dev_shm = 1). Nothing is copied back: the parameter files it updates
+    are in AUGUSTUS_CONFIG_PATH. NEED 20 GB; with less free it works in
+    output/<sample>/ as before and removes bucket_* and tmp_opt_* there.
+
     Resources:
     - Can use full node CPUs (optimize_augustus.pl parallelizes well)
     - Each fold should have >= 200 genes for robust optimization
@@ -62,8 +69,7 @@ rule optimize_augustus:
         skip_optimize = config['skip_optimize_augustus'],
         rounds = 5,  # Default number of optimization rounds (BRAKER default)
         use_dev_shm = config['use_dev_shm'],
-        dev_shm_path = lambda w: f"/dev/shm/{w.sample}/optimize_augustus" if config['use_dev_shm'] else get_output_dir(w),
-        username = config['username']
+        tmp_root = lambda w: "/dev/shm" if config['use_dev_shm'] else TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -85,25 +91,14 @@ rule optimize_augustus:
         echo "[INFO] Test set: {input.gb_test}" | tee -a {output.optimize_log}
         echo "[INFO] Use /dev/shm: {params.use_dev_shm}" | tee -a {output.optimize_log}
 
-        # Setup temporary storage for optimize_augustus buckets
-        if [ "{params.use_dev_shm}" = "True" ]; then
-            OPTIMIZE_TMP="{params.dev_shm_path}"
-            echo "[INFO] Using /dev/shm for temporary storage: $OPTIMIZE_TMP" | tee -a {output.optimize_log}
-
-            # Clean up any leftover data from previous runs
-            if [ -d "$OPTIMIZE_TMP" ]; then
-                echo "[INFO] Cleaning up leftover data from previous run in /dev/shm..." | tee -a {output.optimize_log}
-                rm -rf "$OPTIMIZE_TMP"
-            fi
-
-            mkdir -p "$OPTIMIZE_TMP"
-
-            # Setup cleanup trap that runs on EXIT (success, error, or signal)
-            trap "echo '[INFO] Cleaning up /dev/shm...'; rm -rf $OPTIMIZE_TMP; echo '[INFO] /dev/shm cleanup completed'" EXIT
-        else
-            echo "[INFO] Using regular storage for temporary files" | tee -a {output.optimize_log}
-            OPTIMIZE_TMP="{params.output_dir}"
-        fi
+        # Temporary storage for optimize_augustus buckets: node-local scratch
+        # (/dev/shm with use_dev_shm), removed on exit; output/<sample> when
+        # short of space.
+        source {script_dir}/tmp_dir.sh
+        scratch_dir outDir "optaug_{wildcards.sample}" "{params.tmp_root}" 20 \
+            "$PWD/{params.output_dir}" 2>> {output.optimize_log}
+        trap 'rm -rf -- "$SCRATCH"' EXIT
+        OPTIMIZE_TMP=$outDir
 
         # Count genes in training and test sets (already split by split_training_set rule)
         GENES_TEST=$(grep -c "^LOCUS" {input.gb_test} || echo 0)
@@ -344,10 +339,10 @@ SUMMARY
 
         echo "[INFO] Training gene summary written to {output.training_summary}" | tee -a {output.optimize_log}
 
-        # Remove optimize_augustus.pl bucket dirs (disk mode only).
-        # In /dev/shm mode the EXIT trap already removes $OPTIMIZE_TMP entirely.
-        if [ "{params.use_dev_shm}" != "True" ]; then
-            rm -rf "$OPTIMIZE_TMP"/bucket_* 2>/dev/null || true
+        # Remove optimize_augustus.pl bucket and tmp_opt_<species> dirs
+        # (fallback only). On scratch the EXIT trap removes $OPTIMIZE_TMP.
+        if [ -z "$SCRATCH" ]; then
+            rm -rf "$OPTIMIZE_TMP"/bucket_* "$OPTIMIZE_TMP"/tmp_opt_* 2>/dev/null || true
         fi
 
         # Citations
