@@ -460,7 +460,7 @@ if config['run_ncrna']:
         )
 
 def _find_ete_taxa_path():
-    """Return directory holding taxdump.tar.gz for offline ete3 init, or ''."""
+    """Return the directory with taxa.sqlite or taxdump.tar.gz for ete3, or ''."""
     explicit = config_parser.get('OMARK', 'ete_taxa_path', fallback='')
     if explicit:
         return os.path.abspath(explicit)

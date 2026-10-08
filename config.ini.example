@@ -131,9 +131,12 @@ enable = 0
 [OMARK]
 ; OMAmer database path (required when run_omark = 1 in [PARAMS]).
 ; omamer_db = /path/to/LUCA.h5
-; Directory containing taxdump.tar.gz for offline ete3 initialisation.
-; Required on HPC clusters where compute nodes have no internet access.
-; Auto-detected from shared_data/ete_taxa/ if not set.
+; Directory with the NCBI taxonomy for OMArk (ete3): taxa.sqlite, or
+; taxdump.tar.gz (https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz) from
+; which the first OMArk job builds taxa.sqlite there (directory must be
+; writable then; about 6 minutes, 3 GB memory). Required on HPC clusters where
+; compute nodes have no internet access. Auto-detected from shared_data/ete_taxa/
+; if not set.
 ; ete_taxa_path = /path/to/shared_data/ete_taxa
 
 [SLURM_ARGS]
