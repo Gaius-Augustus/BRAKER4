@@ -14,7 +14,9 @@ Outputs:
     - <out_dir>/fantasia_go_categories.png    (pie chart of broad functional
                                               categories; each protein
                                               contributes once per matching
-                                              category)
+                                              category; a placeholder figure
+                                              when no GO term passes the
+                                              cutoff)
     - <out_dir>/fantasia_go_terms.tsv         (flat per-(transcript, GO term)
                                               table with human-readable GO
                                               names; intended as the primary
@@ -340,6 +342,21 @@ def write_categories_pie(stats, min_score, out_path):
     """
     counter = classify_proteins(stats["flat_rows"])
     if not counter:
+        # No GO term passed the cutoff (or results.csv was empty): the PNG is
+        # a required pipeline output, so write a placeholder figure that says
+        # so instead of leaving nothing behind.
+        fig, ax = plt.subplots(figsize=(9.5, 6.0))
+        ax.axis("off")
+        ax.text(
+            0.5, 0.5,
+            f"No GO term passed the reliability-index cutoff (RI ≥ {min_score:.2f})\n"
+            f"({stats['total_rows']:,} GO assignments in results.csv, "
+            f"{stats['proteins_total']:,} proteins)",
+            ha="center", va="center", fontsize=12, wrap=True,
+        )
+        ax.set_title("FANTASIA-Lite functional categories", fontsize=12, pad=14)
+        fig.savefig(out_path, dpi=200, bbox_inches="tight")
+        plt.close(fig)
         return False
 
     # Stable order: curated functional categories in their declared order,
