@@ -178,8 +178,8 @@ def _get_stringtie_gtf(wildcards):
 rule add_utr:
     """Decorate BRAKER CDS predictions with UTRs from StringTie assembly.
 
-    Local rule (no container) — uses host Python3 with intervaltree package.
-    Install with: pip install intervaltree
+    Runs in the BRAKER3 container, whose Python has intervaltree;
+    PYTHONNOUSERSITE=1 keeps host user site-packages out.
     """
     input:
         genes="output/{sample}/braker.gtf",

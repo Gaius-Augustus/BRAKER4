@@ -10,4 +10,4 @@
 
 snakemake==8.18.2
 snakemake-executor-plugin-slurm==2.6.0
-pandas==2.0.2
+pandas>=2.2.3,<3  # snakemake-executor-plugin-slurm 2.6.0 requires >=2.2.3

@@ -259,13 +259,23 @@ BRAKER4 requires three things on your system: Snakemake, Singularity, and a few 
 Snakemake
 ---------
 
-We recommend installing Snakemake with `pip` into a virtual environment. 
+We recommend [pixi](https://pixi.sh). The repository ships a `pixi.toml` and a `pixi.lock`, so everyone gets the same versions of Snakemake, the SLURM executor plugin, and pandas. pixi is a single binary and needs no root access, so it also works on HPC login nodes.
+
+```
+curl -fsSL https://pixi.sh/install.sh | bash   # once; or: conda install -c conda-forge pixi
+cd /path/to/BRAKER4
+pixi install
+pixi shell                                     # activates the environment
+```
+
+`pixi shell` puts `snakemake` on your `PATH`. Alternatively, prefix single commands with `pixi run --manifest-path /path/to/BRAKER4/pixi.toml`.
+
+If you prefer pip, `requirements.txt` carries the same pins:
 
 ```
 python3 -m venv snakemake_env
 source snakemake_env/bin/activate
-pip install snakemake==8.18.2
-pip install pandas
+pip install -r requirements.txt
 ```
 
 BRAKER4 supports SLURM as its HPC executor. For other schedulers (SGE, PBS, LSF) there are two options:
@@ -275,7 +285,8 @@ BRAKER4 supports SLURM as its HPC executor. For other schedulers (SGE, PBS, LSF)
 **Option 2 (confirmed to work on SGE):** Use the [`cluster-generic` Snakemake executor plugin](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/cluster-generic.html), which submits jobs via a custom shell command (e.g. `qsub`). A BRAKER4 user confirmed this works on SGE ([issue #20](https://github.com/Gaius-Augustus/BRAKER4/issues/20)):
 
 ```bash
-pip install snakemake-executor-plugin-cluster-generic
+pixi add snakemake-executor-plugin-cluster-generic    # pixi
+pip install snakemake-executor-plugin-cluster-generic # pip
 ```
 
 ```bash
@@ -297,11 +308,7 @@ For other schedulers (PBS, LSF), see the [Snakemake plugin catalog](https://snak
 
 **Important:** Do not pass `--executor slurm` on a non-SLURM cluster. Snakemake will attempt SLURM-style job submission, which will fail or produce only a partial run, and leave the working directory locked. If this happens, see the [lock troubleshooting entry](#common-problems) for the fix.
 
-If you intend to run BRAKER4 on an HPC cluster with SLURM, you also need the Snakemake SLURM executor plugin:
-
-```
-pip install snakemake-executor-plugin-slurm==2.6.0
-```
+The Snakemake SLURM executor plugin (`snakemake-executor-plugin-slurm==2.6.0`) is part of both the pixi environment and `requirements.txt`.
 
 We pin these versions because Snakemake and the SLURM plugin are not always backward-compatible across releases (see [Version fragility warning](#version-fragility-warning)).
 
@@ -340,7 +347,7 @@ Consult your HPC administrator if Singularity is not available. BRAKER4 will aut
 | Infernal | `quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2` | 28 MB | Rfam scan for snoRNA/snRNA/miRNA (only when `run_ncrna = 1`) |
 | FEELnc | `quay.io/biocontainers/feelnc:0.2--pl526_0` | 323 MB | lncRNA prediction (only when `run_ncrna = 1` and transcript evidence is present) |
 | gffcompare | `quay.io/biocontainers/gffcompare:0.12.6--h9f5acd7_1` | 11 MB | Evaluation against a reference annotation (only when `reference_gtf` is set) |
-| FANTASIA-Lite | `katharinahoff/fantasia_for_brain:lite.v1.0.0` | ~6 GB | Functional GO annotation via ProtT5 protein language model embeddings (optional, only when `fantasia.enable = 1`; **GPU-only**, see `run_fantasia` warning below) |
+| FANTASIA-Lite | `katharinahoff/fantasia_for_brain:lite.v1.0.0` | ~6 GB | Functional GO annotation via ProtT5 protein language model embeddings (optional, only when `fantasia.enable = 1`; GPU, or CPU with `device = cpu`; see `run_fantasia` warning below) |
 
 A full BRAKER4 container cache is **roughly 10 GB** on disk if every optional feature is enabled. A minimal ES-mode run without ncRNA, masking, OMArk, IsoSeq, VARUS, or gffcompare only needs the main BRAKER, BUSCO, and AGAT containers (~3.6 GB).
 
@@ -544,13 +551,14 @@ no_cleanup = 0                      # set to 1 to keep all intermediate files (d
 
 [fantasia]
 # Optional functional annotation of predicted proteins with FANTASIA-Lite.
-# OFF BY DEFAULT. GPU-only (validated on A100). See "run_fantasia" below.
+# OFF BY DEFAULT. GPU validated on A100; CPU works, much slower. See "run_fantasia" below.
 enable = 0
+# device = gpu                      # gpu (default) or cpu
 # sif = /path/to/fantasia_lite.sif
 # hf_cache_dir = /path/to/huggingface_cache
 # lookup_dir = /path/to/fantasia_v1_lookup   # Zenodo record 17720428
-# partition = gpu                   # SLURM GPU partition (only for SLURM executor)
-# gpus = 1                          # number of GPUs to request
+# partition = gpu                   # SLURM partition for the FANTASIA job (only for SLURM executor)
+# gpus = 1                          # number of GPUs to request (device = gpu only)
 # mem_mb = 25000                    # memory for the FANTASIA job (MB)
 # cpus_per_task = 16                # CPU cores for the FANTASIA job
 # max_runtime = 1440                # walltime for the FANTASIA job (minutes)
@@ -1046,12 +1054,11 @@ The script is a patched copy of `best_by_compleasm.py` from TSEBRA (Hoff et al.,
 ### run_fantasia
 
 > **⚠️ This is the most fragile part of BRAKER4 and is OFF BY DEFAULT.**
-> Enable it only if you have access to a recent NVIDIA GPU. The FANTASIA-Lite
-> container has been validated **only on an A100** in our lab; we have not been
-> able to confirm that it works on every consumer-grade GPU, and it almost
-> certainly does **not** run without a GPU at all (CPU-only inference is not
-> supported by the upstream container). Expect to debug Singularity / CUDA /
-> driver mismatches if your hardware differs.
+> On a GPU, the FANTASIA-Lite container has been validated **only on an A100**
+> in our lab; we have not been able to confirm that it works on every
+> consumer-grade GPU. Expect to debug Singularity / CUDA / driver mismatches if
+> your hardware differs. Without a GPU, set `device = cpu`: ProtT5 then runs
+> on the `cpus_per_task` cores of a CPU node, much slower than on a GPU.
 
 Set `enable = 1` in the `[fantasia]` section of `config.ini` to add a functional
 annotation step that assigns Gene Ontology (GO) terms to every BRAKER-predicted
@@ -1074,7 +1081,9 @@ pre-computed lookup of reference embeddings. See:
     *Methods in Molecular Biology*.
     [doi:10.1007/978-1-0716-4623-6_8](https://doi.org/10.1007/978-1-0716-4623-6_8)
 
-With `enable = 1`, the rule `fantasia_gpu_check` runs at the start of the run, on the `[fantasia]` partition and gres. It checks for a visible CUDA GPU with at least 15000 MiB free. If the check fails, the run stops within minutes instead of after the gene prediction.
+With `enable = 1` and `device = gpu` (the default), the rule `fantasia_gpu_check` runs at the start of the run, on the `[fantasia]` partition and gres. It checks for a visible CUDA GPU with at least 15000 MiB free. If the check fails, the run stops within minutes instead of after the gene prediction.
+
+With `device = cpu`, `fantasia_annotate` runs `fantasia_pipeline.py --device cpu` without `--nv`, on the `[fantasia]` partition with `cpus_per_task` threads and no GPU request; `fantasia_gpu_check` does not run. Point `partition` at a CPU partition and allow a longer `max_runtime`.
 
 **Prerequisites** (one-time setup, before the first run):
 
@@ -1140,7 +1149,8 @@ enable        = 1
 sif           = /abs/path/to/fantasia_lite.sif
 hf_cache_dir  = /abs/path/to/huggingface_cache
 lookup_dir    = /abs/path/to/fantasia_v1_lookup
-# Optional SLURM GPU resource hints (only used by --executor slurm):
+device        = gpu
+# Optional SLURM resource hints (only used by --executor slurm):
 partition     = gpu
 gpus          = 1
 mem_mb        = 25000
@@ -1150,7 +1160,7 @@ min_score     = 0.5
 ```
 
 All `fantasia.*` keys can also be overridden via environment variables:
-`BRAKER4_RUN_FANTASIA`, `BRAKER4_FANTASIA_SIF`, `BRAKER4_FANTASIA_HF_CACHE`,
+`BRAKER4_RUN_FANTASIA`, `BRAKER4_FANTASIA_DEVICE`, `BRAKER4_FANTASIA_SIF`, `BRAKER4_FANTASIA_HF_CACHE`,
 `BRAKER4_FANTASIA_LOOKUP_DIR`, `BRAKER4_FANTASIA_PARTITION`, `BRAKER4_FANTASIA_GPUS`,
 `BRAKER4_FANTASIA_MEM_MB`, `BRAKER4_FANTASIA_CPUS`, `BRAKER4_FANTASIA_MAX_RUNTIME`,
 `BRAKER4_FANTASIA_MIN_SCORE`, `BRAKER4_FANTASIA_ADDITIONAL_PARAMS`.
@@ -1208,8 +1218,8 @@ automatically when this step runs.
 
 **Known fragility points**:
 
--   The container will refuse to run without `--nv`. Local non-GPU smoke tests
-    are not supported.
+-   With `device = gpu` the container runs with `--nv`; on a host without a
+    GPU use `device = cpu`.
 -   Pre-Volta GPUs (compute capability < 7.0) and very small GPUs (< 16 GB VRAM)
     are not validated and may run out of memory on long proteins.
 -   The HuggingFace cache must contain `Rostlab/prot_t5_xl_uniref50`. If the
@@ -1406,6 +1416,14 @@ All AI-generated code was reviewed and tested by the authors. The pipeline was v
 
 Developer Notes
 ===============
+
+### Unit tests
+
+The unit tests in `tests/` need pytest, intervaltree, biopython, and matplotlib on the host. The pixi `test` environment has them:
+
+```
+pixi run test
+```
 
 ### ProtHint `set -e` issue (DO NOT CHANGE)
 

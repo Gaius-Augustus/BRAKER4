@@ -1,0 +1,36 @@
+# Host-side dependencies for BRAKER4, managed with pixi (https://pixi.sh).
+#
+# All bioinformatics tools (GeneMark, AUGUSTUS, RepeatMasker, OMArk,
+# minimap2, Red, minisplice, etc.) run inside Singularity containers
+# and are NOT tracked here. Their pinned image tags live in
+# rules/common.smk and are documented in the README container table.
+# Singularity/Apptainer itself comes from the system or a cluster module.
+#
+#   pixi install            # default environment: Snakemake + SLURM plugin
+#   pixi shell              # activate it
+#   pixi run test           # unit tests in the test environment
+#
+# requirements.txt carries the same runtime pins for pip users.
+
+[workspace]
+name = "braker4"
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64", "linux-aarch64"]
+
+[dependencies]
+python = "3.11.*"
+snakemake = "==8.18.2"
+snakemake-executor-plugin-slurm = "==2.6.0"
+pandas = ">=2.2.3,<3"
+
+[feature.test.dependencies]
+pytest = "*"
+intervaltree = "*"
+biopython = "*"
+matplotlib-base = "*"
+
+[feature.test.tasks]
+test = "pytest tests"
+
+[environments]
+test = ["test"]
