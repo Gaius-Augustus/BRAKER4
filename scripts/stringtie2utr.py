@@ -397,27 +397,42 @@ def merge_features(tsebra_gtf, stringtie_gtf, selected_transcripts, max_utr_exte
                                if overlap(int(e.split('\t')[3]), int(e.split('\t')[4]),
                                           be_start, be_end)]
 
+        kept_exons = []
         for exon in stringtie_exons:
             exon_parts = exon.split('\t')
             exon_start, exon_end = int(exon_parts[3]), int(exon_parts[4])
-            
+
             # Flag to determine if current exon should be merged
             merge_exon = True
-            
+
             for cds in tsebra_cds_features:
                 cds_parts = cds.split('\t')
                 cds_start, cds_end = int(cds_parts[3]), int(cds_parts[4])
-                
+
                 if overlap(exon_start, exon_end, cds_start, cds_end):
                     # Exon overlaps with CDS. Check the length condition.
                     if exon_end - exon_start + 1 < cds_end - cds_start + 1:
                         merge_exon = False
                         break
-            
-            # Add exon to tsebra_features if it passed the checks
+
             if merge_exon:
-                tsebra_features.append(exon)
-        
+                kept_exons.append(exon)
+
+        # UTR exons on a side of the CDS are used only if a kept StringTie exon
+        # contains that end of the CDS. When the exon over the outermost CDS
+        # segment was dropped above (shorter than the segment), the exons
+        # further out would become UTRs joined to the CDS by an intron
+        # StringTie does not have.
+        if tsebra_cds_features:
+            spans = [(int(e.split('\t')[3]), int(e.split('\t')[4])) for e in kept_exons]
+            left_ok = any(s <= cds_min <= e for s, e in spans)
+            right_ok = any(s <= cds_max <= e for s, e in spans)
+            kept_exons = [ex for ex, (s, e) in zip(kept_exons, spans)
+                          if (left_ok or e >= cds_min) and (right_ok or s <= cds_max)]
+
+        # Add the exons that passed the checks to tsebra_features
+        tsebra_features.extend(kept_exons)
+
         # Update the tsebra_gtf dictionary with new features
         tsebra_gtf[tsebra_tx] = tsebra_features
 
