@@ -29,6 +29,7 @@ Usage:
 import argparse
 import os
 import sys
+from bisect import bisect_left, bisect_right
 from collections import defaultdict
 
 GENE_TYPES = {"gene", "ncRNA_gene", "pseudogene"}
@@ -81,30 +82,61 @@ def overlap(a_start, a_end, b_start, b_end):
 
 
 class IntervalIndex:
-    """Intervals per (seqid, strand); linear scan is fine for ncRNA counts."""
+    """Intervals per (seqid, strand), kept sorted, disjoint and merged.
+
+    Queries find the overlapping intervals by bisection, so one query costs
+    O(log n + hits) instead of a scan over every stored interval (a scan made
+    the merge quadratic: 50k coding intervals x 20k ncRNAs took two minutes).
+    Added intervals are buffered and folded in on the next query: a large batch
+    (the coding exons) is sorted and merged in one pass, a few intervals at a
+    time (the accepted ncRNAs) are inserted by bisection.
+    """
+
+    BULK = 16  # pending intervals above which a flush re-sorts everything
 
     def __init__(self):
-        self.by_key = defaultdict(list)
+        self.starts = defaultdict(list)   # merged intervals, sorted by start
+        self.ends = defaultdict(list)     # ends[k] belongs to starts[k]
+        self.pending = defaultdict(list)  # added since the last query
 
     def add(self, seqid, strand, start, end):
-        self.by_key[(seqid, strand)].append((start, end))
+        self.pending[(seqid, strand)].append((start, end))
+
+    def _flush(self, key):
+        pending = self.pending.pop(key, None)
+        if not pending:
+            return
+        starts, ends = self.starts[key], self.ends[key]
+        if len(pending) > self.BULK:
+            merged_s, merged_e = [], []
+            for s, e in sorted(pending + list(zip(starts, ends))):
+                if merged_e and s <= merged_e[-1] + 1:
+                    if e > merged_e[-1]:
+                        merged_e[-1] = e
+                else:
+                    merged_s.append(s)
+                    merged_e.append(e)
+            self.starts[key], self.ends[key] = merged_s, merged_e
+            return
+        for s, e in pending:
+            # intervals [i, j) overlap or touch [s, e]; replace them by the union
+            i = bisect_left(ends, s - 1)
+            j = bisect_right(starts, e + 1)
+            if i < j:
+                s, e = min(s, starts[i]), max(e, ends[j - 1])
+            starts[i:j] = [s]
+            ends[i:j] = [e]
 
     def covered_bp(self, seqid, strand, start, end):
         """bp of [start, end] covered by the stored intervals (merged)."""
-        hits = sorted((max(s, start), min(e, end))
-                      for s, e in self.by_key.get((seqid, strand), ())
-                      if s <= end and e >= start)
-        total, cur_s, cur_e = 0, None, None
-        for s, e in hits:
-            if cur_e is None or s > cur_e + 1:
-                if cur_e is not None:
-                    total += cur_e - cur_s + 1
-                cur_s, cur_e = s, e
-            else:
-                cur_e = max(cur_e, e)
-        if cur_e is not None:
-            total += cur_e - cur_s + 1
-        return total
+        key = (seqid, strand)
+        self._flush(key)
+        starts, ends = self.starts.get(key), self.ends.get(key)
+        if not starts:
+            return 0
+        i = bisect_left(ends, start)      # first interval ending at or after start
+        j = bisect_right(starts, end)     # first interval starting after end
+        return sum(min(ends[k], end) - max(starts[k], start) + 1 for k in range(i, j))
 
 
 def build_loci(features, label, log):

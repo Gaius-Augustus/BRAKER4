@@ -10,6 +10,7 @@ All test data is synthetic and generated in-memory.
 """
 
 import os
+import random
 import subprocess
 import sys
 
@@ -17,6 +18,7 @@ SCRIPTS = os.path.join(os.path.dirname(__file__), "..", "scripts")
 sys.path.insert(0, SCRIPTS)
 
 from infernal_to_gff3 import load_family_types, parse_tblout, rna_class  # noqa: E402
+from merge_ncrna_gff3 import IntervalIndex  # noqa: E402
 
 MERGE = os.path.join(SCRIPTS, "merge_ncrna_gff3.py")
 
@@ -190,3 +192,27 @@ def test_shipped_rfam_table_covers_all_families():
     types = load_family_types(os.path.join(SCRIPTS, "rfam_family_types.tsv"))
     assert len(types) > 4000
     assert types["RF00005"] == "Gene; tRNA;"
+
+
+def test_interval_index_matches_brute_force():
+    """The bisection index (bulk and single inserts) agrees with per-base counting."""
+    def brute(ivs, s, e):
+        return sum(1 for p in range(s, e + 1) if any(a <= p <= b for a, b in ivs))
+
+    rng = random.Random(3)
+    for _ in range(100):
+        idx, ref = IntervalIndex(), []
+        for _ in range(rng.randint(1, 50)):
+            if rng.random() < 0.6:
+                for _ in range(rng.choice([1, 1, 1, IntervalIndex.BULK + 4])):
+                    s = rng.randint(1, 120)
+                    e = s + rng.randint(0, 15)
+                    idx.add("c", "+", s, e)
+                    ref.append((s, e))
+            else:
+                s = rng.randint(1, 130)
+                e = s + rng.randint(0, 25)
+                assert idx.covered_bp("c", "+", s, e) == brute(ref, s, e)
+                starts, ends = idx.starts[("c", "+")], idx.ends[("c", "+")]
+                assert all(ends[k] + 1 < starts[k + 1] for k in range(len(starts) - 1))
+        assert idx.covered_bp("c", "-", 1, 200) == 0
