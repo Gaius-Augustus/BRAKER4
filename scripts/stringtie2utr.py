@@ -490,13 +490,19 @@ def compute_utr_features(tsebra_gtf):
             end = int(fields[4])
             strand = fields[6]
 
-            # If feature is an exon, check if there are overlapping CDS features
+            # If feature is an exon, check if there are overlapping coding features.
+            # GTF2.2 keeps the stop codon out of the CDS lines and gives it its own
+            # stop_codon line, but it is part of the coding region: a 3' UTR starts
+            # after it, not on it. A stop codon split by an intron has a part in
+            # an exon without any CDS; that part counts as coding there.
             if feature_type == "exon":
-                overlapping_cds = [f for f in features if f.split('\t')[2] == "CDS" and int(f.split('\t')[3]) <= end and int(f.split('\t')[4]) >= start]
+                overlapping_cds = [f for f in features
+                                   if f.split('\t')[2] in ("CDS", "stop_codon")
+                                   and int(f.split('\t')[3]) <= end and int(f.split('\t')[4]) >= start]
 
                 if overlapping_cds:
-                    cds_start = int(overlapping_cds[0].split('\t')[3])
-                    cds_end = int(overlapping_cds[0].split('\t')[4])
+                    cds_start = min(int(f.split('\t')[3]) for f in overlapping_cds)
+                    cds_end = max(int(f.split('\t')[4]) for f in overlapping_cds)
 
                     # Check for UTR based on strand
                     if strand == "+":
