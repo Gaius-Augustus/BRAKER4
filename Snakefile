@@ -81,8 +81,9 @@ _env_overrides = {
     'BRAKER4_AUGUSTUS_OVERLAP':               ('PARAMS', 'augustus_overlap'),
     # SLURM_ARGS extras
     'BRAKER4_SKIP_MEM_REQUEST':               ('SLURM_ARGS', 'skip_mem_request'),
-    # FANTASIA-Lite (optional, GPU-only functional annotation)
+    # FANTASIA-Lite (optional functional annotation, GPU or CPU)
     'BRAKER4_RUN_FANTASIA':                   ('fantasia', 'enable'),
+    'BRAKER4_FANTASIA_DEVICE':                ('fantasia', 'device'),
     'BRAKER4_FANTASIA_SIF':                   ('fantasia', 'sif'),
     'BRAKER4_FANTASIA_HF_CACHE':              ('fantasia', 'hf_cache_dir'),
     'BRAKER4_FANTASIA_LOOKUP_DIR':            ('fantasia', 'lookup_dir'),
@@ -340,13 +341,15 @@ config['use_minisplice'] = config_parser.getboolean(
     'PARAMS', 'use_minisplice', fallback=False
 )
 
-# FANTASIA-Lite functional annotation (optional, GPU-only).
-# Off by default. The container hard-requires an NVIDIA GPU and has only been
-# validated on an A100 in the Hoff lab; see README "run_fantasia" section.
+# FANTASIA-Lite functional annotation (optional).
+# Off by default. device = gpu (default) has been validated on an A100 in the
+# Hoff lab; device = cpu runs ProtT5 on CPU cores (much slower, no GPU queue).
+# See README "run_fantasia" section.
 config['run_fantasia'] = config_parser.getboolean(
     'fantasia', 'enable', fallback=False
 )
 config['fantasia'] = {
+    'device':           config_parser.get('fantasia', 'device', fallback='gpu').strip().lower() or 'gpu',
     'sif':              config_parser.get('fantasia', 'sif', fallback=''),
     'hf_cache_dir':     config_parser.get('fantasia', 'hf_cache_dir', fallback=''),
     'lookup_dir':       config_parser.get('fantasia', 'lookup_dir', fallback=''),
@@ -361,6 +364,10 @@ config['fantasia'] = {
     'max_runtime':      config_parser.get('fantasia', 'max_runtime',
                                           fallback=str(config['slurm_args']['max_runtime'])),
 }
+if config['fantasia']['device'] not in ('gpu', 'cpu'):
+    raise ValueError(
+        f"fantasia.device must be 'gpu' or 'cpu', got {config['fantasia']['device']!r}"
+    )
 if config['run_fantasia']:
     if not config['fantasia']['sif']:
         raise ValueError(
@@ -719,7 +726,7 @@ if RUN_NCRNA:
     if HAS_TRANSCRIPTS:
         include: "rules/ncrna/run_feelnc.smk"
 
-# Include FANTASIA-Lite functional annotation rules (optional, GPU-only).
+# Include FANTASIA-Lite functional annotation rules (optional, GPU or CPU).
 # This is the most fragile component of BRAKER4 -- the upstream container
 # requires an NVIDIA GPU (validated on A100). See README "run_fantasia" section.
 if config.get('run_fantasia', False):

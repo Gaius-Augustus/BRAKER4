@@ -1408,7 +1408,7 @@ predicted proteome. S=Single-copy, D=Duplicated, F=Fragmented, M=Missing.</div>
 </div>
 """
 
-    # FANTASIA functional annotation (optional, GPU-only)
+    # FANTASIA functional annotation (optional, GPU or CPU)
     fantasia_summary_text = images.get("fantasia_summary_text") or ""
     fantasia_plot_html    = images.get("fantasia_plot") or ""
     if fantasia_summary_text or fantasia_plot_html:

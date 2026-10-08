@@ -110,9 +110,13 @@ use_minisplice = 0
 no_cleanup = 0
 
 [fantasia]
-; Optional functional annotation with FANTASIA-Lite. GPU-only (validated on A100).
+; Optional functional annotation with FANTASIA-Lite (GPU validated on A100).
 ; OFF by default. Set enable = 1 and fill in the paths below to activate.
 enable = 0
+; gpu (default): ProtT5 on one GPU (partition = a GPU partition, gpus).
+; cpu: ProtT5 on cpus_per_task cores, no GPU requested, much slower
+;      (partition = a CPU partition; allow a longer max_runtime).
+; device = gpu
 ; Pull the container image with:
 ;   singularity pull fantasia_lite.sif docker://katharinahoff/fantasia_for_brain:lite.v1.0.0
 ; sif = /path/to/fantasia_lite.sif
@@ -121,7 +125,7 @@ enable = 0
 ; and extract it; set lookup_dir to the extracted directory.
 ; lookup_dir = /path/to/fantasia_lite_data_folder
 ; partition = gpu
-; gpus = 1
+; gpus = 1                ; device = gpu only
 ; mem_mb = 25000
 ; cpus_per_task = 16
 ; max_runtime = 1440

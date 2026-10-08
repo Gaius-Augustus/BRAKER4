@@ -9,11 +9,12 @@ bind-mounted at runtime from fantasia.lookup_dir -- it is NOT baked into the
 container.  Download the bundle from Zenodo record 17720428 and set lookup_dir
 in [fantasia] before enabling this step.
 
-This step is OFF BY DEFAULT and is the most fragile component of BRAKER4:
-the FANTASIA-Lite container hard-requires an NVIDIA GPU with --nv. The
-embedding step has only been validated on an A100 here. CPU-only execution is
-not supported by the upstream container. See README.md (run_fantasia section)
-for the warnings.
+This step is OFF BY DEFAULT and is the most fragile component of BRAKER4.
+[fantasia] device = gpu (default) runs ProtT5 with --nv on an NVIDIA GPU,
+validated on an A100 here. device = cpu runs fantasia_pipeline.py with
+--device cpu, without --nv and without a GPU request, as BOUDICCA's
+[FANTASIA] device = cpu: much slower, but no GPU queue. See README.md
+(run_fantasia section) for the warnings.
 
 The container, the singularity invocation, and the FANTASIA-Lite CLI flags
 mirror the validated invocation from the EukAssembly-Bin (BOUDICCA) workflow,
@@ -24,7 +25,8 @@ Three rules:
     - fantasia_gpu_check: GPU probe at the start of the run (no inputs, so
                           Snakemake runs it first); a missing GPU stops the
                           run in minutes, not after hours of gene prediction
-    - fantasia_annotate:  GPU embedding + GO lookup, produces results.csv
+                          (device = gpu only)
+    - fantasia_annotate:  ProtT5 embedding + GO lookup, produces results.csv
     - fantasia_summarize: parses results.csv, writes summary.txt + GO bar plot
 """
 
@@ -34,6 +36,17 @@ FANTASIA_HF_CACHE   = config['fantasia']['hf_cache_dir']
 FANTASIA_LOOKUP_DIR = config['fantasia']['lookup_dir']
 FANTASIA_ADD_PARAMS = config['fantasia'].get('additional_params', '') or ''
 FANTASIA_MIN_SCORE  = float(config['fantasia'].get('min_score', 0.5))
+FANTASIA_ON_GPU     = config['fantasia'].get('device', 'gpu') == 'gpu'
+
+# fantasia_annotate's SLURM resources: the [fantasia] partition in both modes;
+# a GPU (gres) only with device = gpu
+_fantasia_resources = {
+    'mem_mb': int(config['fantasia'].get('mem_mb', config['slurm_args']['mem_of_node'])),
+    'runtime': int(config['fantasia'].get('max_runtime', config['slurm_args']['max_runtime'])),
+    'slurm_partition': config['fantasia'].get('partition', ''),
+}
+if FANTASIA_ON_GPU:
+    _fantasia_resources['gres'] = "gpu:" + str(config['fantasia'].get('gpus', 1))
 
 
 rule fantasia_gpu_check:
@@ -60,7 +73,7 @@ rule fantasia_gpu_check:
         if ! command -v nvidia-smi >/dev/null 2>&1 || ! nvidia-smi -L >/dev/null 2>&1; then
             echo "[ERROR] FANTASIA-Lite requires a CUDA GPU but no nvidia-smi / no visible GPU was found on $(hostname)." | tee {log} >&2
             echo "[ERROR] Either run snakemake with --executor slurm and a GPU partition configured in [fantasia] partition/gpus," | tee -a {log} >&2
-            echo "[ERROR] submit your driver job to a GPU node, or set run_fantasia = 0 / BRAKER4_RUN_FANTASIA=0." | tee -a {log} >&2
+            echo "[ERROR] submit your driver job to a GPU node, set device = cpu / BRAKER4_FANTASIA_DEVICE=cpu, or set run_fantasia = 0 / BRAKER4_RUN_FANTASIA=0." | tee -a {log} >&2
             exit 1
         fi
         CVD=${{CUDA_VISIBLE_DEVICES:-${{SLURM_JOB_GPUS:-0}}}}
@@ -77,7 +90,11 @@ rule fantasia_gpu_check:
 
 
 rule fantasia_annotate:
-    """Embed proteins with ProtT5 and assign GO terms via FANTASIA-Lite (GPU).
+    """Embed proteins with ProtT5 and assign GO terms via FANTASIA-Lite.
+
+    device = gpu: --device cuda with --nv on one GPU, after the nvidia-smi
+    and VRAM checks. device = cpu: --device cpu on {threads} cores, no GPU
+    checks, no gres, and no fantasia_gpu_check.
 
     Scratch: the per-chunk FASTA, embedding, result, config and failure
     dirs are in a private directory on the node-local disk
@@ -87,7 +104,7 @@ rule fantasia_annotate:
     """
     input:
         proteins="output/{sample}/braker.aa",
-        gpu_ok="output/.fantasia_gpu_check.ok"
+        gpu_ok="output/.fantasia_gpu_check.ok" if FANTASIA_ON_GPU else []
     output:
         results="output/{sample}/fantasia/results.csv",
         done="output/{sample}/fantasia/.fantasia_done"
@@ -101,30 +118,30 @@ rule fantasia_annotate:
         lookup_dir=FANTASIA_LOOKUP_DIR,
         add_params=FANTASIA_ADD_PARAMS,
         outdir=lambda wc: f"output/{wc.sample}/fantasia",
-        tmp_root=TMP_ROOT
+        tmp_root=TMP_ROOT,
+        torch_device="cuda" if FANTASIA_ON_GPU else "cpu",
+        nv_flag="--nv" if FANTASIA_ON_GPU else ""
     threads:
         int(config['fantasia'].get('cpus_per_task', config['slurm_args']['cpus_per_task']))
     resources:
-        # GPU resource hints. These only matter when running under --executor slurm;
+        # SLURM resource hints. These only matter when running under --executor slurm;
         # local runs ignore them. The defaults fall back to the regular SLURM_ARGS
-        # if no GPU section is configured, so the rule still validates on local runs.
-        mem_mb=int(config['fantasia'].get('mem_mb', config['slurm_args']['mem_of_node'])),
-        runtime=int(config['fantasia'].get('max_runtime', config['slurm_args']['max_runtime'])),
-        slurm_partition=config['fantasia'].get('partition', ''),
-        gres="gpu:" + str(config['fantasia'].get('gpus', 1))
+        # if no [fantasia] value is configured, so the rule still validates on local runs.
+        **_fantasia_resources
     shell:
         r"""
         set -euo pipefail
 
-        # Fail fast on CPU-only hosts. The `gres=gpu:N` and `slurm_partition`
-        # resource hints above are only honored by snakemake's SLURM executor;
-        # with a local executor they are silently dropped and the rule would
-        # otherwise start ProtT5 with --device cuda on a CPU node and crash
-        # mid-run. Check nvidia-smi up front so the error is clear and cheap.
-        if ! command -v nvidia-smi >/dev/null 2>&1 || ! nvidia-smi -L >/dev/null 2>&1; then
+        # Fail fast on CPU-only hosts (device = gpu). The `gres=gpu:N` and
+        # `slurm_partition` resource hints above are only honored by snakemake's
+        # SLURM executor; with a local executor they are silently dropped and the
+        # rule would otherwise start ProtT5 with --device cuda on a CPU node and
+        # crash mid-run. Check nvidia-smi up front so the error is clear and cheap.
+        if [ "{params.torch_device}" = "cuda" ] && \
+           {{ ! command -v nvidia-smi >/dev/null 2>&1 || ! nvidia-smi -L >/dev/null 2>&1; }}; then
             echo "[ERROR] FANTASIA-Lite requires a CUDA GPU but no nvidia-smi / no visible GPU was found on $(hostname)." >&2
             echo "[ERROR] Either run snakemake with --executor slurm and a GPU partition configured in [fantasia] partition/gpus," >&2
-            echo "[ERROR] submit your driver job to a GPU node, or set run_fantasia = 0 / BRAKER4_RUN_FANTASIA=0." >&2
+            echo "[ERROR] submit your driver job to a GPU node, set device = cpu / BRAKER4_FANTASIA_DEVICE=cpu, or set run_fantasia = 0 / BRAKER4_RUN_FANTASIA=0." >&2
             exit 1
         fi
 
@@ -178,37 +195,41 @@ rule fantasia_annotate:
         nProteins=$(grep -c '^>' "$PROTEINS" || echo 0)
         echo "[$(date)] Input proteins: $nProteins" >> {log}
 
-        # SLURM sets CUDA_VISIBLE_DEVICES when the gres binding plugin is active.
-        # On clusters where it sets SLURM_JOB_GPUS instead, copy it into CVD so
-        # the container targets the correct allocated GPU rather than defaulting to 0.
-        # Capture into plain bash vars. Snakemake's format engine only touches
-        # single-brace tokens, so plain $VAR refs are safe; double-brace expansions
-        # become single-brace after Snakemake formatting, which bash then expands.
-        CVD=${{CUDA_VISIBLE_DEVICES:-}}
-        JOB_GPUS=${{SLURM_JOB_GPUS:-}}
-        if [ -n "$JOB_GPUS" ] && [ -z "$CVD" ]; then
-            export CUDA_VISIBLE_DEVICES=$JOB_GPUS
-            CVD=$JOB_GPUS
-            echo "[$(date)] Derived CUDA_VISIBLE_DEVICES=$CVD from SLURM_JOB_GPUS" >> {log}
-        fi
-        echo "[$(date)] CUDA_VISIBLE_DEVICES=$CVD  SLURM_JOB_GPUS=$JOB_GPUS" >> {log}
-        nvidia-smi --query-gpu=index,memory.free,memory.used --format=csv >> {log} 2>&1 || true
+        if [ "{params.torch_device}" = "cuda" ]; then
+            # SLURM sets CUDA_VISIBLE_DEVICES when the gres binding plugin is active.
+            # On clusters where it sets SLURM_JOB_GPUS instead, copy it into CVD so
+            # the container targets the correct allocated GPU rather than defaulting to 0.
+            # Capture into plain bash vars. Snakemake's format engine only touches
+            # single-brace tokens, so plain $VAR refs are safe; double-brace expansions
+            # become single-brace after Snakemake formatting, which bash then expands.
+            CVD=${{CUDA_VISIBLE_DEVICES:-}}
+            JOB_GPUS=${{SLURM_JOB_GPUS:-}}
+            if [ -n "$JOB_GPUS" ] && [ -z "$CVD" ]; then
+                export CUDA_VISIBLE_DEVICES=$JOB_GPUS
+                CVD=$JOB_GPUS
+                echo "[$(date)] Derived CUDA_VISIBLE_DEVICES=$CVD from SLURM_JOB_GPUS" >> {log}
+            fi
+            echo "[$(date)] CUDA_VISIBLE_DEVICES=$CVD  SLURM_JOB_GPUS=$JOB_GPUS" >> {log}
+            nvidia-smi --query-gpu=index,memory.free,memory.used --format=csv >> {log} 2>&1 || true
 
-        # ProtT5-XL needs ~14 GB VRAM.  Fail fast if the assigned GPU
-        # (first index in CVD, or 0 if unset) is too full.
-        if [ -n "$CVD" ]; then
-            GPU_IDX=$(echo "$CVD" | cut -d, -f1)
+            # ProtT5-XL needs ~14 GB VRAM.  Fail fast if the assigned GPU
+            # (first index in CVD, or 0 if unset) is too full.
+            if [ -n "$CVD" ]; then
+                GPU_IDX=$(echo "$CVD" | cut -d, -f1)
+            else
+                GPU_IDX=0
+            fi
+            FREE_MIB=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits \
+                -i "$GPU_IDX" 2>/dev/null | tr -d ' ' || echo 0)
+            echo "[$(date)] Physical GPU $GPU_IDX (cuda:0): $FREE_MIB MiB free" >> {log}
+            if [ "$FREE_MIB" -lt 15000 ] 2>/dev/null; then
+                echo "[ERROR] GPU $GPU_IDX has only $FREE_MIB MiB free; ProtT5-XL needs >=15000 MiB." >&2
+                echo "[ERROR] SLURM_JOB_GPUS=$JOB_GPUS  CUDA_VISIBLE_DEVICES=$CVD" >&2
+                echo "[ERROR] Resubmit or ask cluster admin to enable GPU cgroup isolation." >&2
+                exit 1
+            fi
         else
-            GPU_IDX=0
-        fi
-        FREE_MIB=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits \
-            -i "$GPU_IDX" 2>/dev/null | tr -d ' ' || echo 0)
-        echo "[$(date)] Physical GPU $GPU_IDX (cuda:0): $FREE_MIB MiB free" >> {log}
-        if [ "$FREE_MIB" -lt 15000 ] 2>/dev/null; then
-            echo "[ERROR] GPU $GPU_IDX has only $FREE_MIB MiB free; ProtT5-XL needs >=15000 MiB." >&2
-            echo "[ERROR] SLURM_JOB_GPUS=$JOB_GPUS  CUDA_VISIBLE_DEVICES=$CVD" >&2
-            echo "[ERROR] Resubmit or ask cluster admin to enable GPU cgroup isolation." >&2
-            exit 1
+            echo "[$(date)] device = cpu: ProtT5 on {threads} CPU threads, no GPU" >> {log}
         fi
 
         # Bind-mount patched generate_embeddings.py (scripts/generate_embeddings.py)
@@ -220,7 +241,7 @@ rule fantasia_annotate:
         # Also bind-mount the entire hf_cache directory so the symlinks in the
         # snapshot (which resolve to ../../blobs/…) are accessible inside the container.
         PATCHED_EMBED="{script_dir}/generate_embeddings.py"
-        singularity exec --nv \
+        singularity exec {params.nv_flag} \
             -B "$PWD":"$PWD" \
             -B "$outDir":"$outDir" \
             -B "{params.hf_cache}":"{params.hf_cache}":ro \
@@ -231,10 +252,12 @@ rule fantasia_annotate:
                 BRAKER4_HF_MODEL_PATH="$SNAPSHOT_DIR" \
                 TRANSFORMERS_OFFLINE=1 \
                 HF_HUB_OFFLINE=1 \
+                OMP_NUM_THREADS={threads} \
+                MKL_NUM_THREADS={threads} \
             python3 /opt/fantasia-lite/src/fantasia_pipeline.py \
                 --serial-models \
                 --embed-models prot_t5 \
-                --device cuda \
+                --device {params.torch_device} \
                 --venv-dir /opt/venv \
                 --lookup-npz "{params.lookup_dir}/lookup_table.npz" \
                 --annotations-json "{params.lookup_dir}/annotations.json" \
