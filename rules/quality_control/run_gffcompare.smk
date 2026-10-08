@@ -36,7 +36,8 @@ rule extract_cds_reference:
         r"""
         set -euo pipefail
         mkdir -p $(dirname {output.cds_gtf})
-        awk '$3 == "CDS"' {input.ref_gtf} > {output.cds_gtf}
+        # gzip -cdf: a gzipped reference is decompressed, a plain one passed through
+        gzip -cdf {input.ref_gtf} | awk '$3 == "CDS"' > {output.cds_gtf}
         echo "Extracted $(wc -l < {output.cds_gtf}) CDS features from reference"
         """
 
