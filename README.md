@@ -454,7 +454,7 @@ sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_i
 | `isoseq_bam` | no | Pre-aligned PacBio IsoSeq BAM, colon-separated. **Requires protein evidence.** |
 | `isoseq_fastq` | no | Unaligned IsoSeq FASTA/FASTQ, colon-separated. Aligned with minimap2. **Requires protein evidence.** |
 | `busco_lineage` | **yes** | BUSCO lineage for QC (e.g. `eukaryota_odb12`, `arthropoda_odb12`). Use a clade-specific lineage for better assessment. |
-| `reference_gtf` | no | Reference annotation in GTF format for gffcompare evaluation. Optional. |
+| `reference_gtf` | no | Reference annotation in GTF format (gzipped or not) for gffcompare evaluation. Optional. |
 
 **Mode auto-detection logic:**
 
@@ -559,6 +559,7 @@ enable = 0
 
 [OMARK]
 # omamer_db = /path/to/LUCA.h5      # OMAmer database for OMArk (used only when run_omark = 1)
+# ete_taxa_path = /path/to/ete_taxa # taxa.sqlite or taxdump.tar.gz for offline OMArk (see run_omark)
 
 [SLURM_ARGS]
 cpus_per_task = 48
@@ -929,6 +930,8 @@ omamer_db = /path/to/LUCA.h5
 
 If unset, BRAKER4 falls back to `test_data/LUCA.h5` (the location used by the test scenarios). The value can also be overridden via the environment variable `BRAKER4_OMAMER_DB`.
 
+OMArk reads the NCBI taxonomy through ete3. Without further setup, ete3 downloads it from NCBI into `~/.etetoolkit/` on the first run, which fails on compute nodes without internet. In that case set `ete_taxa_path` in `[OMARK]` to a directory that holds `taxa.sqlite`, or `taxdump.tar.gz` from <https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz>. With only the tarball, the first OMArk job builds `taxa.sqlite` in that directory. The directory must then be writable, and the build takes about 6 minutes and 3 GB of memory. OMArk then reads the database with `-e` and does not go online. If `ete_taxa_path` is not set, BRAKER4 uses `shared_data/ete_taxa/` when that directory exists.
+
 ### no_cleanup
 
 Set to `1` to keep all intermediate files after the pipeline finishes. By default (`0`) the `collect_results` rule copies the important outputs into `output/{sample_name}/results/` and deletes everything else. Keep this at `0` for production runs. Only enable it when debugging a rule failure and you need to inspect intermediate state.
@@ -973,7 +976,7 @@ Set to `1` to annotate non-coding RNAs in addition to protein-coding genes. Defa
 -   **pybarrnap** (Onishi, 2025): ribosomal RNA gene prediction (18S, 28S, 5.8S, 5S; all modes). Python re-implementation of barrnap using Rfam 14.10 HMM profiles via pyhmmer; resolves the eukaryotic 5.8S/28S overlap present in barrnap v0.9.
 -   **tRNAscan-SE** (Chan & Lowe, 2019): transfer RNA gene prediction (all modes). Set `trnascan_high_confidence_filter = 1` to keep only the tRNAs that pass tRNAscan-SE's `EukHighConfidenceFilter`, which removes pseudogenes and low-scoring hits such as tRNA-derived SINEs. This is recommended for vertebrates and other genomes rich in tRNA-derived repeats. The unfiltered result stays in `ncrna/tRNAs.txt`, and the filter's report is in `ncrna/tRNAs.highconf.log`.
 -   **Infernal/cmscan** (Nawrocki & Eddy, 2013): scans the genome against the Rfam database (Kalvari et al., 2021) to identify snoRNAs, snRNAs, miRNAs, ribozymes, and other structured ncRNAs (all modes)
--   **FEELnc** (Wucher et al., 2017): long non-coding RNA identification from StringTie transcriptome assemblies (only when RNA-Seq evidence is available, i.e. ET, ETP, IsoSeq, or dual modes)
+-   **FEELnc** (Wucher et al., 2017): long non-coding RNA identification from StringTie transcriptome assemblies (only when RNA-Seq evidence is available, i.e. ET, ETP, IsoSeq, or dual modes). FEELnc trains its coding-potential model on the BRAKER transcripts and needs at least 100 candidate transcripts and 100 BRAKER transcripts. Below that, `ncrna/lncRNAs.gff3` contains only a comment line that says why, and no lncRNA is called. Any other FEELnc error stops the run.
 
 All four predictors' results are merged into a single final GFF3 annotation (`braker_with_ncRNA.gff3`) alongside the BRAKER protein-coding gene set. Each tool runs in its own container — no modification to the BRAKER3 container is needed.
 
@@ -1070,6 +1073,8 @@ pre-computed lookup of reference embeddings. See:
     High-Throughput Implementation of the ProtTrans Model.
     *Methods in Molecular Biology*.
     [doi:10.1007/978-1-0716-4623-6_8](https://doi.org/10.1007/978-1-0716-4623-6_8)
+
+With `enable = 1`, the rule `fantasia_gpu_check` runs at the start of the run, on the `[fantasia]` partition and gres. It checks for a visible CUDA GPU with at least 15000 MiB free. If the check fails, the run stops within minutes instead of after the gene prediction.
 
 **Prerequisites** (one-time setup, before the first run):
 
