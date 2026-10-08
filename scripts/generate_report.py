@@ -720,7 +720,9 @@ def generate_methods_text(workdir, mode):
 
     lncrna_gff = os.path.join(d, "ncrna", "lncRNAs.gff3")
     if os.path.exists(lncrna_gff):
-        n_lnc = sum(1 for l in open(lncrna_gff) if not l.startswith("#") and l.strip())
+        # lnc_RNA lines only; each is followed by its exon lines
+        n_lnc = sum(1 for l in open(lncrna_gff)
+                    if not l.startswith("#") and l.count("\t") >= 8 and l.split("\t")[2] == "lnc_RNA")
         if n_lnc > 0:
             ncrna_parts.append(
                 f"**{n_lnc:,}** long non-coding RNAs were identified from StringTie "
