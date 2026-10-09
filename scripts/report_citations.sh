@@ -326,12 +326,12 @@ BIBEOF
 BIBEOF
             ;;
         pybarrnap)
-            echo "Onishi, Y. (2025). pybarrnap: Python implementation of barrnap. https://github.com/moshi4/pybarrnap" >> "$txt_file"
+            echo "Shimoyama, Y. (2024). pybarrnap: Python implementation of barrnap. https://github.com/moshi4/pybarrnap" >> "$txt_file"
             cat >> "$bib_file" << 'BIBEOF'
 @software{pybarrnap,
-  author  = {Onishi, Yuki},
+  author  = {Shimoyama, Yuki},
   title   = {pybarrnap: {P}ython implementation of barrnap},
-  year    = {2025},
+  year    = {2024},
   url     = {https://github.com/moshi4/pybarrnap}
 }
 BIBEOF

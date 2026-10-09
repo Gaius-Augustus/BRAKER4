@@ -681,12 +681,12 @@ def generate_methods_text(workdir, mode):
         n_rrna = sum(1 for l in open(rrna_gff) if not l.startswith("#") and l.strip())
         if n_rrna > 0:
             parts.append(
-                f"**{n_rrna:,}** ribosomal RNA genes were predicted using pybarrnap (Onishi, 2025) "
+                f"**{n_rrna:,}** ribosomal RNA genes were predicted using pybarrnap (Shimoyama, 2024) "
                 "and merged into the GFF3 annotation."
             )
         else:
             parts.append(
-                "No ribosomal RNA genes were detected by pybarrnap (Onishi, 2025) in this genome."
+                "No ribosomal RNA genes were detected by pybarrnap (Shimoyama, 2024) in this genome."
             )
 
     # --- ncRNA (tRNAscan-SE + Infernal) ---
