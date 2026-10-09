@@ -153,8 +153,11 @@ rule run_genemark_etp_isoseq:
             echo "  Prepared BAM: $LIB" >> {log}
         done
 
-        # Step 2: Prepare protein file
-        PROT_FILE=$WORKDIR/output/{wildcards.sample}/proteins_isoseq.fa
+        # Step 2: Prepare protein file. The copy is as large as the protein
+        # database: write it to the node-local work dir, not to the run dir;
+        # protdb/ keeps it apart from the proteins_isoseq.fa/ dir gmetp.pl creates.
+        mkdir -p "$outDir/protdb"
+        PROT_FILE=$outDir/protdb/proteins_isoseq.fa
         sed '/^>/!s/\\.$//' $PROTEINS_ABS > $PROT_FILE
 
         # GeneMark-ETP only says "error in protein file parsing" on duplicated
@@ -256,7 +259,8 @@ YAMLEOF
             exit 1
         fi
 
-        n_genes=$(grep -c $'\\tgene\\t' $outDir/genemark.gtf || echo "0")
+        # genemark.gtf from gmetp.pl has no gene lines: count distinct gene_id
+        n_genes=$(awk 'match($0, /gene_id "[^"]+"/) {{ id = substr($0, RSTART, RLENGTH); if (!(id in seen)) {{ seen[id] = 1; n++ }} }} END {{ print n + 0 }}' $outDir/genemark.gtf)
         echo "GeneMark-ETP (isoseq) predicted $n_genes genes (exit=$ETP_EXIT)" >> {log}
 
         # Step 5: Find and copy training genes and HC genes
@@ -312,6 +316,11 @@ YAMLEOF
         if [ ! -s "$finalDir/genemark.gtf" ] || [ ! -f "$finalDir/rnaseq/stringtie/transcripts_merged.gff" ]; then
             echo "ERROR: genemark.gtf or rnaseq/stringtie/transcripts_merged.gff missing in $finalDir" >> {log}
             exit 1
+        fi
+        # the protein copy is not needed any more (fallback; on scratch the
+        # EXIT trap removes it)
+        if [ -z "$SCRATCH" ]; then
+            rm -f "$PROT_FILE"
         fi
 
         # NOTE: do NOT call join_mult_hints.pl here. See run_genemark_etp.smk
