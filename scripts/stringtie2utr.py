@@ -117,18 +117,26 @@ def add_intron_features(gtf_dict):
 
 def create_introns_hash(non_gene_dict):
     """
-    Creates a dictionary with intron strings as keys and transcript IDs as values.
-    
+    Collects the intron chain of every transcript.
+
+    Earlier versions keyed the dictionary by intron and kept one transcript
+    per intron, so an intron shared by alternative transcripts of a gene was
+    recorded for the last one only. The other transcripts were then matched
+    on their remaining introns alone, and a StringTie transcript missing one
+    of their introns matched; its exons became UTRs inside those introns.
+
     Args:
-    - non_gene_dict (dict): Dictionary with transcript_id as key and a list of 
+    - non_gene_dict (dict): Dictionary with transcript_id as key and a list of
     GTF entries as values.
 
     Returns:
-    dict: Dictionary with intron strings as keys and transcript IDs as values.
+    dict: Dictionary with transcript IDs as keys and the set of their intron
+    keys (seqname_start_end_strand) as values; transcripts without introns
+    are absent.
     """
-    
+
     introns_hash = {}
-    
+
     for transcript_id, entries in non_gene_dict.items():
         for entry in entries:
             # Check if the feature is an intron
@@ -138,46 +146,39 @@ def create_introns_hash(non_gene_dict):
                 end = entry.split('\t')[4]
                 strand = entry.split('\t')[6]
                 intron_key = f"{seqname}_{start}_{end}_{strand}"
-
-                # Store the transcript ID associated with the intron in the hash
-                introns_hash[intron_key] = transcript_id
+                introns_hash.setdefault(transcript_id, set()).add(intron_key)
 
     return introns_hash
 
 
 def find_matching_transcripts(intron_hash1, intron_hash2):
     """
-    Find matching transcript IDs based on intron patterns.
-    This only works for multi-exon genes.
-    
+    Find matching transcript IDs based on intron patterns: a transcript of the
+    first set matches every transcript of the second set whose intron chain
+    contains all of its introns. This only works for multi-exon genes.
+
     Args:
-    - intron_hash1 (dict): Dictionary with intron strings as keys and transcript IDs from the first dataset as values.
-    - intron_hash2 (dict): Dictionary with intron strings as keys and transcript IDs from the second dataset as values.
+    - intron_hash1 (dict): transcript ID -> set of intron keys, first dataset (create_introns_hash).
+    - intron_hash2 (dict): transcript ID -> set of intron keys, second dataset.
 
     Returns:
     dict: Dictionary with transcript IDs from intron_hash1 as keys and lists of matching transcript IDs from intron_hash2 as values.
     """
-    
-    # Reverse the hashes for easy lookup of intron patterns for each transcript
-    reverse_hash1 = {}
-    for intron, transcript in intron_hash1.items():
-        if transcript not in reverse_hash1:
-            reverse_hash1[transcript] = []
-        reverse_hash1[transcript].append(intron)
 
-    reverse_hash2 = {}
-    for intron, transcript in intron_hash2.items():
-        if transcript not in reverse_hash2:
-            reverse_hash2[transcript] = []
-        reverse_hash2[transcript].append(intron)
+    # transcripts of the second set per intron, so that only candidates sharing
+    # the first intron are checked
+    by_intron = {}
+    for transcript2, introns2 in intron_hash2.items():
+        for intron in introns2:
+            by_intron.setdefault(intron, []).append(transcript2)
 
     matching_transcripts = {}
 
-    for transcript1, introns1 in reverse_hash1.items():
+    for transcript1, introns1 in intron_hash1.items():
+        first = next(iter(introns1))
         matches = set()
-        
-        for transcript2, introns2 in reverse_hash2.items():
-            if all(intron in introns2 for intron in introns1):
+        for transcript2 in by_intron.get(first, []):
+            if introns1 <= intron_hash2[transcript2]:
                 matches.add(transcript2)
 
         if matches:
@@ -457,20 +458,79 @@ def _make_utr_feature(fields, utr_type, utr_start, utr_end):
     return "\t".join(new_fields)
 
 
+def coding_intervals(features):
+    """
+    Coding intervals (start, end) of one transcript: its CDS and stop_codon
+    lines.
+
+    GTF2.2 keeps the stop codon out of the CDS lines and gives it a stop_codon
+    line. GeneMark transcripts in braker.gtf can lack the stop_codon line while
+    their exon still covers the stop codon: when a transcript has no stop_codon
+    line and a predictor exon ends exactly 3 bp after the last CDS on the 3'
+    side, those 3 bp are coding, not UTR.
+    """
+    coding = []
+    has_stop = False
+    strand = None
+    for f in features:
+        fields = f.split('\t')
+        if fields[2] in ("CDS", "stop_codon"):
+            coding.append((int(fields[3]), int(fields[4])))
+            strand = fields[6]
+            has_stop = has_stop or fields[2] == "stop_codon"
+    if coding and not has_stop:
+        cds_min = min(s for s, _ in coding)
+        cds_max = max(e for _, e in coding)
+        for f in features:
+            fields = f.split('\t')
+            if fields[2] != "exon" or "StringTie" in fields[1]:
+                continue
+            s, e = int(fields[3]), int(fields[4])
+            if strand == "+" and s <= cds_max and e == cds_max + 3:
+                coding.append((cds_max + 1, e))
+                break
+            if strand == "-" and e >= cds_min and s == cds_min - 3:
+                coding.append((s, cds_min - 1))
+                break
+    return coding
+
+
+def _merge_utrs(utr_features):
+    """Join UTR features of the same type that overlap or touch each other."""
+    merged = []
+    for feature in sorted(utr_features, key=lambda x: (x.split('\t')[2], int(x.split('\t')[3]))):
+        fields = feature.split('\t')
+        start, end = int(fields[3]), int(fields[4])
+        if merged:
+            prev = merged[-1].split('\t')
+            if prev[2] == fields[2] and start <= int(prev[4]) + 1:
+                prev[4] = str(max(int(prev[4]), end))
+                merged[-1] = '\t'.join(prev)
+                continue
+        merged.append(feature)
+    return merged
+
+
 def compute_utr_features(tsebra_gtf):
     """
     Compute the UTR features for each transcript in tsebra_gtf based on strand information.
 
-    Bug fixes vs. original BRAKER version (github.com/Gaius-Augustus/BRAKER/issues/867):
-    - Use explicit coordinate assignment instead of string replace to avoid
-      replacing coordinates in wrong columns and producing inverted ranges
-    - Skip UTR features where start > end
-    - Collect StringTie exons to remove in a separate pass to avoid
-      modifying the list while iterating (which skips elements)
-    - Guard the second-pass "StringTie source" check with featuretype=="exon" so
-      that UTR features computed in the first pass (which inherit the StringTie
-      source column) are not incorrectly removed or double-renamed
-      (github.com/Gaius-Augustus/BRAKER4/issues/29)
+    After merge_features, a transcript holds its predictor features and the
+    StringTie exons chosen for it. The coding region is the CDS plus the stop
+    codon (coding_intervals). Every exon, from the predictor or from StringTie,
+    that overlaps the coding region contributes its parts before and after the
+    coding region as UTR features; a StringTie exon that overlaps the coding
+    region is then dropped, its UTR parts replace it. A StringTie exon outside
+    the coding region becomes a UTR feature as a whole, its type given by its
+    position relative to the coding region and the strand. UTR features of
+    one type that overlap or touch are joined.
+
+    History (github.com/Gaius-Augustus/BRAKER/issues/867, BRAKER4 issue #29):
+    the first version replaced coordinates by string replace and dropped a
+    StringTie exon only when it started at the same position as a neighbouring
+    feature. A StringTie exon starting inside the CDS and ending behind it
+    (single-exon genes) was kept and renamed as a whole, which gave a second
+    three_prime_UTR running from inside the CDS to the transcript end.
 
     Args:
     - tsebra_gtf (dict): Dictionary with transcript IDs as keys and lists of GTF feature lines as values.
@@ -479,102 +539,123 @@ def compute_utr_features(tsebra_gtf):
     dict: Updated tsebra_gtf dictionary with UTR features added.
     """
     for transcript_id, features in tsebra_gtf.items():
-        # Sort features by start position
         features.sort(key=lambda x: int(x.split('\t')[3]))
 
+        coding = coding_intervals(features)
+        if not coding:
+            # nothing to decorate; StringTie exons cannot be placed without a CDS
+            tsebra_gtf[transcript_id] = [
+                f for f in features
+                if not (f.split('\t')[2] == "exon" and "StringTie" in f.split('\t')[1])]
+            continue
+        cds_min = min(s for s, _ in coding)
+        cds_max = max(e for _, e in coding)
+
+        kept = []
         utr_features = []
         for feature in features:
             fields = feature.split('\t')
-            feature_type = fields[2]
-            start = int(fields[3])
-            end = int(fields[4])
-            strand = fields[6]
+            if fields[2] != "exon":
+                kept.append(feature)
+                continue
+            start, end, strand = int(fields[3]), int(fields[4]), fields[6]
+            from_stringtie = "StringTie" in fields[1]
+            upstream, downstream = (("five_prime_UTR", "three_prime_UTR") if strand == "+"
+                                    else ("three_prime_UTR", "five_prime_UTR"))
 
-            # If feature is an exon, check if there are overlapping coding features.
-            # GTF2.2 keeps the stop codon out of the CDS lines and gives it its own
-            # stop_codon line, but it is part of the coding region: a 3' UTR starts
-            # after it, not on it. A stop codon split by an intron has a part in
-            # an exon without any CDS; that part counts as coding there.
-            if feature_type == "exon":
-                overlapping_cds = [f for f in features
-                                   if f.split('\t')[2] in ("CDS", "stop_codon")
-                                   and int(f.split('\t')[3]) <= end and int(f.split('\t')[4]) >= start]
-
-                if overlapping_cds:
-                    cds_start = min(int(f.split('\t')[3]) for f in overlapping_cds)
-                    cds_end = max(int(f.split('\t')[4]) for f in overlapping_cds)
-
-                    # Check for UTR based on strand
-                    if strand == "+":
-                        if start < cds_start:
-                            utr = _make_utr_feature(fields, "five_prime_UTR", start, cds_start - 1)
-                            if utr:
-                                utr_features.append(utr)
-
-                        if end > cds_end:
-                            utr = _make_utr_feature(fields, "three_prime_UTR", cds_end + 1, end)
-                            if utr:
-                                utr_features.append(utr)
-
-                    elif strand == "-":
-                        if end > cds_end:
-                            utr = _make_utr_feature(fields, "five_prime_UTR", cds_end + 1, end)
-                            if utr:
-                                utr_features.append(utr)
-
-                        if start < cds_start:
-                            utr = _make_utr_feature(fields, "three_prime_UTR", start, cds_start - 1)
-                            if utr:
-                                utr_features.append(utr)
-
-        # Add the computed UTR features to the list of features for this transcript
-        features.extend(utr_features)
-        features.sort(key=lambda x: int(x.split('\t')[3]))
-
-        # Modify StringTie exons to UTR features if needed.
-        # First pass: determine UTR type and collect indices to remove.
-        seen_cds = False
-        to_remove = []
-        for idx, feature in enumerate(features):
-            fields = feature.split('\t')
-            start = int(fields[3])
-            strand = fields[6]
-            featuretype = fields[2]
-            if featuretype == "CDS":
-                seen_cds = True
-            if strand == "+" and not seen_cds:
-                utr_type = "five_prime_UTR"
-            elif strand == "-" and not seen_cds:
-                utr_type = "three_prime_UTR"
-            elif strand == "+" and seen_cds:
-                utr_type = "three_prime_UTR"
+            overlapping = [(s, e) for s, e in coding if s <= end and e >= start]
+            if overlapping:
+                c_start = min(s for s, _ in overlapping)
+                c_end = max(e for _, e in overlapping)
+                if start < c_start:
+                    utr_features.append(_make_utr_feature(fields, upstream, start, c_start - 1))
+                if end > c_end:
+                    utr_features.append(_make_utr_feature(fields, downstream, c_end + 1, end))
+                if not from_stringtie:
+                    kept.append(feature)
+            elif from_stringtie:
+                if end < cds_min:
+                    utr_features.append(_make_utr_feature(fields, upstream, start, end))
+                elif start > cds_max:
+                    utr_features.append(_make_utr_feature(fields, downstream, start, end))
+                # a StringTie exon between two CDS segments has no place; dropped
             else:
-                utr_type = "five_prime_UTR"
+                kept.append(feature)
 
-            # Only process original StringTie exon features here — UTR features
-            # created by the first pass above also carry "StringTie" in their
-            # source column (inherited from the exon), so we must guard on
-            # featuretype == "exon" to avoid incorrectly removing them.
-            if "StringTie" in fields[1] and featuretype == "exon":
-                # Check if it has the same start as any of its neighbors
-                same_start = False
-                for offset in [-1, 1]:
-                    if 0 <= idx + offset < len(features):
-                        neighbor = features[idx + offset].split('\t')
-                        if int(neighbor[3]) == start:
-                            same_start = True
-                            break
+        features = kept + _merge_utrs([u for u in utr_features if u])
+        features.sort(key=lambda x: int(x.split('\t')[3]))
+        tsebra_gtf[transcript_id] = features
 
-                if same_start:
-                    to_remove.append(idx)
-                else:
-                    fields[2] = utr_type
-                    features[idx] = "\t".join(fields)
+    return tsebra_gtf
 
-        # Second pass: remove marked features in reverse order to preserve indices
-        for idx in reversed(to_remove):
-            features.pop(idx)
 
+def rebuild_exons(tsebra_gtf):
+    """
+    Make the exon lines cover the UTRs.
+
+    In GTF the exon is the transcribed segment, UTR included; the predictor
+    exon lines end at the coding region. For every transcript with UTR
+    features, each exon becomes the union of the predictor exon and the UTR
+    features that overlap or touch it, and a UTR feature apart from all
+    predictor exons (a UTR exon behind an intron) gets an exon line of its
+    own. The predictor's exon line is kept as template; a UTR-only exon copies
+    the first exon line with score '.'. When the transcript has intron lines,
+    the gaps between the new exons without one get intron lines too, with
+    score '.'. Transcripts without UTR features are left as they are.
+
+    Args:
+    - tsebra_gtf (dict): transcript ID -> list of GTF feature lines, after
+      compute_utr_features.
+
+    Returns:
+    dict: tsebra_gtf with exon (and intron) lines covering the UTRs.
+    """
+    for transcript_id, features in tsebra_gtf.items():
+        exons = [f for f in features if f.split('\t')[2] == "exon"]
+        utrs = [f for f in features if f.split('\t')[2] in ("five_prime_UTR", "three_prime_UTR")]
+        if not utrs:
+            continue
+        introns = [f for f in features if f.split('\t')[2] == "intron"]
+
+        spans = sorted((int(f.split('\t')[3]), int(f.split('\t')[4])) for f in exons + utrs)
+        merged = []
+        for s, e in spans:
+            if merged and s <= merged[-1][1] + 1:
+                merged[-1][1] = max(merged[-1][1], e)
+            else:
+                merged.append([s, e])
+
+        if exons:
+            template = exons[0].split('\t')
+        else:
+            template = next(f for f in features if f.split('\t')[2] == "CDS").split('\t')
+            template[2] = "exon"
+        template[5] = "."
+        template[7] = "."
+        exon_spans = [(int(f.split('\t')[3]), int(f.split('\t')[4]), f) for f in exons]
+        new_exons = []
+        for s, e in merged:
+            inside = [f for es, ee, f in exon_spans if s <= es and ee <= e]
+            fields = inside[0].split('\t') if inside else list(template)
+            fields[3] = str(s)
+            fields[4] = str(e)
+            new_exons.append('\t'.join(fields))
+
+        new_introns = []
+        if introns:
+            present = {(int(f.split('\t')[3]), int(f.split('\t')[4])) for f in introns}
+            intron_template = introns[0].split('\t')
+            intron_template[5] = "."
+            for (_, e1), (s2, _) in zip(merged, merged[1:]):
+                if (e1 + 1, s2 - 1) not in present:
+                    fields = list(intron_template)
+                    fields[3] = str(e1 + 1)
+                    fields[4] = str(s2 - 1)
+                    new_introns.append('\t'.join(fields))
+
+        rest = [f for f in features if f.split('\t')[2] != "exon"]
+        tsebra_gtf[transcript_id] = sorted(rest + new_exons + new_introns,
+                                           key=lambda x: int(x.split('\t')[3]))
     return tsebra_gtf
 
 
@@ -684,11 +765,9 @@ def print_gtf(filename, gtf_dict, gene_dict, tx_to_gene_dict, tx_dict):
                     if not same_locus(feature, tx_line):
                         dropped += 1
                         continue
-                    # If the feature is a UTR line, remove the exon_number
-                    if "UTR" in feature:
-                        # split line into fields
-                        fields = feature.split("\t")
-                        # build new gtf line
+                    # UTR lines: source stringtie2utr, only transcript_id and gene_id
+                    fields = feature.split("\t")
+                    if fields[2] in ("five_prime_UTR", "three_prime_UTR"):
                         f.write(fields[0] + "\tstringtie2utr\t" + "\t".join(fields[2:8]) + "\ttranscript_id \"" + tx_id + "\"; gene_id \"" + tx_to_gene_dict[tx_id] + "\";" + "\n")
                     else:
                         f.write(feature + "\n")
@@ -937,6 +1016,8 @@ def main():
                                 max_utr_extension=args.max_utr_extension, bounds=bounds)
     # compute UTR features, remove StringTie exon features
     tsebra_gtf = compute_utr_features(tsebra_gtf)
+    # exon lines cover the UTRs, as GTF expects
+    tsebra_gtf = rebuild_exons(tsebra_gtf)
 
     # expanding gene/transcripts by UTRs shifts the coordinates of these features, we need to update the coordinates in the gene and transcript lines
     tsebra_gene_line_dict, tsebra_tx_dict = fix_feature_coordinates(tsebra_gtf, tsebra_gene_line_dict, tsebra_tx_to_gene_dict, tsebra_tx_dict)
