@@ -621,6 +621,28 @@ Do not pass `--cores 1` with `--executor slurm`. Snakemake caps every rule's thr
 
 We recommend running the Snakemake master process itself in a `screen` or `tmux` session, or submitting it as a long-running SLURM job, because the master process must stay alive for the entire duration of the pipeline.
 
+**Clusters where this does not work (single-allocation mode):** `--executor slurm` needs a place from which Snakemake can call `sbatch` for days. Some clusters forbid long-running processes on the login node, and on some of them compute nodes cannot submit jobs either (`sbatch` fails inside a job, for example with `sbatch: error: fetch_config: DNS SRV lookup failed`, or no job ever appears in the queue). In that case, run the whole pipeline inside one SLURM job, without `--executor slurm`. Snakemake then runs every rule on the cores of that one node:
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=braker4
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=48
+#SBATCH --mem=120G
+#SBATCH --time=3-00:00:00
+
+cd /path/to/your/run_directory        # contains config.ini and samples.csv
+snakemake \
+    --snakefile /path/to/BRAKER4/Snakefile \
+    --cores "$SLURM_CPUS_PER_TASK" \
+    --use-singularity \
+    --singularity-prefix .singularity_cache \
+    --singularity-args "-B /home -B /scratch" \
+    --rerun-incomplete
+```
+
+Set `[SLURM_ARGS] cpus_per_task` and `mem_of_node` in `config.ini` to the values of the allocation. If Singularity/Apptainer exists only on the compute nodes, this is also the mode to use. A job that hits the time limit can be resubmitted with the same script; finished rules are not repeated. With several samples, all of them share the one node, so submit one such job per sample (separate run directories) if you want them to run side by side.
+
 ### Multi-sample runs and the `--keep-going` flag
 
 When annotating many genomes in a single `samples.csv`, individual samples can fail while others succeed. Typical failure points are:
@@ -774,6 +796,15 @@ my_species,genome.fa,,orthodb_proteins.fa,,,,,,,,,isoseq.fa,eukaryota_odb12,
 
 BRAKER4 will align the reads to the genome with minimap2 automatically. You can optionally enable [minisplice](#use_minisplice) splice-site scoring (`use_minisplice = 1`) to improve junction detection during alignment — recommended for older or noisy long-read data.
 
+**Oxford Nanopore cDNA or direct RNA reads:** the built-in alignment uses the `splice:hq` preset, which is meant for PacBio HiFi reads. Align Nanopore reads yourself with a preset that fits them and pass the BAM in the `isoseq_bam` column:
+
+```
+minimap2 -t 48 -ax splice genome.fa nanopore_reads.fastq.gz | samtools sort -@ 48 -o nanopore.bam
+samtools index -c nanopore.bam
+```
+
+(add `-uf` only for stranded full-length cDNA, `-uf -k14` for direct RNA). We have not benchmarked this ourselves. A user reported for a 1.2 Gbp plant genome that adding R10.4.1 SUP reads to short reads and proteins gave more genes and a slightly higher BUSCO completeness than short reads and proteins alone ([issue #1](https://github.com/Gaius-Augustus/BRAKER4/issues/1)).
+
 The accuracy of gene prediction with IsoSeq data depends on the sequencing depth. With PacBio HiFi reads and sufficient transcriptome coverage, you will reach similar results as with short reads. Lower depth or higher error rates will reduce accuracy.
 
 ### BRAKER4 with IsoSeq, short-read RNA-Seq, and protein data (dual mode)
@@ -843,7 +874,7 @@ Set to `1` to let pyVARUS run its Logan pre-screen, which ranks candidate SRA ru
 
 ### use_dev_shm
 
-Set to `1` to use `/dev/shm` (shared memory) instead of the node-local disk as the scratch root of three rules: `run_masking` (RepeatModeler2/RepeatMasker; only relevant when `masking_tool = repeatmasker` and the genome is unmasked), `optimize_augustus` and `run_augustus_hints`. All other rules use `[paths] tmp_dir` (see "Node-local scratch" above), which is the general mechanism. If `/dev/shm` has too little free space, `optimize_augustus` and `run_augustus_hints` work in `output/<sample>/` instead.
+Set to `1` to use `/dev/shm` (shared memory) instead of the node-local disk as the scratch root of three rules: `run_masking` (RepeatModeler2/RepeatMasker; only relevant when `masking_tool = repeatmasker` and the genome is unmasked), `optimize_augustus` and `run_augustus_hints`. With `use_dev_shm = 0`, `run_masking` and `run_red_masking` work in `[paths] tmp_dir` when it is set and in `/tmp` otherwise; RepeatModeler2 can need tens of GB there for a large genome, and the free space is written to `logs/<sample>/masking/masking.log`. All other rules use `[paths] tmp_dir` (see "Node-local scratch" above), which is the general mechanism. If `/dev/shm` has too little free space, `optimize_augustus` and `run_augustus_hints` work in `output/<sample>/` instead.
 
 On SLURM clusters where systemd-logind runs with `RemoveIPC=yes` (the default on many distributions), files you own in `/dev/shm` are deleted whenever another of your sessions or jobs on the same node ends. The masking job then fails silently and loses its progress. If other jobs of yours can land on the same node, either keep `use_dev_shm = 0`, request the node exclusively for `run_masking`, or ask your admins to set `RemoveIPC=no` in `logind.conf` (see issue #43).
 
