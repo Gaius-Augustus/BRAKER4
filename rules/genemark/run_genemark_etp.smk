@@ -237,6 +237,19 @@ YAMLEOF
 
         if [ ! -f $outDir/genemark.gtf ]; then
             echo "ERROR: GeneMark-ETP failed (exit=$ETP_EXIT), no genemark.gtf" >> {log}
+            # Stranded reads assembled unstranded (or poor alignments) can leave
+            # StringTie with single-exon transcripts only; GeneMark-ETP then
+            # fails much later, in training (#67).
+            TGFF=$outDir/rnaseq/stringtie/transcripts_merged.gff
+            if [ -s "$TGFF" ]; then
+                read -r N_TX N_MULTI < <(awk -F'\t' '$3 == "exon" && match($9, /transcript_id "[^"]+"/) {{ n[substr($9, RSTART, RLENGTH)]++ }} END {{ for (t in n) {{ tx++; if (n[t] > 1) m++ }} print tx + 0, m + 0 }}' "$TGFF")
+                echo "DIAGNOSTIC: StringTie assembled $N_TX transcripts, $N_MULTI of them multi-exon." >> {log}
+                if [ "$N_TX" -gt 0 ] && [ "$N_MULTI" -eq 0 ]; then
+                    echo "HINT: StringTie assembled 0 multi-exon transcripts, so GeneMark-ETP has no spliced genes to train on." >> {log}
+                    echo "  Check library strandedness and the alignments: GeneMark-ETP runs StringTie without a strand option (no --rf/--fr), and BAM files of stranded reads need the XS tag (HISAT2 --rna-strandness, STAR --outSAMstrandField intronMotif)." >> {log}
+                    echo "  Fallback: ET mode (RNA-Seq only) or EP mode (proteins only) do not use StringTie." >> {log}
+                fi
+            fi
             if grep -q "Illegal division by zero" $WORKDIR/{log} 2>/dev/null; then
                 N_TRAIN=$(grep "genes found for training:" $WORKDIR/{log} | tail -1 | awk '{{print $NF}}' 2>/dev/null || echo "unknown")
                 echo "HINT: GeneMark-ETP crashed in model training (parse_set.pl / train_super.pl division by zero)." >> {log}
