@@ -26,7 +26,8 @@ rule run_masking:
         "benchmarks/{sample}/masking/masking.txt"
     params:
         sample = "{sample}",
-        use_dev_shm = 1 if config['use_dev_shm'] else 0
+        use_dev_shm = 1 if config['use_dev_shm'] else 0,
+        tmp_root = TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb = int(config['slurm_args']['mem_of_node']),
@@ -48,14 +49,20 @@ rule run_masking:
         find /dev/shm -maxdepth 1 -name "masking_*" -type d -mtime +3 -exec rm -rf {{}} \; 2>/dev/null || true
         find /tmp -maxdepth 1 -name "masking_*" -type d -mtime +3 -exec rm -rf {{}} \; 2>/dev/null || true
 
-        # Choose working directory: /dev/shm for fast I/O or /tmp
+        # Choose working directory: /dev/shm for fast I/O, else [paths]
+        # tmp_dir, else /tmp. RepeatModeler needs tens of GB there for a
+        # large genome; a full or cleaned /tmp makes it fail late with
+        # "compressed subject database ... does not exist" (#84).
+        TMP_BASE="{params.tmp_root}"
+        TMP_BASE=${{TMP_BASE:-/tmp}}
         if [ "{params.use_dev_shm}" = "1" ] && [ -d /dev/shm ]; then
             WORKDIR=$(mktemp -d /dev/shm/masking_{params.sample}_XXXXXX)
             echo "[INFO] Using /dev/shm: $WORKDIR" > "$LOG_ABS"
         else
-            WORKDIR=$(mktemp -d /tmp/masking_{params.sample}_XXXXXX)
-            echo "[INFO] Using /tmp: $WORKDIR" > "$LOG_ABS"
+            WORKDIR=$(mktemp -d "$TMP_BASE/masking_{params.sample}_XXXXXX")
+            echo "[INFO] Using $TMP_BASE: $WORKDIR" > "$LOG_ABS"
         fi
+        echo "[INFO] Free space there: $(df -Ph "$WORKDIR" | awk 'NR == 2 {{ print $4 }}')" >> "$LOG_ABS"
 
         # Cleanup on exit
         trap "rm -rf $WORKDIR" EXIT

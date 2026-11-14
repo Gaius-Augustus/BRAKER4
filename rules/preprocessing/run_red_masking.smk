@@ -25,6 +25,7 @@ rule run_red_masking:
         "benchmarks/{sample}/masking/masking.txt"
     params:
         sample="{sample}",
+        tmp_root=TMP_ROOT
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -41,7 +42,10 @@ rule run_red_masking:
         OUTDIR_ABS=$(readlink -f $(dirname {output.masked_genome}))
         mkdir -p "$OUTDIR_ABS"
 
-        WORKDIR=$(mktemp -d /tmp/red_{params.sample}_XXXXXX)
+        # [paths] tmp_dir when set, else /tmp
+        TMP_BASE="{params.tmp_root}"
+        TMP_BASE=${{TMP_BASE:-/tmp}}
+        WORKDIR=$(mktemp -d "$TMP_BASE/red_{params.sample}_XXXXXX")
         trap "rm -rf $WORKDIR" EXIT
 
         echo "[INFO] Running Red repeat detection for {params.sample}" > "$LOG_ABS"
