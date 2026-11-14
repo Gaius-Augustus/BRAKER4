@@ -8,7 +8,7 @@
 # spalnBatch.sh: readlink -f of its directory), so they pick up the copy.
 #
 # Usage: make_prothint_shadow.sh <dest_dir> [etp_bin_dir]
-#   etp_bin_dir defaults to the directory of gmetp.pl on PATH.
+#   etp_bin_dir defaults to the directory of gmetp.pl on PATH, else /opt/ETP/bin.
 # Afterwards use <dest_dir>/gmetp.pl or
 # <dest_dir>/gmes/ProtHint/bin/prothint.py instead of the ones on PATH.
 set -euo pipefail
@@ -24,7 +24,17 @@ dispatcher=$script_dir/spaln_dispatcher.py
 if [ $# -eq 2 ]; then
     src=$(readlink -f "$2")
 else
-    src=$(dirname "$(readlink -f "$(command -v gmetp.pl)")")
+    # gmetp.pl is on PATH in the BRAKER3 container; without it, fall back to
+    # the container's install location instead of resolving to "." (#75).
+    gmetp=$(command -v gmetp.pl || true)
+    if [ -n "$gmetp" ]; then
+        src=$(dirname "$(readlink -f "$gmetp")")
+    elif [ -f /opt/ETP/bin/gmetp.pl ]; then
+        src=/opt/ETP/bin
+    else
+        echo "ERROR: gmetp.pl is not on PATH and /opt/ETP/bin/gmetp.pl does not exist; pass the GeneMark-ETP bin directory as second argument" >&2
+        exit 1
+    fi
 fi
 prothint_bin=$src/gmes/ProtHint/bin
 if [ ! -f "$prothint_bin/run_spliced_alignment.pl" ]; then
