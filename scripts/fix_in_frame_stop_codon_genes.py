@@ -703,8 +703,24 @@ for seq_id in regions:
         i += 1
 
 if __name__ == "__main__":
-    with multiprocessing.Pool(processes = args.cores) as pool:
-        pool.map(run_augustus_process, augustus_lst)
+    # multiprocessing.Pool needs a writable /dev/shm for its semaphores. Some
+    # setups (WSL2, containers without /dev/shm) fail with FileNotFoundError
+    # while the pool is created, before any job has run (BRAKER#592, #873).
+    # With one core no pool is needed; otherwise fall back to sequential runs.
+    ran_in_pool = False
+    if args.cores > 1:
+        try:
+            with multiprocessing.Pool(processes = args.cores) as pool:
+                pool.map(run_augustus_process, augustus_lst)
+            ran_in_pool = True
+        except OSError as e:
+            msg = ("WARNING: multiprocessing not available (" + str(e) +
+                   "), running AUGUSTUS jobs sequentially")
+            logger.info(msg)
+            print(msg, flush=True)
+    if not ran_in_pool:
+        for augustus_job in augustus_lst:
+            run_augustus_process(augustus_job)
 
 
 ### Replace genes with in-frame stop codon by new genes  ###

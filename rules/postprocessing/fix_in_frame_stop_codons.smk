@@ -211,6 +211,7 @@ rule fix_in_frame_stop_codons:
                 -H {input.hintsfile} \
                 -e {params.extrinsic_cfg} \
                 -w {params.output_dir} \
+                -c {threads} \
                 --additional_aug_args "--allow_hinted_splicesites={params.allow_hinted_splicesites} " \
                 2>&1 | tee {output.fix_log}
 
