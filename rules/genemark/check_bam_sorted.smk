@@ -45,7 +45,8 @@ rule check_bam_sorted:
     benchmark:
         "benchmarks/{sample}/check_bam_sorted/{bam_id}.txt"
     params:
-        tmp_root=TMP_ROOT
+        tmp_root=TMP_ROOT,
+        mode=lambda w: get_braker_mode(w.sample)
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -58,28 +59,7 @@ rule check_bam_sorted:
         # (first word, as kept by prepare_genome). Otherwise GeneMark-ETP's
         # StringTie step silently produces an empty transcripts_merged.fasta
         # and fails much later (issue #76).
-        samtools view -H {input.bam} | awk -F'\t' -v fai={input.genome_fai} '
-            BEGIN {{ while ((getline l < fai) > 0) {{ split(l, f, "\t"); len[f[1]] = f[2] }} }}
-            $1 == "@SQ" {{
-                sn = ""; ln = ""
-                for (i = 2; i <= NF; i++) {{
-                    if ($i ~ /^SN:/) sn = substr($i, 4)
-                    if ($i ~ /^LN:/) ln = substr($i, 4)
-                }}
-                n++
-                if (sn in len) {{ ok++; if (len[sn] != ln) diff++ }}
-                else if (miss++ < 5) ex = ex " " sn
-            }}
-            END {{
-                if (n > 0 && ok == 0) {{
-                    print "ERROR: none of the " n " reference sequences in {input.bam} match the genome FASTA headers." > "/dev/stderr"
-                    print "  BAM references, e.g.:" ex > "/dev/stderr"
-                    print "  Align the reads against the same genome FASTA (identical sequence names) that you pass to BRAKER4." > "/dev/stderr"
-                    exit 1
-                }}
-                if (miss > 0) printf "WARNING: %d of %d BAM reference sequences are not in the genome, e.g.:%s\n", miss, n, ex > "/dev/stderr"
-                if (diff > 0) printf "WARNING: %d BAM reference sequences have a different length than in the genome. Was the BAM made against another assembly version?\n", diff > "/dev/stderr"
-            }}' 2> {log} || {{ cat {log} >&2; exit 1; }}
+        bash {script_dir}/check_bam_refs.sh {input.bam} {input.genome_fai} 2> {log} || {{ cat {log} >&2; exit 1; }}
 
         # Check if BAM is already coordinate-sorted and indexable
         # Even if header says sorted, unmapped reads might be in wrong position
@@ -141,6 +121,31 @@ rule check_bam_sorted:
             if [ ! -s "$BAM_ABS" ] || [ ! -s "$CSI_ABS" ]; then
                 echo "ERROR: {output.bam} or its .csi missing after the copy back" >> {log}
                 exit 1
+            fi
+        fi
+
+        # A BAM without mapped reads, or a STAR BAM whose spliced reads lack
+        # the XS strand tag, passes the checks above, and GeneMark-ETP then
+        # crashes hours later in parse_set.pl (Gaius-Augustus/BRAKER#719).
+        # GeneMark-ETP runs StringTie, which needs XS; ET mode (bam2hints)
+        # does not, so there it is only a warning.
+        MAPPED=$(samtools idxstats {output.bam} | awk '{{s += $3}} END {{print s + 0}}')
+        if [ "$MAPPED" -eq 0 ]; then
+            echo "ERROR: {input.bam} contains no mapped reads. Check the aligner log and that the reads were aligned to this genome." | tee -a {log} >&2
+            exit 1
+        fi
+        echo "Mapped reads: $MAPPED" >> {log}
+        set +o pipefail    # awk stops reading after 1M alignments
+        read -r N_SPL N_XS < <(samtools view -F 4 {output.bam} | awk -F'\t' '$6 ~ /N/ {{n++; if ($0 ~ /\tXS:A:[+-]/) x++}} NR >= 1000000 {{exit}} END {{print n + 0, x + 0}}')
+        set -o pipefail
+        echo "Spliced alignments in the first 1M: $N_SPL, with XS tag: $N_XS" >> {log}
+        if [ "$N_SPL" -gt 0 ] && [ "$N_XS" -eq 0 ]; then
+            MSG="none of the $N_SPL spliced reads in the first 1M alignments of {input.bam} has an XS strand tag. GeneMark-ETP's StringTie step needs it (STAR: --outSAMstrandField intronMotif; HISAT2 writes it by default)"
+            if [ "{params.mode}" = "etp" ] || [ "{params.mode}" = "dual" ]; then
+                echo "ERROR: $MSG. Realign, or run ET mode (leave protein_fasta empty)." | tee -a {log} >&2
+                exit 1
+            else
+                echo "WARNING: $MSG" >> {log}
             fi
         fi
 

@@ -18,7 +18,12 @@ def get_input_isoseq_bam_by_id(wildcards):
     raise ValueError(f"No IsoSeq BAM found for id {wildcards.isoseq_id} in sample {wildcards.sample}")
 
 rule check_isoseq_bam:
-    """Sort and index an IsoSeq BAM.
+    """Check reference names, then sort and index an IsoSeq BAM.
+
+    The @SQ names of the BAM must match the genome FASTA headers
+    (scripts/check_bam_refs.sh, as for short-read BAMs in check_bam_sorted);
+    otherwise GeneMark-ETP fails much later with "transcripts_merged.fasta.gff
+    not found" (Gaius-Augustus/BRAKER#877).
 
     Scratch: the sorted BAM, its .csi and the sort chunks are written to a
     private directory on the node-local disk (scripts/tmp_dir.sh, [paths]
@@ -26,7 +31,8 @@ rule check_isoseq_bam:
     less free the job writes in output/<sample>/isoseq_sorted/ directly.
     """
     input:
-        bam=get_input_isoseq_bam_by_id
+        bam=get_input_isoseq_bam_by_id,
+        genome_fai="output/{sample}/genome.fa.fai"
     output:
         bam=temp("output/{sample}/isoseq_sorted/{isoseq_id}.sorted.bam"),
         csi=temp("output/{sample}/isoseq_sorted/{isoseq_id}.sorted.bam.csi")
@@ -50,7 +56,10 @@ rule check_isoseq_bam:
 
         BAM_ABS=$(readlink -f {input.bam})
 
-        echo "Sorting IsoSeq BAM file {wildcards.isoseq_id}..." > {log}
+        # Reference names must match the genome (BRAKER#877)
+        bash {script_dir}/check_bam_refs.sh "$BAM_ABS" {input.genome_fai} 2> {log} || {{ cat {log} >&2; exit 1; }}
+
+        echo "Sorting IsoSeq BAM file {wildcards.isoseq_id}..." >> {log}
 
         # Sort chunks and the sorted BAM go to the node-local disk
         source {script_dir}/tmp_dir.sh
