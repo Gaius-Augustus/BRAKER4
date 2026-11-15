@@ -230,7 +230,25 @@ YAMLEOF
                     echo "  Fallback: ET mode (RNA-Seq only) or EP mode (proteins only) do not use StringTie." >> {log}
                 fi
             fi
-            if grep -q "Illegal division by zero" $WORKDIR/{log} 2>/dev/null; then
+            # GeneMarkS-T found no usable genes in the assembled transcripts:
+            # gms2hints.pl writes an empty seed file, ProtHint stops at once and
+            # gmetp.pl reports only "evidence.gff not found".
+            GMST_DIR=$outDir/rnaseq/gmst
+            NO_SEEDS=0
+            if [ -f "$GMST_DIR/genome_gmst.gtf" ] && [ ! -s "$GMST_DIR/genome_gmst.gtf" ]; then
+                NO_SEEDS=1
+                N_GMST=$(awk -F'\t' '$3 == "CDS"' "$GMST_DIR/transcripts_merged.fasta.gff" 2>/dev/null | wc -l)
+                echo "DIAGNOSTIC: GeneMarkS-T predicted $N_GMST genes in the assembled transcripts, but none of them maps to the genome as a usable gene (rnaseq/gmst/genome_gmst.gtf is empty)." >> {log}
+                if grep -q "no start sites in training" $WORKDIR/{log} "$GMST_DIR/gms.log" 2>/dev/null; then
+                    echo "DIAGNOSTIC: GeneMarkS-T found no start codons to train its model on (\"no start sites in training\")." >> {log}
+                fi
+                echo "HINT: The IsoSeq data contain too few complete transcripts of this genome's genes for GeneMark-ETP. ProtHint then gets no gene seeds, so \"evidence.gff not found\" above is a consequence, not the cause." >> {log}
+                echo "  Typical reasons: few reads from this species (host tissue, a mixed sample or a related species), low coverage, or degraded RNA." >> {log}
+                echo "  Fallback: EP mode (proteins only): leave the IsoSeq columns of samples.csv empty." >> {log}
+            fi
+            if [ "$NO_SEEDS" -eq 1 ]; then
+                :
+            elif grep -q "Illegal division by zero" $WORKDIR/{log} 2>/dev/null; then
                 N_TRAIN=$(grep "genes found for training:" $WORKDIR/{log} | tail -1 | awk '{{print $NF}}' 2>/dev/null || echo "unknown")
                 echo "HINT: GeneMark-ETP crashed in model training (parse_set.pl / train_super.pl division by zero)." >> {log}
                 echo "  Training genes found: $N_TRAIN (minimum needed: ~100 multi-exon genes)." >> {log}
