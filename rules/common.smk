@@ -424,12 +424,13 @@ def get_protein_fasta_files(sample):
 def get_protein_fasta(sample):
     """Get the protein FASTA path for pipeline consumption.
 
-    If multiple files are specified (colon-separated), returns the path
-    to the merged output. If single file, returns it directly.
-    Returns None if no proteins.
+    If multiple files are specified (colon-separated), or any file is
+    gzipped (.gz, as OrthoDB partitions are downloaded), returns the path
+    to the merged and decompressed output of merge_proteins. A single
+    uncompressed file is returned directly. Returns None if no proteins.
     """
     files = get_protein_fasta_files(sample)
-    if len(files) > 1:
+    if len(files) > 1 or any(f.endswith(".gz") for f in files):
         return f"output/{sample}/preprocessing/proteins_merged.fa"
     elif len(files) == 1:
         return files[0]
