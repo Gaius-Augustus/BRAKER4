@@ -17,6 +17,11 @@ spalnBatch.sh and the final gff_from_region_to_contig.pl step, but
     process (no ithreads, no shared mutex, no fork from a threaded process),
   - kills a batch whose processes use no CPU time for --stall_timeout
     seconds, retries it once and then skips it with a warning,
+  - kills a batch that runs longer than --batch_timeout seconds of wall
+    time and skips it without retry. This catches Spaln busy-looping on one
+    gene/protein pair at 100% CPU (ProtHint issue #14), which the stall
+    check cannot see; Spaln loops the same way on every attempt. The
+    warning names the pair that was being aligned,
   - writes the batch outputs in batch order, so spaln.gff does not depend on
     thread scheduling,
   - reports progress up to 100% and exits non-zero if spalnBatch.sh or the
@@ -48,6 +53,8 @@ CPU_CHECK_SECONDS = 30
 KILL_WAIT_SECONDS = 30
 MAX_ATTEMPTS = 2
 DEFAULT_STALL_TIMEOUT = 1800
+DEFAULT_BATCH_TIMEOUT = 7200
+PROTHINT_ISSUE_14 = "https://github.com/gatech-genemark/ProtHint/issues/14"
 
 VERBOSE = False
 
@@ -148,6 +155,8 @@ class Batch:
         self.proc = None
         self.cpu = None
         self.last_progress = 0.0
+        self.started = 0.0
+        self.skip_reason = None
 
     def temp_files(self):
         for k in range(len(self.pairs)):
@@ -163,6 +172,17 @@ class Batch:
                 save_single_fasta(nuc, nuc_id, nuc_seqs.get(nuc_id, b""))
                 save_single_fasta(prot, prot_id, prot_seqs.get(prot_id, b""))
                 batch_fh.write(nuc + "\t" + prot + "\n")
+
+    def current_pair(self):
+        """(nuc_id, prot_id) of the pair spalnBatch.sh is working on, or
+        None. write_inputs() creates nuc_<n>/prot_<n> for every pair and
+        spalnBatch.sh deletes each pair's files once it is aligned, in list
+        order, so the first nuc_<n> still present is the current pair.
+        Call this after the batch was killed and before remove_leftovers()."""
+        for pair, (nuc, _prot) in zip(self.pairs, self.temp_files()):
+            if os.path.exists(nuc):
+                return pair
+        return None
 
     def remove_leftovers(self):
         paths = [self.name, self.out]
@@ -232,7 +252,8 @@ def run(args):
     log("Pairs loaded. Number of pairs to align: " + str(n_pairs))
     log("Starting the alignments (" + str(len(batches)) + " batches of up to "
         + str(BATCH_SIZE) + " pairs, " + str(args.cores) + " in parallel, "
-        + "stall timeout " + str(args.stall_timeout) + " s)")
+        + "stall timeout " + str(args.stall_timeout) + " s, batch timeout "
+        + str(args.batch_timeout) + " s)")
 
     extra = ["{:g}".format(args.min_exon_score),
              "1" if args.nonCanonical else "0",
@@ -272,7 +293,7 @@ def run(args):
                         kill_group(other.proc)
                     sys.exit(1)
                 batch.cpu = None
-                batch.last_progress = time.time()
+                batch.started = batch.last_progress = time.time()
                 running[batch.index] = batch
 
             time.sleep(POLL_SECONDS)
@@ -289,6 +310,34 @@ def run(args):
                 if batch.proc.poll() is not None:
                     del running[index]
                     finished[index] = batch
+                    continue
+                if args.batch_timeout > 0 \
+                        and now - batch.started >= args.batch_timeout:
+                    # Spaln busy-looping on one pair (ProtHint issue #14)
+                    # keeps using CPU, so the stall check never fires. It
+                    # loops again on the same pair, so do not retry.
+                    kill_group(batch.proc)
+                    del running[index]
+                    pair = batch.current_pair()
+                    batch.remove_leftovers()
+                    first = batch.first_counter
+                    last = first + len(batch.pairs) - 1
+                    if pair is not None:
+                        where = ("it was aligning gene " + pair[0]
+                                 + " with protein " + pair[1])
+                    else:
+                        where = ("pair being aligned unknown, batch holds "
+                                 "pairs " + str(first) + "-" + str(last)
+                                 + " of the list")
+                    log("WARNING: " + batch.name + " ran longer than the "
+                        "batch timeout of " + str(args.batch_timeout)
+                        + " s, killed it and skipping its "
+                        + str(len(batch.pairs)) + " pairs without retry; "
+                        + where + ". Spaln can loop forever on one pair, see "
+                        + PROTHINT_ISSUE_14, force=True)
+                    batch.skip_reason = "timed out"
+                    skipped.append(batch)
+                    finished[index] = None
                     continue
                 if ticks is None:
                     continue
@@ -313,6 +362,7 @@ def run(args):
                     log("WARNING: " + batch.name + " stalled again, skipping "
                         + "its " + str(len(batch.pairs)) + " pairs",
                         force=True)
+                    batch.skip_reason = "stalled"
                     skipped.append(batch)
                     finished[index] = None
 
@@ -339,8 +389,9 @@ def run(args):
     n_skipped = sum(len(b.pairs) for b in skipped)
     if n_skipped:
         log("WARNING: " + str(n_skipped) + " of " + str(n_pairs) + " pairs in "
-            + str(len(skipped)) + " stalled batches were not aligned: "
-            + ", ".join(b.name for b in skipped), force=True)
+            + str(len(skipped)) + " stalled or timed-out batches were not "
+            "aligned: " + ", ".join(b.name + " (" + b.skip_reason + ")"
+                                    for b in skipped), force=True)
     log(str(n_pairs - n_skipped) + "/" + str(n_pairs) + " pairs aligned")
     log("Alignment of pairs finished")
     log("Translating coordinates from local pair level to contig level")
@@ -377,6 +428,14 @@ def parse_args(argv):
         help="Kill a batch whose processes use no CPU for this many seconds "
              "(0 disables; default %(default)s, or "
              "BRAKER4_SPALN_STALL_TIMEOUT)")
+    parser.add_argument(
+        "--batch_timeout", type=int,
+        default=int(os.environ.get("BRAKER4_SPALN_BATCH_TIMEOUT",
+                                   DEFAULT_BATCH_TIMEOUT)),
+        help="Kill a batch that runs longer than this many seconds and skip "
+             "its pairs without retry; catches Spaln looping at 100%% CPU "
+             "(0 disables; default %(default)s, or "
+             "BRAKER4_SPALN_BATCH_TIMEOUT)")
     parser.add_argument(
         "--prothint_bin",
         default=os.environ.get(

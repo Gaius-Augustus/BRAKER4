@@ -23,6 +23,12 @@ plumbing and batch ordering. Two env vars make it misbehave on demand:
                                 then completes normally; used to check
                                 that --stall_timeout 0 disables the
                                 watchdog.
+  BUSY_BATCH / BUSY_PAIR      -- in the named batch, when the stub reaches
+                                nuc_<BUSY_PAIR> (any pair if unset) it
+                                execs a shell busy loop (100% CPU, like
+                                Spaln in ProtHint issue #14) after writing
+                                its PID to busy_pid_<batch>; used for
+                                --batch_timeout.
 
 The stub gff_from_region_to_contig.pl just copies --in_gff to --out_gff.
 """
@@ -65,6 +71,11 @@ fi
 
 : > "$out"
 while IFS=$'\t' read -r nuc prot; do
+    if [ -n "$BUSY_BATCH" ] && [ "$batch" = "$BUSY_BATCH" ] \
+            && { [ -z "$BUSY_PAIR" ] || [ "$nuc" = "nuc_$BUSY_PAIR" ]; }; then
+        echo $$ > "busy_pid_${batch}"
+        exec sh -c 'while :; do :; done'
+    fi
     cat "$nuc" >> "$out"
     cat "$prot" >> "$out"
     rm -f "$nuc" "$prot"
@@ -287,3 +298,81 @@ def test_stall_timeout_zero_disables_watchdog(tmp_path, monkeypatch):
     ids = re.findall(r">n(\d+)", gff)
     assert ids == ["1", "2", "3"]
     assert leftover_temp_files(tmp_path) == []
+
+
+# ---------------------------------------------------------------------------
+# 7. --batch_timeout kills a busy-looping batch (ProtHint issue #14)
+# ---------------------------------------------------------------------------
+
+def test_batch_timeout_kills_busy_loop(tmp_path, monkeypatch, capsys):
+    # Small batches keep batch_1 well below the limit on a loaded machine.
+    monkeypatch.setattr(sd, "BATCH_SIZE", 5)
+    nuc, prot, lst = make_pairs(tmp_path, 10)  # batch_1 (1-5) + batch_2 (6-10)
+    bin_dir = make_prothint_bin(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(sd, "POLL_SECONDS", 0.05)
+    monkeypatch.setattr(sd, "KILL_WAIT_SECONDS", 5)
+    monkeypatch.setenv("BUSY_BATCH", "batch_2")
+    monkeypatch.setenv("BUSY_PAIR", "8")  # pairs 6 and 7 complete first
+
+    sd.main(["--nuc", nuc, "--prot", prot, "--list", lst,
+             "--cores", "2", "--aligner", "spaln",
+             "--stall_timeout", "0", "--batch_timeout", "2",
+             "--prothint_bin", bin_dir])
+
+    err = capsys.readouterr().err
+    warning = [line for line in err.splitlines()
+               if "WARNING: batch_2 ran longer than" in line]
+    assert len(warning) == 1
+    assert "batch timeout of 2 s" in warning[0]
+    assert "skipping its 5 pairs without retry" in warning[0]
+    assert "gene n8 with protein p8" in warning[0]
+    assert "ProtHint/issues/14" in warning[0]
+    assert "retrying" not in err
+    assert "5 of 10 pairs" in err and "batch_2 (timed out)" in err
+
+    gff = (tmp_path / "spaln.gff").read_text()
+    assert "ARGS:batch_1" in gff
+    assert "ARGS:batch_2" not in gff
+    ids = set(re.findall(r">n(\d+)", gff))
+    assert ids == {str(i) for i in range(1, 6)}
+
+    assert leftover_temp_files(tmp_path) == []
+    pid_file = tmp_path / "busy_pid_batch_2"
+    assert pid_file.exists()
+    assert not process_alive(int(pid_file.read_text().strip()))
+
+
+# ---------------------------------------------------------------------------
+# 8. --batch_timeout 0 disables it; BRAKER4_SPALN_BATCH_TIMEOUT sets default
+# ---------------------------------------------------------------------------
+
+def test_batch_timeout_zero_disables(tmp_path, monkeypatch, capsys):
+    nuc, prot, lst = make_pairs(tmp_path, 3)
+    bin_dir = make_prothint_bin(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(sd, "POLL_SECONDS", 0.05)
+    monkeypatch.setenv("PLAIN_SLEEP_BATCH", "batch_1")
+    monkeypatch.setenv("PLAIN_SLEEP_SECONDS", "1")
+
+    sd.main(["--nuc", nuc, "--prot", prot, "--list", lst,
+             "--cores", "1", "--aligner", "spaln",
+             "--stall_timeout", "0", "--batch_timeout", "0",
+             "--prothint_bin", bin_dir])
+
+    assert "WARNING" not in capsys.readouterr().err
+    gff = (tmp_path / "spaln.gff").read_text()
+    assert re.findall(r">n(\d+)", gff) == ["1", "2", "3"]
+    assert leftover_temp_files(tmp_path) == []
+
+
+def test_batch_timeout_default_and_env(tmp_path, monkeypatch):
+    nuc, prot, lst = make_pairs(tmp_path, 1)
+    base = ["--nuc", nuc, "--prot", prot, "--list", lst, "--aligner", "spaln"]
+
+    monkeypatch.delenv("BRAKER4_SPALN_BATCH_TIMEOUT", raising=False)
+    assert sd.parse_args(base).batch_timeout == sd.DEFAULT_BATCH_TIMEOUT == 7200
+
+    monkeypatch.setenv("BRAKER4_SPALN_BATCH_TIMEOUT", "42")
+    assert sd.parse_args(base).batch_timeout == 42
+    assert sd.parse_args(base + ["--batch_timeout", "0"]).batch_timeout == 0
