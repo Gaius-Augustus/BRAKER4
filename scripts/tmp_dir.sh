@@ -47,6 +47,9 @@ make_tmp() {
 #       scratch_dir outDir busco_genome_X "{params.tmp_root}" 20 output/X/busco
 #       trap 'rm -rf -- "$SCRATCH"' EXIT
 #   The job then copies the kept files from $outDir to FALLBACK (copy_back).
+#   If $TMPDIR is set but not a writable directory inside the job, it is
+#   exported as VAR's directory, for tools that put their temporary files
+#   in $TMPDIR (GNU sort).
 SCRATCH=""
 scratch_dir() {
     local var=$1 prefix=$2 root=$3 need=$4 fallback=$5
@@ -58,6 +61,16 @@ scratch_dir() {
         echo "WARNING: working in $fallback instead (slow on network file systems)" >&2
         mkdir -p "$fallback"
         printf -v "$var" '%s' "$fallback"
+    fi
+    # Tools in the containers (GNU sort in GeneMark's reformat_gff.pl and in
+    # ProtHint, AUGUSTUS scripts) write temporary files to $TMPDIR. A host
+    # TMPDIR that is not bound into the container (SGE: /scratch/<job>) makes
+    # them fail on large inputs with "sort: cannot create temporary file"
+    # (Gaius-Augustus/BRAKER#861). Point TMPDIR to the job's directory then.
+    if [ -n "${TMPDIR:-}" ] && ! { [ -d "$TMPDIR" ] && [ -w "$TMPDIR" ]; }; then
+        echo "WARNING: TMPDIR=$TMPDIR is not writable in this job, using ${!var} for temporary files" >&2
+        TMPDIR=$(cd "${!var}" && pwd -P)    # absolute: rules cd later
+        export TMPDIR
     fi
 }
 

@@ -145,6 +145,31 @@ def test_scratch_dir_falls_back_to_run_dir_with_warning(tmp_path):
     assert "WARNING: working in" in proc.stderr
 
 
+def test_scratch_dir_redirects_unwritable_tmpdir(tmp_path):
+    # SGE sets TMPDIR to a job directory that is not bound into the container;
+    # GNU sort inside GeneMark/ProtHint then fails (legacy BRAKER #861).
+    wd = tmp_path / "wd"
+    wd.mkdir()
+    proc = subprocess.run(
+        ["bash", "-c", f"set -euo pipefail\ncd {wd}\nsource {HELPER}\n"
+         'scratch_dir d gm "" "" rel/fb; cd /; echo "$TMPDIR"; '
+         "seq 1 300000 | sort -S 64K -n > /dev/null; echo sort-ok"],
+        capture_output=True, text=True,
+        env={**os.environ, "TMPDIR": str(tmp_path / "not" / "there")})
+    assert proc.returncode == 0, proc.stderr
+    lines = proc.stdout.strip().splitlines()
+    assert lines == [str(wd / "rel" / "fb"), "sort-ok"]
+    assert "is not writable in this job" in proc.stderr
+
+
+def test_scratch_dir_keeps_writable_tmpdir(tmp_path):
+    proc = _bash(f'scratch_dir d s "{tmp_path}" 0 "{tmp_path}/fb"; echo "$TMPDIR"',
+                 TMPDIR=str(tmp_path))
+    assert proc.returncode == 0, proc.stderr
+    assert proc.stdout.strip() == str(tmp_path)
+    assert "not writable" not in proc.stderr
+
+
 def test_scratch_dir_trap_removes_scratch_on_exit(tmp_path):
     fallback = tmp_path / "wd" / "x"
     proc = _bash(f'scratch_dir d s "{tmp_path}" 0 "{fallback}"; '
