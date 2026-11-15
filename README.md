@@ -201,7 +201,7 @@ BRAKER4 automatically detects which mode to run based on the evidence columns yo
 | **EP / BRAKER2** | Protein database | GeneMark-EP+ trained with protein spliced alignments via ProtHint. Two iterations for refinement. |
 | **ETP / BRAKER3** | RNA-Seq + proteins | GeneMark-ETP trained with both evidence types. Most accurate mode for short-read data. |
 | **IsoSeq** | PacBio IsoSeq + proteins | GeneMark-ETP with long-read assembly. Requires protein evidence. |
-| **Dual** | IsoSeq + short-read RNA-Seq + proteins | Two separate ETP runs (one short-read, one IsoSeq), results merged. |
+| **Dual** | IsoSeq + short-read RNA-Seq + proteins | One GeneMark-ETP run with the short-read BAMs and the IsoSeq BAM together. |
 
 We recommend providing both RNA-Seq and protein data (ETP mode) whenever possible. If RNA-Seq data is not available, EP mode with a large protein database such as OrthoDB will still produce good results.
 
@@ -231,7 +231,7 @@ wget https://bioinf.uni-greifswald.de/bioinf/partitioned_odb12/Viridiplantae.fa.
 gunzip Viridiplantae.fa.gz
 ```
 
-Then specify the extracted FASTA file in your `samples.csv`:
+Then specify the FASTA file in your `samples.csv`. Decompressing is optional: a gzipped file (`Viridiplantae.fa.gz`) also works, BRAKER4 decompresses it before ProtHint and GeneMark-ETP.
 
 ```csv
 sample_name,genome,...,protein_fasta,...
@@ -252,7 +252,7 @@ For details on OrthoDB partitioning, see: https://github.com/tomasbruna/orthodb-
 Installation
 ============
 
-**Platform requirement:** BRAKER4 requires **Linux**. It relies on GNU coreutils (`readlink -f`), GNU grep (`grep -P`), and Singularity/Apptainer, none of which are available on macOS or Windows without a Linux VM. If you are on macOS or Windows, run BRAKER4 inside a Linux virtual machine or WSL2.
+**Platform requirement:** BRAKER4 requires **Linux on x86_64 (amd64)**. It relies on GNU coreutils (`readlink -f`), GNU grep (`grep -P`), and Singularity/Apptainer, none of which are available on macOS or Windows without a Linux VM. The containers it pulls (e.g. `teambraker/braker3`) are built for linux/amd64 only. On Windows, use WSL2 on an x86_64 machine. Apple Silicon Macs (M1 to M4) cannot run BRAKER4, also not in a Linux VM, because such a VM runs arm64 Linux; use an x86_64 Linux server, cluster or cloud instance.
 
 BRAKER4 requires three things on your system: Snakemake, Singularity, and a few Python packages. All bioinformatics tools (GeneMark, AUGUSTUS, HISAT2, samtools, ProtHint, DIAMOND, StringTie2, etc.) run inside containers. You do not need to install them.
 
@@ -334,7 +334,6 @@ Consult your HPC administrator if Singularity is not available. BRAKER4 will aut
 | Container | Image | Size | Used for |
 | --- | --- | --- | --- |
 | Main BRAKER | `teambraker/braker3:v3.1.1` | 2.4 GB | GeneMark-ES/ET/EP/ETP, AUGUSTUS, ProtHint, DIAMOND, TSEBRA, compleasm, HISAT2, samtools, SRA toolkit, minimap2, getAnnoFastaFromJoingenes — most rules in the pipeline |
-| IsoSeq BRAKER | `teambraker/braker3:isoseq` | 3.0 GB | GeneMark-ETP IsoSeq variant (only when an IsoSeq sample is present) |
 | RepeatModeler/Masker | `dfam/tetools:latest` | 727 MB | RepeatModeler2 + RepeatMasker + TRF (only when `masking_tool = repeatmasker`, default) |
 | Red | `quay.io/biocontainers/red:2018.09.10--h9948957_3` | 13 MB | Red repeat detector (only when `masking_tool = red`) |
 | BUSCO | `ezlabgva/busco:v6.1.0_cv2` | 801 MB | BUSCO completeness assessment |
@@ -410,7 +409,7 @@ G = genome FASTA, P = protein FASTA, B = RNA-Seq BAMs, H = hints file. NEED is t
 | `run_feelnc` | FEELnc work dir | nothing (outputs are written directly) | 10 |
 | `fantasia_annotate` | FANTASIA-Lite chunk dirs | nothing | 10 |
 
-**`TMPDIR`:** With `[paths] tmp_dir` empty, each job uses its `$TMPDIR` as the scratch root; Snakemake sets it from the `tmpdir` resource. Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation. If that path is not writable inside the Singularity container, the jobs still run but work in `output/<sample>/` (look for the `WARNING: working in` line). Either set `[paths] tmp_dir` to a node-local path that exists on every node (BRAKER4 binds it into the containers), or set the default `tmpdir` resource in your SLURM profile and add the same path to `--singularity-args`:
+**`TMPDIR`:** With `[paths] tmp_dir` empty, each job uses its `$TMPDIR` as the scratch root; Snakemake sets it from the `tmpdir` resource. Many SLURM clusters set `TMPDIR=/local/scratch/$USER` (or similar) per allocation. If that path is not writable inside the Singularity container, the jobs still run but work in `output/<sample>/` (look for the `WARNING: working in` line), and `TMPDIR` is pointed to that directory for tools that write their own temporary files, such as GNU `sort` inside GeneMark and ProtHint (`WARNING: TMPDIR=... is not writable`). Either set `[paths] tmp_dir` to a node-local path that exists on every node (BRAKER4 binds it into the containers), or set the default `tmpdir` resource in your SLURM profile and add the same path to `--singularity-args`:
 
 ```yaml
 # profiles/slurm/config.yaml
@@ -449,9 +448,9 @@ sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_i
 | Column | Required | Description |
 |--------|----------|-------------|
 | `sample_name` | yes | Unique identifier. Output goes to `output/{sample_name}/`. |
-| `genome` | yes | Path to genome FASTA file. |
+| `genome` | yes | Path to genome FASTA file. Headers are cut to the first word. Leading `;` comment lines (e.g. a FAIR-bioHeaders metadata block) are dropped from the working copy. |
 | `genome_masked` | no | Path to soft-masked genome. If empty, the masking tool selected by `masking_tool` (RepeatModeler2 + RepeatMasker by default, or Red if set) runs automatically. |
-| `protein_fasta` | no | Protein sequences in FASTA format. Multiple files can be colon-separated. We recommend OrthoDB. |
+| `protein_fasta` | no | Protein sequences in FASTA format, plain or gzipped (`.gz`). Multiple files can be colon-separated. We recommend OrthoDB. |
 | `bam_files` | no | Pre-aligned RNA-Seq BAM file(s), colon-separated. Must be coordinate-sorted. |
 | `fastq_r1` | no | Paired-end RNA-Seq FASTQ R1 file(s), colon-separated. Requires `fastq_r2`. |
 | `fastq_r2` | no | Paired-end RNA-Seq FASTQ R2 file(s), colon-separated. |
@@ -477,7 +476,7 @@ sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_i
 ```csv
 sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_ids,varus_genus,varus_species,isoseq_bam,isoseq_fastq,busco_lineage,reference_gtf
 fly,fly_genome.fa,,orthodb_arthropoda.fa,rnaseq.bam,,,,,,,,arthropoda_odb12,
-worm,worm_genome.fa,worm_masked.fa,orthodb_metazoa.fa,,reads_R1.fq.gz,reads_R2.fq.gz,,,,,,,
+worm,worm_genome.fa,worm_masked.fa,orthodb_metazoa.fa,,reads_R1.fq.gz,reads_R2.fq.gz,,,,,,metazoa_odb12,
 plant,plant_genome.fa,,orthodb_viridiplantae.fa,,,,SRR123456:SRR789012,,,,,,eukaryota_odb12,reference.gtf
 ```
 
@@ -510,7 +509,6 @@ augustus_config_path = augustus_config
 # Replace any docker:// URI with an absolute path to a local .sif file to
 # avoid pulling the image at runtime. All keys are optional (defaults shown).
 braker3_image = docker://teambraker/braker3:v3.1.1
-isoseq_image = docker://teambraker/braker3:isoseq
 minimap2_image = docker://katharinahoff/minimap-minisplice:v0.1
 minisplice_image = docker://katharinahoff/minimap-minisplice:v0.1
 red_image = docker://quay.io/biocontainers/red:2018.09.10--h9948957_3
@@ -697,7 +695,7 @@ BRAKER4 accepts RNA-Seq data in several formats. Fill in the corresponding colum
 
 ```csv
 sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_ids,varus_genus,varus_species,isoseq_bam,isoseq_fastq,busco_lineage,reference_gtf
-my_species,genome.fa,,,rnaseq1.bam:rnaseq2.bam,,,,,,,,,
+my_species,genome.fa,,,rnaseq1.bam:rnaseq2.bam,,,,,,,,eukaryota_odb12,
 ```
 
 BAM files must be coordinate-sorted. BRAKER4 will verify this and re-sort if necessary. If your BAM files were generated with STAR, make sure you used `--outSAMstrandField intronMotif`.
@@ -721,7 +719,7 @@ BRAKER4 will align each pair to the genome with HISAT2, convert the output to so
 
 ```csv
 sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_ids,varus_genus,varus_species,isoseq_bam,isoseq_fastq,busco_lineage,reference_gtf
-my_species,genome.fa,,,,,,,SRR123456:SRR789012,,,,eukaryota_odb12,
+my_species,genome.fa,,,,,,SRR123456:SRR789012,,,,,eukaryota_odb12,
 ```
 
 BRAKER4 will download the reads using `prefetch` and `fastq-dump`, then align them with HISAT2.
@@ -732,7 +730,7 @@ If you do not have RNA-Seq data at hand, BRAKER4 can use VARUS to automatically 
 
 ```csv
 sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_ids,varus_genus,varus_species,isoseq_bam,isoseq_fastq,busco_lineage,reference_gtf
-my_species,genome.fa,,,,,,,,,Arabidopsis,thaliana,,,eukaryota_odb12,
+my_species,genome.fa,,,,,,,Arabidopsis,thaliana,,,eukaryota_odb12,
 ```
 
 VARUS will query SRA, select RNA-Seq libraries with good coverage, download and align them. This is the most convenient option if you are annotating a species for which public RNA-Seq data exists but you do not know which specific libraries to use.
@@ -767,7 +765,7 @@ sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_i
 my_species,genome.fa,,orthodb_proteins.fa,rnaseq.bam,,,,,,,,arthropoda_odb12,
 ```
 
-You can provide RNA-Seq data in any of the formats described in [BRAKER4 with RNA-Seq data](#braker4-with-rna-seq-data-et-mode) (BAM, FASTQ, SRA) together with a protein database.
+You can provide RNA-Seq data in any of the formats described in [BRAKER4 with RNA-Seq data](#braker4-with-rna-seq-data-et-mode--braker1-equivalent) (BAM, FASTQ, SRA) together with a protein database.
 
 ### BRAKER4 with PacBio IsoSeq and protein data
 
@@ -777,7 +775,7 @@ BRAKER4 natively supports PacBio IsoSeq long-read RNA-Seq data. IsoSeq **always 
 
 ```csv
 sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_ids,varus_genus,varus_species,isoseq_bam,isoseq_fastq,busco_lineage,reference_gtf
-my_species,genome.fa,,orthodb_proteins.fa,,,,,,,,isoseq.bam,,eukaryota_odb12,
+my_species,genome.fa,,orthodb_proteins.fa,,,,,,,isoseq.bam,,eukaryota_odb12,
 ```
 
 The BAM file must contain spliced alignments to the genome. You can generate it with minimap2:
@@ -791,7 +789,7 @@ samtools index -c isoseq.bam
 
 ```csv
 sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_ids,varus_genus,varus_species,isoseq_bam,isoseq_fastq,busco_lineage,reference_gtf
-my_species,genome.fa,,orthodb_proteins.fa,,,,,,,,,isoseq.fa,eukaryota_odb12,
+my_species,genome.fa,,orthodb_proteins.fa,,,,,,,,isoseq.fa,eukaryota_odb12,
 ```
 
 BRAKER4 will align the reads to the genome with minimap2 automatically. You can optionally enable [minisplice](#use_minisplice) splice-site scoring (`use_minisplice = 1`) to improve junction detection during alignment — recommended for older or noisy long-read data.
@@ -809,11 +807,11 @@ The accuracy of gene prediction with IsoSeq data depends on the sequencing depth
 
 ### BRAKER4 with IsoSeq, short-read RNA-Seq, and protein data (dual mode)
 
-If you have both IsoSeq and short-read RNA-Seq data, BRAKER4 can use both. It runs two separate GeneMark-ETP instances (one for short reads with the standard container, one for IsoSeq with the specialized container) and merges the results.
+If you have both IsoSeq and short-read RNA-Seq data, BRAKER4 can use both. GeneMark-ETP runs once and gets the short-read BAMs (`--bam`) and the IsoSeq BAM (`--long_bam`) together, from the same container as in all other modes.
 
 ```csv
 sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_ids,varus_genus,varus_species,isoseq_bam,isoseq_fastq,busco_lineage,reference_gtf
-my_species,genome.fa,,orthodb_proteins.fa,shortread.bam,,,,,,,isoseq.bam,,arthropoda_odb12,
+my_species,genome.fa,,orthodb_proteins.fa,shortread.bam,,,,,,isoseq.bam,,arthropoda_odb12,
 ```
 
 ### BRAKER4 with genome only (ES mode)
@@ -995,7 +993,7 @@ GC donor splice site probability threshold for GeneMark (passed as `--gc_donor`)
 
 ### allow_hinted_splicesites
 
-Comma-separated list of non-canonical splice site types that AUGUSTUS should accept when supported by extrinsic evidence. Default is `gcag,atac`, allowing GC-AG and AT-AC splice sites in addition to canonical GT-AG. Set to an empty string to restrict AUGUSTUS to canonical GT-AG splice sites only.
+Comma-separated list of non-canonical splice site types that AUGUSTUS should accept when supported by extrinsic evidence. Default is `gcag,atac`, allowing GC-AG and AT-AC splice sites in addition to canonical GT-AG. Set to an empty string to restrict AUGUSTUS to canonical GT-AG splice sites only. In ET mode the same list decides which RNA-Seq introns are kept as hints (`filterIntronsFindStrand.pl --allowed`), so for example `gcag,atac,gaag` lets GA-AG introns with RNA-Seq support reach AUGUSTUS. In ETP and IsoSeq modes the intron hints come from GeneMark-ETP.
 
 ### augustus_chunksize and augustus_overlap
 
@@ -1078,7 +1076,7 @@ After TSEBRA merges AUGUSTUS and GeneMark predictions, some BUSCO genes may be d
 -   keeps the merged BRAKER gene set unchanged if it already has the lowest missing-BUSCO percentage, or
 -   rescues BUSCO-supporting gene models from the AUGUSTUS / GeneMark sets that TSEBRA dropped, and adds them back via a second TSEBRA run.
 
-In **dual mode** (short-read RNA-Seq + IsoSeq + proteins), `best_by_compleasm` is run three times: once to rescue BUSCOs from the short-read GeneMark-ETP set, once from the IsoSeq GeneMark-ETP set, and a third pass to merge the two rescued sets. The decisions made at each pass (BUSCO percentages and which gene set was kept or enforced) are reported in the methods section of the HTML report.
+In **dual mode** (short-read RNA-Seq + IsoSeq + proteins), GeneMark-ETP runs once on both read types, so `best_by_compleasm` runs once, as in the other modes. The decision (BUSCO percentages and which gene set was kept or enforced) is reported in the methods section of the HTML report.
 
 The script is a patched copy of `best_by_compleasm.py` from TSEBRA (Hoff et al., 2024) that supports `_odb12` lineages and reuses the pre-downloaded compleasm library at `shared_data/compleasm_downloads/`. Adds extra runtime (compleasm runs on three protein sets) but can recover dropped BUSCO genes.
 
@@ -1344,7 +1342,7 @@ Bug reporting
 
 Before reporting bugs, please check that you are using the most recent version of BRAKER4. Also, check the Issues list on GitHub.
 
-If you found a bug, please open an issue at https://github.com/Gaius-Augustus/BRAKER/issues .
+If you found a bug, please open an issue at https://github.com/Gaius-Augustus/BRAKER4/issues .
 
 Information worth mentioning in your bug report:
 
@@ -1389,7 +1387,7 @@ Common problems
 
 -   *ProtHint (or GeneMark-ETP) seems to hang forever after enqueueing Spaln pairs!*
 
-    This was ProtHint's Perl-threads Spaln dispatcher hanging (issue #98). BRAKER4 now runs ProtHint from a shadow bin tree with a Python-based dispatcher (`scripts/spaln_dispatcher.py`) that has a stall watchdog; see [ProtHint Spaln dispatcher hang (issue #98)](#prothint-spaln-dispatcher-hang-issue-98) in Developer Notes.
+    This was ProtHint's Perl-threads Spaln dispatcher hanging (issue #98). BRAKER4 now runs ProtHint from a shadow bin tree with a Python-based dispatcher (`scripts/spaln_dispatcher.py`) that has a stall watchdog. A single `spaln` process at 100% CPU for hours is Spaln looping on one pair; the dispatcher kills such a batch after 2 h (`BRAKER4_SPALN_BATCH_TIMEOUT`). See [ProtHint Spaln dispatcher hang (issue #98)](#prothint-spaln-dispatcher-hang-issue-98) in Developer Notes.
 
 -   *RepeatModeler2 fails on my genome — what now?* **(known upstream issue)**
 
@@ -1477,7 +1475,7 @@ The `set +e` approach is safe because the rule explicitly checks for the expecte
 
 ### ProtHint Spaln dispatcher hang (issue #98)
 
-ProtHint's bundled Spaln dispatcher (`bin/run_spliced_alignment.pl`, Perl ithreads + `Thread::Queue` + `MCE::Mutex`) can hang forever after the last `Enqueueing pair ... (99.9%)` line, with no further progress and no error. BRAKER4 replaces it with `scripts/spaln_dispatcher.py`, a drop-in CLI-compatible dispatcher that runs one process group per batch from a single-threaded Python process instead of Perl threads. A watchdog kills a batch whose processes use no CPU for 1800 s (configurable via the `BRAKER4_SPALN_STALL_TIMEOUT` environment variable in seconds; `0` disables the watchdog), retries that batch once, and then skips it (up to 100 pairs) with a `WARNING` in the ProtHint log rather than hanging. Batch outputs are written in batch order.
+ProtHint's bundled Spaln dispatcher (`bin/run_spliced_alignment.pl`, Perl ithreads + `Thread::Queue` + `MCE::Mutex`) can hang forever after the last `Enqueueing pair ... (99.9%)` line, with no further progress and no error. BRAKER4 replaces it with `scripts/spaln_dispatcher.py`, a drop-in CLI-compatible dispatcher that runs one process group per batch from a single-threaded Python process instead of Perl threads. A watchdog kills a batch whose processes use no CPU for 1800 s (configurable via the `BRAKER4_SPALN_STALL_TIMEOUT` environment variable in seconds; `0` disables the watchdog), retries that batch once, and then skips it (up to 100 pairs) with a `WARNING` in the ProtHint log rather than hanging. Batch outputs are written in batch order. Spaln can also loop forever on a single protein/gene pair at 100% CPU ([ProtHint issue #14](https://github.com/gatech-genemark/ProtHint/issues/14)), which the CPU watchdog cannot see. A second limit kills a batch that runs longer than 7200 s wall-clock (`BRAKER4_SPALN_BATCH_TIMEOUT`, seconds; `0` disables it) and skips it without retry; the `WARNING` names the gene and protein that were being aligned.
 
 `scripts/make_prothint_shadow.sh <dest>` builds a symlinked copy of the container's `/opt/ETP/bin` tree with only that one file replaced. The `run_prothint`, `run_prothint_iter2`, `run_genemark_etp`, and `run_genemark_etp_isoseq` rules build this shadow tree next to their output directory (`<outdir>.bin`), run `prothint.py` / `gmetp.pl` from it, log an `[INFO]` line on success (or a `[WARNING]` and fall back to the container's own ProtHint if the shadow cannot be built), and remove the shadow tree when the rule finishes.
 
