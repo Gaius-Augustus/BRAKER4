@@ -92,6 +92,48 @@ def get_cds_features(features):
     return cds
 
 
+def codon_parts(cds_features, strand, at_end):
+    """First (at_end=False) or last (at_end=True) three coding bases of a
+    transcript as [(cds_line, start, end), ...] in transcript order (5' part
+    first). A codon split by an intron has two or three parts (#751).
+    Returns None if the CDS is shorter than 3 bp."""
+    order = cds_features if strand == '+' else cds_features[::-1]  # 5' -> 3'
+    segs = reversed(order) if at_end else order
+    parts, need = [], 3
+    for cds in segs:
+        s, e = int(cds[3]), int(cds[4])
+        take = min(need, e - s + 1)
+        if at_end == (strand == '+'):   # take from the high-coordinate side
+            parts.append((cds, e - take + 1, e))
+        else:
+            parts.append((cds, s, s + take - 1))
+        need -= take
+        if need == 0:
+            break
+    if need:
+        return None
+    return parts[::-1] if at_end else parts
+
+
+def codon_seq(genome, chrom, strand, parts):
+    """Sequence of a codon given by codon_parts()."""
+    seqs = [get_sequence(genome, chrom, ps, pe, strand) for _, ps, pe in parts]
+    if any(x is None for x in seqs):
+        return None
+    return ''.join(seqs)
+
+
+def codon_lines(template, feature, parts):
+    """GTF lines for a codon feature, one per genomic part, with GTF frame."""
+    lines, before = [], 0
+    for _, ps, pe in parts:
+        line = list(template)
+        line[2], line[3], line[4], line[5], line[7] = feature, str(ps), str(pe), '.', str((3 - before) % 3)
+        lines.append(line)
+        before += pe - ps + 1
+    return lines
+
+
 def normalize_transcript(features, genome, log_messages):
     """
     Normalize CDS boundaries for a transcript.
@@ -107,38 +149,36 @@ def normalize_transcript(features, genome, log_messages):
     chrom = cds_features[0][0]
     messages = []
 
-    # Determine terminal CDS (last in translation order)
-    if strand == '+':
-        terminal_cds = cds_features[-1]
-    else:
-        terminal_cds = cds_features[0]
-
-    terminal_start = int(terminal_cds[3])
-    terminal_end = int(terminal_cds[4])
-
-    # Check if terminal CDS ends in a stop codon
-    if strand == '+':
-        stop_seq = get_sequence(genome, chrom, terminal_end - 2, terminal_end, '+')
-    else:
-        stop_seq = get_sequence(genome, chrom, terminal_start, terminal_start + 2, '-')
+    # Last three coding bases, read across CDS segments so that a stop codon
+    # split by an intron is found too (#751). GeneMark puts the stop codon
+    # into the CDS, AUGUSTUS does not; trim it to the AUGUSTUS convention.
+    stop_parts = codon_parts(cds_features, strand, at_end=True)
+    stop_seq = codon_seq(genome, chrom, strand, stop_parts) if stop_parts else None
 
     stop_codons = {'TAA', 'TAG', 'TGA'}
 
     if stop_seq and stop_seq in stop_codons:
-        # Trim stop codon from CDS
-        if strand == '+':
-            new_end = terminal_end - 3
-            if new_end < terminal_start:
-                messages.append(f"DISCARD {tx_id}: trimming stop codon would make CDS length <= 0")
-                return features, False, messages
-            terminal_cds[4] = str(new_end)
-        else:
-            new_start = terminal_start + 3
-            if new_start > terminal_end:
-                messages.append(f"DISCARD {tx_id}: trimming stop codon would make CDS length <= 0")
-                return features, False, messages
-            terminal_cds[3] = str(new_start)
-        messages.append(f"TRIMMED {tx_id}: removed stop codon ({stop_seq}) from CDS")
+        drop = set()
+        for cds, ps, pe in stop_parts:
+            cs, ce = int(cds[3]), int(cds[4])
+            if ps == cs and pe == ce:
+                drop.add(id(cds))           # CDS is only stop codon; its exon stays
+            elif strand == '+':
+                cds[4] = str(ps - 1)
+            else:
+                cds[3] = str(pe + 1)
+        if len(drop) == len(cds_features):
+            messages.append(f"DISCARD {tx_id}: trimming stop codon would make CDS length <= 0")
+            return features, False, messages
+        features[:] = [f for f in features if id(f) not in drop]
+        stop_lines = [f for f in features if f[2] == 'stop_codon']
+        have = sorted((int(f[3]), int(f[4])) for f in stop_lines)
+        if have != sorted((ps, pe) for _, ps, pe in stop_parts):
+            template = stop_lines[0] if stop_lines else cds_features[0]
+            features[:] = [f for f in features if f[2] != 'stop_codon']
+            features.extend(codon_lines(template, 'stop_codon', stop_parts))
+        messages.append(f"TRIMMED {tx_id}: removed stop codon ({stop_seq}) from CDS"
+                        + (" (split by an intron)" if len(stop_parts) > 1 else ""))
 
     # Recalculate CDS features after trimming
     cds_features = get_cds_features([f for f in features if f[2] == 'CDS'])
@@ -164,16 +204,24 @@ def normalize_transcript(features, genome, log_messages):
         messages.append(f"WARNING {tx_id}: total CDS length {total_cds_len} not divisible by 3")
         # Don't discard — this can happen with partial genes
 
-    # Check start codon (issue #283)
-    if strand == '+':
-        first_cds = cds_features[0]
-        start_seq = get_sequence(genome, chrom, int(first_cds[3]), int(first_cds[3]) + 2, '+')
-    else:
-        first_cds = cds_features[-1]
-        start_seq = get_sequence(genome, chrom, int(first_cds[4]) - 2, int(first_cds[4]), '-')
+    # Check start codon (issue #283), read across CDS segments (#751)
+    start_parts = codon_parts(cds_features, strand, at_end=False)
+    start_seq = codon_seq(genome, chrom, strand, start_parts) if start_parts else None
 
     if start_seq and start_seq != 'ATG':
         messages.append(f"WARNING {tx_id}: non-ATG start codon ({start_seq})")
+
+    # A start codon split by an intron: gmst writes one start_codon line for
+    # one part only (#751). Write one line per part.
+    start_lines = [f for f in features if f[2] == 'start_codon']
+    if start_lines and start_parts and len(start_parts) > 1:
+        have = sorted((int(f[3]), int(f[4])) for f in start_lines)
+        want = sorted((ps, pe) for _, ps, pe in start_parts)
+        if have != want:
+            template = start_lines[0]
+            features[:] = [f for f in features if f[2] != 'start_codon']
+            features.extend(codon_lines(template, 'start_codon', start_parts))
+            messages.append(f"FIXED {tx_id}: start codon split by an intron, start_codon lines rewritten")
 
     return features, True, messages
 
