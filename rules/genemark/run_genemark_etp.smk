@@ -255,7 +255,7 @@ YAMLEOF
                 echo "HINT: GeneMark-ETP crashed in model training (parse_set.pl / train_super.pl division by zero)." >> {log}
                 echo "  Training genes found: $N_TRAIN (minimum needed: ~100 multi-exon genes)." >> {log}
                 echo "  Likely causes:" >> {log}
-                echo "    1. Fungal organism: add 'fungus: true' to config.yaml" >> {log}
+                echo "    1. Fungal organism: set fungus = 1 in the [PARAMS] section of config.ini" >> {log}
                 echo "    2. Low RNA-seq coverage: too few reads to build reliable gene models" >> {log}
                 echo "    3. Protein database too distant: ProtHint yields too few HC introns" >> {log}
                 echo "  See https://github.com/gatech-genemark/GeneMark-ETP/issues" >> {log}
@@ -279,7 +279,7 @@ YAMLEOF
                             echo "HINT: GeneMark-ETP exited with code $ETP_EXIT without writing genemark.gtf." >> {log}
                         fi
                         echo "  Common causes (check these before subsampling):" >> {log}
-                        echo "    1. Thread count: GeneMark-ETP ran with --cores {threads}. Very high counts (e.g. 256) are known to crash it; lower slurm_args: cpus_per_task in config.yaml." >> {log}
+                        echo "    1. Thread count: GeneMark-ETP ran with --cores {threads}. Very high counts (e.g. 256) are known to crash it; lower cpus_per_task in the [SLURM_ARGS] section of config.ini." >> {log}
                         echo "    2. Sequence name mismatch: @SQ names in the BAM header differ from the genome FASTA headers." >> {log}
                         echo "       Check: samtools view -H <bam> | grep ^@SQ  vs  grep '>' <genome> | head" >> {log}
                         echo "    3. Stranded library: GeneMark-ETP assembles transcripts unstranded, which can produce conflicting models from stranded data." >> {log}
