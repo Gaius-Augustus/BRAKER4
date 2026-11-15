@@ -158,6 +158,29 @@ rule run_augustus_hints_iter2:
         for gff in "$AUGUSTUS_TMP_ABS"/*.gff; do
             [ -f "$gff" ] && cat "$gff" >> "$AUG_GFF_TMP"
         done
+        # AUGUSTUS with broken or untrained parameters predicts no genes at
+        # all. Stop here with its error output instead of failing later with
+        # an unrelated message (ProtHint iteration 2: "No unique gene seeds",
+        # Gaius-Augustus/BRAKER#887, #936).
+        N_AUG_GENES=0
+        if [ -f "$AUG_GFF_TMP" ]; then
+            N_AUG_GENES=$(awk -F'\t' '$2=="AUGUSTUS" && $3=="gene" {{n++}} END {{print n+0}}' "$AUG_GFF_TMP")
+        fi
+        if [ "$N_AUG_GENES" -eq 0 ]; then
+            echo "[ERROR] AUGUSTUS predicted no genes in iteration 2 (species {params.species_name})" >&2
+            N_ERR=0
+            for errf in "$AUGUSTUS_TMP_ABS"/*.err; do
+                [ -s "$errf" ] || continue
+                echo "[ERROR] --- $(basename "$errf") (first 20 lines):" >&2
+                head -20 "$errf" >&2
+                N_ERR=$((N_ERR + 1))
+                [ "$N_ERR" -ge 5 ] && break
+            done
+            echo "[ERROR] Check the parameter files in {params.aug_config}/species/{params.species_name}/" >&2
+            echo "[ERROR] and the log of the AUGUSTUS training rules (train_augustus, optimize_augustus)." >&2
+            exit 1
+        fi
+
         cat "$AUG_GFF_TMP" | join_aug_pred.pl > "$AUG_GFF_ABS"
         rm "$AUG_GFF_TMP"
 
