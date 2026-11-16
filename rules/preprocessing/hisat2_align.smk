@@ -124,7 +124,11 @@ rule hisat2_align:
         scratch_dir outDir "hisat2_{wildcards.sample}_{wildcards.align_id}" "{params.tmp_root}" \
             "$(need_gb 2 {params.r1} {params.r2} {params.sra_dir}/{wildcards.align_id}_1.fastq {params.sra_dir}/{wildcards.align_id}_2.fastq {params.sra_dir}/{wildcards.align_id}.fastq)" \
             "$(dirname "$BAM_ABS")" 2>> {log}
-        trap 'rm -rf -- "$SCRATCH"' EXIT
+        # samtools sort chunks in a private dir: in the fallback (no scratch)
+        # all jobs share outDir, and a fixed prefix made parallel jobs and
+        # retries collide on sort.NNNN.bam ('File exists')
+        SORT_TMP=$(mktemp -d "$outDir/.samtools_sort_XXXXXX")
+        trap 'rm -rf -- "$SCRATCH" "$SORT_TMP"' EXIT
         SORTED_BAM="$outDir/{wildcards.align_id}.sorted.bam"
 
         if [ "{params.source}" = "sra" ]; then
@@ -137,14 +141,14 @@ rule hisat2_align:
                     -2 {params.sra_dir}/{wildcards.align_id}_2.fastq \
                     --dta -p {params.hisat2_threads} \
                     2>> {log} | \
-                    samtools sort -@ {params.sort_threads} -T "$outDir/sort" -o "$SORTED_BAM"
+                    samtools sort -@ {params.sort_threads} -T "$SORT_TMP/sort" -o "$SORTED_BAM"
             elif [ -f "{params.sra_dir}/{wildcards.align_id}.fastq" ]; then
                 echo "Single-end SRA alignment" >> {log}
                 hisat2 -x {params.index_prefix} \
                     -U {params.sra_dir}/{wildcards.align_id}.fastq \
                     --dta -p {params.hisat2_threads} \
                     2>> {log} | \
-                    samtools sort -@ {params.sort_threads} -T "$outDir/sort" -o "$SORTED_BAM"
+                    samtools sort -@ {params.sort_threads} -T "$SORT_TMP/sort" -o "$SORTED_BAM"
             else
                 echo "ERROR: No FASTQ files found for SRA ID {wildcards.align_id}" >> {log}
                 ls -la {params.sra_dir}/ >> {log} 2>&1 || true
@@ -158,7 +162,7 @@ rule hisat2_align:
                 -2 {params.r2} \
                 --dta -p {params.hisat2_threads} \
                 2>> {log} | \
-                samtools sort -@ {params.sort_threads} -T "$outDir/sort" -o "$SORTED_BAM"
+                samtools sort -@ {params.sort_threads} -T "$SORT_TMP/sort" -o "$SORTED_BAM"
         fi
 
         # Index the BAM

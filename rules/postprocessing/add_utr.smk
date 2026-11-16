@@ -76,9 +76,13 @@ rule run_stringtie:
             # Merged and sorted BAMs go to the node-local disk
             scratch_dir outDir "stringtie_{wildcards.sample}" "{params.tmp_root}" \
                 "$(need_gb 3 {input.bams})" "$PWD/output/{wildcards.sample}/stringtie" 2>> {log}
-            trap 'rm -rf -- "$SCRATCH"' EXIT
+            # samtools sort chunks in a private dir: in the fallback (no scratch)
+            # all jobs share outDir, and a fixed prefix made parallel jobs and
+            # retries collide on sort.NNNN.bam ('File exists')
+            SORT_TMP=$(mktemp -d "$outDir/.samtools_sort_XXXXXX")
+            trap 'rm -rf -- "$SCRATCH" "$SORT_TMP"' EXIT
             samtools merge -@ {threads} "$outDir/merged.bam" {input.bams} 2>> {log}
-            samtools sort -@ {threads} -T "$outDir/sort" -o "$outDir/merged.s.bam" "$outDir/merged.bam" 2>> {log}
+            samtools sort -@ {threads} -T "$SORT_TMP/sort" -o "$outDir/merged.s.bam" "$outDir/merged.bam" 2>> {log}
             samtools index -c -@ {threads} "$outDir/merged.s.bam" 2>> {log}
             INPUT_BAM="$outDir/merged.s.bam"
             if [ -z "$SCRATCH" ]; then

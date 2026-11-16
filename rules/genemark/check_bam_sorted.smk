@@ -96,13 +96,17 @@ rule check_bam_sorted:
             CSI_ABS=$PWD/{output.csi}
             scratch_dir outDir "bamsort_{wildcards.sample}_{wildcards.bam_id}" "{params.tmp_root}" \
                 "$(need_gb 2 {input.bam})" "$(dirname "$BAM_ABS")" 2>> {log}
-            trap 'rm -rf -- "$SCRATCH"' EXIT
+            # samtools sort chunks in a private dir: in the fallback (no scratch)
+            # all jobs share outDir, and a fixed prefix made parallel jobs and
+            # retries collide on sort.NNNN.bam ('File exists')
+            SORT_TMP=$(mktemp -d "$outDir/.samtools_sort_XXXXXX")
+            trap 'rm -rf -- "$SCRATCH" "$SORT_TMP"' EXIT
             SORTED_BAM="$outDir/{wildcards.bam_id}.sorted.bam"
 
             # Sort with parallel threads (fixes BRAKER issue: was -@ 0)
             samtools sort \
                 -@ {threads} \
-                -T "$outDir/sort" \
+                -T "$SORT_TMP/sort" \
                 -o "$SORTED_BAM" \
                 {input.bam} \
                 2>> {log}

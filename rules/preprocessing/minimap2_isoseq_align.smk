@@ -152,11 +152,15 @@ rule sort_isoseq_sam:
         CSI_ABS=$PWD/{output.csi}
         scratch_dir outDir "isosort_{wildcards.sample}_{wildcards.isoseq_fastq_id}" "{params.tmp_root}" \
             "$(need_gb 3 {input.sam})" "$(dirname "$BAM_ABS")" 2>> {log}
-        trap 'rm -rf -- "$SCRATCH"' EXIT
+        # samtools sort chunks in a private dir: in the fallback (no scratch)
+        # all jobs share outDir, and a fixed prefix made parallel jobs and
+        # retries collide on sort.NNNN.bam ('File exists')
+        SORT_TMP=$(mktemp -d "$outDir/.samtools_sort_XXXXXX")
+        trap 'rm -rf -- "$SCRATCH" "$SORT_TMP"' EXIT
         SORTED_BAM="$outDir/{wildcards.isoseq_fastq_id}.sorted.bam"
 
         samtools view -bS --threads 1 {input.sam} | \
-            samtools sort -@ {params.sort_threads} -T "$outDir/sort" -o "$SORTED_BAM" 2>> {log}
+            samtools sort -@ {params.sort_threads} -T "$SORT_TMP/sort" -o "$SORTED_BAM" 2>> {log}
 
         samtools index -c -@ {threads} "$SORTED_BAM" 2>> {log}
 
