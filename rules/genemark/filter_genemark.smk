@@ -99,6 +99,18 @@ rule filter_genemark:
                 --badGenes  {output.bad_gtf} \
                 --N 4000 \
                 2>&1 | tee -a {log} || true
+
+            # filterGenemark.pl writes only the CDS line of single-exon genes;
+            # put their start_codon/stop_codon rows back from the sorted
+            # GeneMark GTF. TSEBRA keeps genemark.f.good.gtf unchanged, so
+            # without this they reach braker.gtf with no start codon and a stop
+            # codon that stringtie2utr labels as 3' UTR.
+            export PATH=/opt/conda/bin:$PATH
+            python3 {script_dir}/restore_genemark_codons.py \
+                --source "$SORTED_GTF" \
+                {output.good_gtf} {output.bad_gtf} \
+                2>> {log} \
+                || {{ echo "ERROR: restore_genemark_codons.py failed, see {log}" >&2; exit 1; }}
         fi
 
         # Clean up the temporary sorted file
@@ -106,7 +118,7 @@ rule filter_genemark:
 
         # Calculate statistics from the (now correctly filtered) outputs.
         # filterGenemark.pl writes CDS/start_codon/stop_codon rows only (no
-        # "gene" feature rows) for ET/EP mode — count unique gene_ids instead.
+        # "gene" feature rows) for ET/EP mode; count unique gene_ids instead.
         n_good=$(grep -oE 'gene_id "[^"]+"' {output.good_gtf} | sort -u | wc -l)
         n_bad=$((n_total - n_good))
 
