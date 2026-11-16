@@ -7,6 +7,15 @@
 # with (gmetp.pl: FindBin $Bin, prothint.py: abspath(__file__),
 # spalnBatch.sh: readlink -f of its directory), so they pick up the copy.
 #
+# super.pl is also replaced, by a patched copy (#110): it writes the number
+# of introns into the third column of set.out, where parse_set.pl expects
+# the number of exons ("## gene_id cds_length exons_in_gene", the gmhmme3
+# training format). Single-exon genes then count as -1 introns, and on
+# genomes with few multi-intron genes (S. cerevisiae) the fallback estimate
+# gives $ToInternalExon > 1 and $ToTerminalExon < 0; gmhmme3 stops with
+# "negative argument in LOG function" in the masking-penalty step. The
+# copy is made with sed at run time, so no GeneMark code ships with BRAKER4.
+#
 # Usage: make_prothint_shadow.sh <dest_dir> [etp_bin_dir]
 #   etp_bin_dir defaults to the directory of gmetp.pl on PATH, else /opt/ETP/bin.
 # Afterwards use <dest_dir>/gmetp.pl or
@@ -73,3 +82,20 @@ link_all_but "$src/gmes/ProtHint" "$dest/gmes/ProtHint" bin
 link_all_but "$prothint_bin" "$dest/gmes/ProtHint/bin" run_spliced_alignment.pl
 cp "$dispatcher" "$dest/gmes/ProtHint/bin/run_spliced_alignment.pl"
 chmod +x "$dest/gmes/ProtHint/bin/run_spliced_alignment.pl"
+
+# super.pl: exon count instead of intron count in set.out (#110). Patched
+# only if the original line is found, so a fixed upstream version stays as
+# it is.
+super_pat='(scalar @introns) ."\n"'
+if [ -f "$src/super.pl" ] && grep -qF "$super_pat" "$src/super.pl"; then
+    rm "$dest/super.pl"
+    sed 's/(scalar @introns) \."\\n"/(scalar @introns + 1) ."\\n"/' "$src/super.pl" > "$dest/super.pl"
+    chmod +x "$dest/super.pl"
+    if grep -qF '(scalar @introns + 1)' "$dest/super.pl"; then
+        echo "[INFO] super.pl patched: exons_in_gene in set.out (#110)"
+    else
+        echo "WARNING: super.pl patch did not apply, using the original" >&2
+        rm "$dest/super.pl"
+        ln -s "$src/super.pl" "$dest/super.pl"
+    fi
+fi
