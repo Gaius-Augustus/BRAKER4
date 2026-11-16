@@ -10,6 +10,7 @@ This module provides:
 
 import pandas as pd
 import os
+import re
 from pathlib import Path
 
 # ==============================================================================
@@ -88,6 +89,27 @@ def get_braker_mode(sample):
 # Input Validation
 # ==============================================================================
 
+def get_ena_settings(sample):
+    """ENA export columns of a sample (optional): locus_tag prefix, taxid,
+    seqid map. Empty strings when not set. pandas reads a taxid column with
+    gaps as float, so 3702.0 is turned back into '3702'."""
+    row = samples_df[samples_df["sample_name"] == sample].iloc[0]
+
+    def cell(name):
+        value = row.get(name)
+        if value is None or (isinstance(value, float) and pd.isna(value)):
+            return ""
+        if isinstance(value, float) and value.is_integer():
+            value = int(value)
+        return str(value).strip()
+
+    return {
+        "locus_tag_prefix": cell("ena_locus_tag_prefix"),
+        "taxid": cell("ena_taxid"),
+        "seqid_map": cell("ena_seqid_map"),
+    }
+
+
 def validate_samples():
     """Validate sample configurations before workflow execution."""
     for idx, row in samples_df.iterrows():
@@ -126,6 +148,24 @@ def validate_samples():
         # Rule 7: busco_lineage is required
         if pd.isna(row.get("busco_lineage")) or not str(row.get("busco_lineage")).strip():
             raise ValueError(f"{sample}: busco_lineage column is required in samples.csv")
+
+        # Rule 9: ENA export settings (optional columns)
+        ena = get_ena_settings(sample)
+        if ena["locus_tag_prefix"]:
+            # same rule as gff3tools LocusTagExistsValidation
+            if not re.match(r"^[A-Z][A-Z0-9]{2,11}$", ena["locus_tag_prefix"]):
+                raise ValueError(
+                    f"{sample}: ena_locus_tag_prefix '{ena['locus_tag_prefix']}' is invalid. "
+                    f"ENA needs the registered prefix: 3-12 upper-case letters or digits, "
+                    f"starting with a letter.")
+            if ena["taxid"] and not ena["taxid"].isdigit():
+                raise ValueError(f"{sample}: ena_taxid must be an NCBI taxonomy ID (a number), "
+                                 f"got '{ena['taxid']}'")
+            if ena["seqid_map"] and not os.path.isfile(ena["seqid_map"]):
+                raise ValueError(f"{sample}: ena_seqid_map file not found: {ena['seqid_map']}")
+        elif ena["taxid"] or ena["seqid_map"]:
+            print(f"  WARNING: {sample} has ena_taxid/ena_seqid_map but no ena_locus_tag_prefix; "
+                  f"no ENA GFF3 is written")
 
         # Rule 8: Alternative translation tables only supported in ES/ET/EP modes
         tt = config.get('translation_table', 1)
@@ -513,8 +553,6 @@ def get_genemark_hints_for_filter(wildcards):
         return f"output/{sample}/empty_hints.gff"
     elif mode == 'ep':
         return f"output/{sample}/genemark_hints_ep.gff"
-    elif mode == 'dual':
-        return f"output/{sample}/dual_etp_merged/etp_hints.gff"
     elif mode in ('etp', 'isoseq'):
         return f"output/{sample}/etp_hints.gff"
     else:  # et

@@ -461,6 +461,11 @@ sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_i
 | `isoseq_fastq` | no | Unaligned IsoSeq FASTA/FASTQ, colon-separated. Aligned with minimap2. **Requires protein evidence.** |
 | `busco_lineage` | **yes** | BUSCO lineage for QC (e.g. `eukaryota_odb12`, `arthropoda_odb12`). Use a clade-specific lineage for better assessment. |
 | `reference_gtf` | no | Reference annotation in GTF format (gzipped or not) for gffcompare evaluation. Optional. |
+| `ena_locus_tag_prefix` | no | Turns on the ENA GFF3 export (see [ENA export](#ena-gff3-export-for-decoupled-annotation-submission)). The locus_tag prefix registered with ENA: 3-12 upper-case letters or digits, starting with a letter. |
+| `ena_taxid` | no | NCBI taxonomy ID of the species, written as `##species` in the ENA GFF3. |
+| `ena_seqid_map` | no | Tab-separated file without header: BRAKER sequence name, tab, ENA sequence name or accession. Needed when the assembly was submitted to ENA under other names, or when a sequence name contains a `.` that is not a version suffix. BRAKER sequence names are the first word of the FASTA headers. |
+
+The three `ena_*` columns are optional and can be appended after `reference_gtf` in the header.
 
 **Mode auto-detection logic:**
 
@@ -1281,6 +1286,10 @@ output/{sample_name}/results/
 ├── software_versions.tsv       # Versions of all software tools used
 ├── braker_report.html          # Self-contained HTML report with embedded figures
 ├── braker_citations.bib        # BibTeX citations for all tools used
+├── ena/                        # ENA GFF3 export (only if ena_locus_tag_prefix is set)
+│   ├── braker.ena.gff3             # GFF3 for the Webin-CLI manifest (uncompressed)
+│   ├── braker.ena.ids.tsv          # BRAKER gene/transcript ID -> locus_tag
+│   └── braker.ena.report.txt       # Counts, and every feature left out or changed, with the reason
 └── quality_control/
     ├── busco_summary.txt           # Combined BUSCO completeness report (if skip_busco = 0)
     ├── busco_figure.png            # BUSCO visualization (if skip_busco = 0)
@@ -1311,6 +1320,27 @@ test genes exactly, versus ~28% gene-level sensitivity for AUGUSTUS ab initio). 
 not replace `gffcompare` against an independent reference annotation.
 
 In ETP/IsoSeq/dual modes, `braker.gtf` contains the TSEBRA merge of AUGUSTUS and GeneMark-ETP predictions, filtered for genes with high extrinsic evidence support. In ET and EP modes, `braker.gtf` contains the union of AUGUSTUS predictions with hints and reliable GeneMark predictions (genes fully supported by external evidence).
+
+### ENA GFF3 export for decoupled annotation submission
+
+If `ena_locus_tag_prefix` is set for a sample in `samples.csv`, the `export_ena_gff3` rule converts the final GFF3 (`braker_with_ncRNA.gff3` when `run_ncrna = 1`, else `braker.gff3`) into a GFF3 for ENA decoupled annotation submission (`scripts/gff3_to_ena.py`, run with the host Python, no container). Output is in `results/ena/` (see above).
+
+The export:
+
+-   keeps only INSDC qualifiers (`locus_tag`, `product`, `transl_table`, `inference`, `codon_start`, `partial`, `pseudo`, `note`, `Dbxref`); every protein has the product `hypothetical protein` and an `inference` of `ab initio prediction:AUGUSTUS:<version>` (or GeneMark);
+-   assigns locus tags `PREFIX_000010`, `PREFIX_000020`, ... in genome order, on each gene and all its parts;
+-   drops `start_codon`, `stop_codon` and `intron` rows, and includes the stop codon in the CDS;
+-   marks models without a start or stop codon in the genome as `partial`;
+-   names tRNAs `tRNA-Xxx` and leaves out features ENA rejects: tRNAs outside 50-150 bp, tRNAs inside a CDS, and rRNAs overlapping a CDS or another rRNA on the same strand. They are listed in `braker.ena.report.txt`.
+
+Submission is done by you:
+
+1. Register the locus_tag prefix with ENA.
+2. Submit the assembly first (Webin-CLI `-context genome`); the annotation refers to its sequences.
+3. Write a manifest with `ANALYSIS_TYPE DECOUPLED_ANNOTATION`, `PRIMARY_ID` set to the assembly's GCA accession, and `GFF3` set to `braker.ena.gff3`.
+4. Run `webin-cli -context annotation` with `-validate` first, then with `-submit`.
+
+Format details: https://ena-docs.readthedocs.io/en/latest/submit/gff3.html
 
 **Logs** for each Snakemake rule are in `logs/{sample_name}/`. **Benchmarks** (runtime, memory) are in `benchmarks/{sample_name}/`. These directories are not cleaned up.
 

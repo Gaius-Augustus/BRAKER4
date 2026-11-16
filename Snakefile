@@ -633,11 +633,10 @@ HAS_ETP = any(get_braker_mode(s) in ('etp', 'isoseq', 'dual') for s in SAMPLES)
 if HAS_ETP:
     include: "rules/genemark/run_genemark_etp.smk"
 
-# Include dual-ETP mode rules (IsoSeq + short-read RNA-Seq + proteins)
+# Dual mode (IsoSeq + short-read RNA-Seq + proteins): one combined GeneMark-ETP run
 HAS_DUAL = any(get_braker_mode(s) == 'dual' for s in SAMPLES)
 if HAS_DUAL:
     include: "rules/genemark/run_genemark_etp_isoseq.smk"
-    include: "rules/genemark/merge_dual_etp.smk"
 
 # GeneMark filtering (always needed, uses mode-dependent input functions)
 include: "rules/genemark/filter_genemark.smk"
@@ -692,6 +691,8 @@ if HAS_TRANSCRIPTS:
 
 # Include GFF3 conversion
 include: "rules/postprocessing/convert_to_gff3.smk"
+# GFF3 for ENA submission (only samples with ena_locus_tag_prefix)
+include: "rules/postprocessing/export_ena_gff3.smk"
 
 # Include QC rules
 include: "rules/quality_control/run_compleasm.smk"

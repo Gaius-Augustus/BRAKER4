@@ -8,6 +8,7 @@ intermediate files.
 
 The results directory contains everything a user needs:
 - Gene predictions (GTF, GFF3, protein and CDS sequences)
+- GFF3 for ENA submission (ena/, samples with ena_locus_tag_prefix)
 - Quality control reports (BUSCO, compleasm, OMArk, gffcompare)
 - Evidence support summary
 """
@@ -73,6 +74,9 @@ def _get_collect_inputs(wildcards):
         mode = get_braker_mode(sample)
         if mode in ('et', 'etp', 'isoseq', 'dual'):
             inputs["lncrna"] = f"output/{sample}/ncrna/lncRNAs.gff3"
+
+    if get_ena_settings(sample)["locus_tag_prefix"]:
+        inputs["ena_gff3"] = f"output/{sample}/braker.ena.gff3"
 
     return inputs
 
@@ -246,6 +250,16 @@ rule collect_results:
                 fi
             done
             echo "[INFO] Collected ncRNA annotations"
+        fi
+
+        # GFF3 for ENA decoupled annotation (if ena_locus_tag_prefix is set).
+        # Left uncompressed: it is the file named in the Webin-CLI manifest.
+        if [ -f "$OUTDIR/braker.ena.gff3" ]; then
+            mkdir -p "$RESULTS/ena"
+            for f in braker.ena.gff3 braker.ena.ids.tsv braker.ena.report.txt; do
+                cp "$OUTDIR/$f" "$RESULTS/ena/"
+            done
+            echo "[INFO] Collected ENA GFF3"
         fi
 
         # VARUS run list and stats (if VARUS was used)
