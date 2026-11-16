@@ -143,8 +143,8 @@ def parse_bbc_log(path):
     Returns a list of dicts (one per pass), each with keys:
         label, braker_missing, augustus_missing, genemark_missing,
         decision, new_missing
-    Pass labels for dual mode are 'short-read', 'IsoSeq', 'merge';
-    for non-dual modes there is a single unlabeled entry.
+    All modes, dual included, have a single pass (one unlabeled entry);
+    labelled passes are parsed for logs of older runs.
     Returns [] if the log is missing, empty, or marked as skipped.
     """
     if not os.path.exists(path):
@@ -249,6 +249,12 @@ def format_bbc_decisions(passes, mode):
         "best_by_compleasm (Brůna, Gabriel & Hoff, 2025) was applied in three passes "
         "using compleasm (Huang & Li, 2023) in protein mode: " + " | ".join(pieces) + "."
     )
+
+
+def _etp_dir(mode):
+    """GeneMark-ETP output directory: dual mode's single combined run writes
+    to GeneMark-ETP-isoseq/, ETP and IsoSeq mode to GeneMark-ETP/."""
+    return "GeneMark-ETP-isoseq" if "Dual" in mode else "GeneMark-ETP"
 
 
 def generate_methods_text(workdir, mode):
@@ -431,44 +437,24 @@ def generate_methods_text(workdir, mode):
                 f"intron hints and predicted {n:,} genes."
             )
     elif "BRAKER3" in mode:
-        gm_sr_gtf = os.path.join(d, "GeneMark-ETP", "genemark.gtf")
-        gm_iso_gtf = os.path.join(d, "GeneMark-ETP-isoseq", "genemark.gtf")
-        is_dual_etp = os.path.exists(gm_sr_gtf) and os.path.exists(gm_iso_gtf)
-
-        if is_dual_etp:
-            n_sr = _count_unique_genes(gm_sr_gtf)
-            n_iso = _count_unique_genes(gm_iso_gtf)
+        # Dual mode is one combined GeneMark-ETP run (short-read BAMs via
+        # --bam, IsoSeq BAM via --long_bam) that writes to GeneMark-ETP-isoseq/;
+        # ETP and IsoSeq modes write to GeneMark-ETP/.
+        n = _count_unique_genes(os.path.join(d, _etp_dir(mode), "genemark.gtf"))
+        if n > 0:
+            if "Dual" in mode:
+                evidence_desc = ("short-read RNA-Seq, PacBio IsoSeq long reads and protein "
+                                 "evidence in a single run")
+            elif "IsoSeq" in mode:
+                evidence_desc = "PacBio IsoSeq long reads and protein evidence"
+            else:
+                evidence_desc = "short-read RNA-Seq and protein evidence"
             parts.append(
-                f"In dual mode, GeneMark-ETP (Bruna et al., 2024) was run twice in parallel: "
-                f"once on the short-read RNA-Seq + protein evidence "
-                f"(predicting **{n_sr:,} genes**) and once on the IsoSeq long-read + protein "
-                f"evidence (predicting **{n_iso:,} genes**). Both runs internally employed "
-                f"GeneMarkS-T (Tang et al., 2015) for transcript-based gene finding and "
-                f"DIAMOND (Buchfink et al., 2021) for protein alignment."
+                f"GeneMark-ETP (Bruna et al., 2024) was trained using {evidence_desc}, "
+                f"internally employing GeneMarkS-T (Tang et al., 2015) "
+                f"for transcript-based gene finding and DIAMOND (Buchfink et al., 2021) "
+                f"for protein alignment, and predicted {n:,} genes."
             )
-            n_merged = _count_unique_genes(os.path.join(d, "dual_etp_merged", "training.gtf"))
-            if n_merged > 0:
-                parts.append(
-                    f"The high-confidence training genes from both GeneMark-ETP runs were "
-                    f"merged and deduplicated with TSEBRA (Gabriel et al., 2021), yielding "
-                    f"**{n_merged:,} training genes** for AUGUSTUS."
-                )
-        else:
-            n = _count_unique_genes(gm_sr_gtf)
-            if n > 0:
-                # The evidence-source wording depends on whether this is
-                # IsoSeq-only + proteins or short-read RNA-Seq + proteins.
-                # detect_mode() already distinguishes the two.
-                if "IsoSeq" in mode:
-                    evidence_desc = "PacBio IsoSeq long reads and protein evidence"
-                else:
-                    evidence_desc = "short-read RNA-Seq and protein evidence"
-                parts.append(
-                    f"GeneMark-ETP (Bruna et al., 2024) was trained using {evidence_desc}, "
-                    f"internally employing GeneMarkS-T (Tang et al., 2015) "
-                    f"for transcript-based gene finding and DIAMOND (Buchfink et al., 2021) "
-                    f"for protein alignment, and predicted {n:,} genes."
-                )
 
     # --- Training gene selection pipeline ---
     # GeneMark filtering step. The source file and phrasing depend on mode:
@@ -484,16 +470,10 @@ def generate_methods_text(workdir, mode):
     #         training.gtf directly and describe it as ETP-internal filtering.
     if "ES" in mode and "ab initio" in mode:
         pass  # ES has no evidence to filter by
-    elif "Dual" in mode:
-        # Dual mode already announced the merged training-gene count in the
-        # TSEBRA-merge paragraph above (dual_etp_merged/training.gtf). Adding
-        # an "ETP-internal high-confidence selection" line here would repeat
-        # the same number and read as duplicated narrative.
-        pass
-    elif "ETP" in mode or "IsoSeq" in mode:
-        # Single-run ETP (short-read or IsoSeq): describe the ETP-internal
-        # high-confidence training gene selection from GeneMark-ETP/training.gtf.
-        p = os.path.join(d, "GeneMark-ETP", "training.gtf")
+    elif "ETP" in mode or "IsoSeq" in mode or "Dual" in mode:
+        # ETP, IsoSeq and dual: describe the ETP-internal high-confidence
+        # training gene selection from training.gtf of the GeneMark-ETP run.
+        p = os.path.join(d, _etp_dir(mode), "training.gtf")
         if os.path.exists(p):
             n_good = _count_unique_genes(p)
             parts.append(
@@ -1053,9 +1033,10 @@ def detect_mode(workdir):
     - ETP = BRAKER3 (Gabriel et al., 2024)
     - IsoSeq/Dual: cite the book chapter (Hoff et al., 2024)
     """
+    if os.path.exists(os.path.join(workdir, "GeneMark-ETP-isoseq")):
+        # only the combined dual-mode GeneMark-ETP run writes here
+        return "Dual/BRAKER3 (short-read + IsoSeq + proteins)"
     if os.path.exists(os.path.join(workdir, "GeneMark-ETP")):
-        if os.path.exists(os.path.join(workdir, "GeneMark-ETP-isoseq")):
-            return "Dual/BRAKER3 (short-read + IsoSeq + proteins)"
         # Check for IsoSeq-only (no short-read bam2hints)
         if not os.path.exists(os.path.join(workdir, "bam2hints.gff")) and \
            not os.path.exists(os.path.join(workdir, "genemark")):
@@ -1363,11 +1344,6 @@ def generate_html(sample_name, mode, methods_text, citations, images, qc_data, b
 
     # Training summary plot
     if "training_summary" in images and images["training_summary"]:
-        # Detect dual mode from directory layout
-        is_dual_etp = (os.path.isdir(os.path.join(outdir, "GeneMark-ETP")) and
-                       os.path.isdir(os.path.join(outdir, "GeneMark-ETP-isoseq"))) or \
-                      (os.path.isdir(os.path.join(outdir, "..", "GeneMark-ETP")) and
-                       os.path.isdir(os.path.join(outdir, "..", "GeneMark-ETP-isoseq")))
         caption = (
             "Training gene counts at each pipeline stage (left) and accuracy on the "
             "held-out test set (right): AUGUSTUS ab initio before and after optimization, "
@@ -1375,11 +1351,6 @@ def generate_html(sample_name, mode, methods_text, citations, images, qc_data, b
             "and biased upwards, because the test genes are GeneMark training genes "
             "that TSEBRA can keep in the final set."
         )
-        if is_dual_etp:
-            caption += (
-                " In dual mode, GeneMark-ETP was run twice in parallel (short-read and IsoSeq); "
-                "the training genes from both runs were merged and deduplicated before AUGUSTUS training."
-            )
         html += f"""
 <h2>Training Summary</h2>
 <div class="figure">

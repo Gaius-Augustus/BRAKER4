@@ -29,8 +29,8 @@ def _get_feelnc_stringtie_gtf(wildcards):
     sample = wildcards.sample
     mode = get_braker_mode(sample)
     if mode == 'dual':
-        return f"output/{sample}/GeneMark-ETP-isoseq/training.gtf"
-        # return f"output/{sample}/dual_etp_merged/transcripts_merged.gff"
+        # StringTie assembly of the single combined GeneMark-ETP run
+        return f"output/{sample}/GeneMark-ETP-isoseq/rnaseq/stringtie/transcripts_merged.gff"
     if mode in ('etp', 'isoseq'):
         return f"output/{sample}/GeneMark-ETP/rnaseq/stringtie/transcripts_merged.gff"
     elif mode == 'et':

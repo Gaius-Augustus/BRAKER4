@@ -32,7 +32,7 @@ rule extract_hc_training_genes:
         hc_filter_log: Log of filtering process
     """
     input:
-        hc_gtf = lambda w: f"output/{w.sample}/dual_etp_merged/hc.gff" if get_braker_mode(w.sample) == 'dual' else f"output/{w.sample}/GeneMark-ETP/hc.gff",
+        hc_gtf = lambda w: f"output/{w.sample}/GeneMark-ETP-isoseq/hc.gff" if get_braker_mode(w.sample) == 'dual' else f"output/{w.sample}/GeneMark-ETP/hc.gff",
         genome = lambda w: os.path.join(get_braker_dir(w), "genome.fa")
     output:
         hc_gene_ids = "output/{sample}/hc_gene_ids.txt",

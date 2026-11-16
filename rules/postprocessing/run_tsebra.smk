@@ -23,18 +23,8 @@ Mode-by-mode behavior in this rule mirrors braker.pl:
                 ETP TSEBRA call (scripts/braker.pl, sub merge_transcript_sets_with_tsebra,
                 called from line ~9783).
 
-  dual          Three-stage merge:
-                  Stage A — ETP-style merge for the short-read run alone.
-                  Stage B — ETP-style merge for the IsoSeq run alone.
-                  Stage C — final merge keeping both runs' training genes
-                            via --keep_gtf, with both genemark.gtf files and
-                            augustus.hints.fixed.gtf via --gtf, and both
-                            per-run hintsfiles via --hintfiles (passed as
-                            ONE comma-separated argument; TSEBRA's argparse
-                            does not accept multiple space-separated values).
-                Stages A and B are produced by rule run_tsebra_etp_per_run
-                and surface as side outputs braker_etp_{sr,iso}.tsebra.gtf
-                for inspection. Stage C is what becomes braker.tsebra.raw.gtf.
+  dual          As ETP, with the GeneMark-ETP-isoseq/ outputs of the single
+                combined GeneMark-ETP run (short-read and IsoSeq BAMs together).
 
   Config        braker3.cfg (matches braker.pl). Differs from default.cfg
                 only in e_4 (0.20 vs 0.18); the load-bearing setting in both
@@ -51,7 +41,7 @@ def get_tsebra_inputs(wildcards):
     never execute for the current mode. So every input key referenced
     anywhere in the shell must always exist in the dict — we alias unused
     keys to augustus_gtf (which is always present and already a real input,
-    so no extra dependency is added). Same pattern as best_by_compleasm.smk.
+    so no extra dependency is added).
     """
     sample = wildcards.sample
     mode = get_braker_mode(sample)
@@ -59,35 +49,13 @@ def get_tsebra_inputs(wildcards):
 
     inputs = {
         "augustus_gtf":   augustus_gtf,
-        "braker_etp_sr":  augustus_gtf,
-        "braker_etp_iso": augustus_gtf,
         "genemark_gtf":   augustus_gtf,
         "training_gtf":   augustus_gtf,
-        "genemark_sr":    augustus_gtf,
-        "genemark_iso":   augustus_gtf,
-        "training_sr":    augustus_gtf,
-        "training_iso":   augustus_gtf,
         "hintsfile":      augustus_gtf,
-        "hintsfile_sr":   augustus_gtf,
-        "hintsfile_iso":  augustus_gtf,
         "keep_genes":     augustus_gtf,
         "genome_fai":     f"output/{sample}/genome.fa.fai",
     }
 
-    # if mode == "dual":
-    #     # Stage C — depends on per-run outputs (stages A, B) plus the raw
-    #     # augustus / genemark / training / hintsfiles needed for the final
-    #     # merge command.
-    #     inputs.update({
-    #         "braker_etp_sr":  f"output/{sample}/braker_etp_sr.tsebra.gtf",
-    #         "braker_etp_iso": f"output/{sample}/braker_etp_iso.tsebra.gtf",
-    #         "genemark_sr":  f"output/{sample}/GeneMark-ETP/genemark.gtf",
-    #         "genemark_iso": f"output/{sample}/GeneMark-ETP-isoseq/genemark.gtf",
-    #         "training_sr":  f"output/{sample}/GeneMark-ETP/training.gtf",
-    #         "training_iso": f"output/{sample}/GeneMark-ETP-isoseq/training.gtf",
-    #         "hintsfile_sr":  f"output/{sample}/etp_hints.gff",
-    #         "hintsfile_iso": f"output/{sample}/etp_hints_isoseq.gff",
-    #     })
     if mode in ("etp", "isoseq"):
         inputs.update({
             "genemark_gtf": f"output/{sample}/GeneMark-ETP/genemark.gtf",
@@ -109,105 +77,6 @@ def get_tsebra_inputs(wildcards):
         })
 
     return inputs
-
-
-rule run_tsebra_etp_per_run:
-    """
-    Per-run ETP-style TSEBRA merge for dual mode (stages A and B).
-
-    Runs once with etp_run=sr (short-read GeneMark-ETP) and once with
-    etp_run=iso (IsoSeq GeneMark-ETP). Each invocation reproduces what
-    braker.pl's ETP mode would do for that single run in isolation:
-    augustus.hints.fixed.gtf and the per-run genemark.gtf go in via --gtf
-    (TSEBRA filters them against the per-run hintsfile), and the per-run
-    HC training set goes in via --keep_gtf.
-
-    The same augustus.hints.fixed.gtf is reused for both stages because
-    BRAKER4 only runs AUGUSTUS once in dual mode (with the merged
-    hintsfile). The per-run filter still discriminates between the two
-    by using each run's own hintsfile to score AUGUSTUS transcripts.
-
-    This rule only fires when run_tsebra (dual mode) declares the
-    braker_etp_{sr,iso}.tsebra.gtf paths as inputs.
-    """
-    input:
-        augustus_gtf="output/{sample}/augustus.hints.fixed.gtf",
-        genemark_gtf=lambda w: (
-            f"output/{w.sample}/GeneMark-ETP/genemark.gtf" if w.etp_run == "sr"
-            else f"output/{w.sample}/GeneMark-ETP-isoseq/genemark.gtf"
-        ),
-        training_gtf=lambda w: (
-            f"output/{w.sample}/GeneMark-ETP/training.gtf" if w.etp_run == "sr"
-            else f"output/{w.sample}/GeneMark-ETP-isoseq/training.gtf"
-        ),
-        hintsfile=lambda w: (
-            f"output/{w.sample}/etp_hints.gff" if w.etp_run == "sr"
-            else f"output/{w.sample}/etp_hints_isoseq.gff"
-        ),
-        genome_fai="output/{sample}/genome.fa.fai",
-    output:
-        braker_per_run="output/{sample}/braker_etp_{etp_run}.tsebra.gtf",
-        log_file="output/{sample}/braker_etp_{etp_run}.tsebra.log",
-    wildcard_constraints:
-        etp_run="sr|iso",
-    benchmark:
-        "benchmarks/{sample}/run_tsebra_etp_per_run/{etp_run}.txt"
-    params:
-        filter_se=config['filter_single_exon_genes']
-    threads: 1
-    resources:
-        mem_mb=mem_single_thread,
-        runtime=int(config['slurm_args']['max_runtime'])
-    container:
-        BRAKER3_CONTAINER
-    shell:
-        r"""
-        set -euo pipefail
-
-        echo "[INFO] ===== TSEBRA per-run ETP merge ({wildcards.etp_run}) =====" | tee {output.log_file}
-        echo "[INFO] AUGUSTUS GTF: {input.augustus_gtf}" | tee -a {output.log_file}
-        echo "[INFO] GeneMark GTF: {input.genemark_gtf}" | tee -a {output.log_file}
-        echo "[INFO] Training GTF (forced): {input.training_gtf}" | tee -a {output.log_file}
-        echo "[INFO] Hintsfile: {input.hintsfile}" | tee -a {output.log_file}
-
-        # braker3.cfg matches braker.pl's TSEBRA invocation in ETP mode.
-        TSEBRA_CFG=/opt/TSEBRA/config/braker3.cfg
-        if [ ! -f "$TSEBRA_CFG" ]; then
-            echo "[ERROR] braker3.cfg not found at $TSEBRA_CFG" | tee -a {output.log_file}
-            exit 1
-        fi
-        echo "[INFO] TSEBRA config: $TSEBRA_CFG" | tee -a {output.log_file}
-
-        GENOME_SIZE=$(awk '{{sum+=$2}} END {{printf "%.0f\n", sum+0}}' {input.genome_fai})
-        # [PARAMS] filter_single_exon_genes: auto (> 300 Mbp), 1 (always), 0 (never)
-        FILTER_SE_MODE={params.filter_se}
-        FILTER_SE_ARG=""
-        if [ "$FILTER_SE_MODE" = "1" ] || {{ [ "$FILTER_SE_MODE" = "auto" ] && [ "$GENOME_SIZE" -gt 300000000 ]; }}; then
-            FILTER_SE_ARG="--filter_single_exon_genes"
-            echo "[INFO] Genome $GENOME_SIZE bp, filter_single_exon_genes=$FILTER_SE_MODE: single-exon gene filter active" | tee -a {output.log_file}
-        else
-            echo "[INFO] Genome $GENOME_SIZE bp, filter_single_exon_genes=$FILTER_SE_MODE: single-exon gene filter inactive" | tee -a {output.log_file}
-        fi
-
-        TSEBRA_TMP={output.braker_per_run}.tmp
-        tsebra.py \
-            --gtf {input.augustus_gtf},{input.genemark_gtf} \
-            --keep_gtf {input.training_gtf} \
-            --hintfiles {input.hintsfile} \
-            $FILTER_SE_ARG \
-            --cfg $TSEBRA_CFG \
-            --out $TSEBRA_TMP 2>&1 | tee -a {output.log_file}
-
-        /opt/TSEBRA/bin/rename_gtf.py \
-            --gtf $TSEBRA_TMP \
-            --out {output.braker_per_run} \
-            2>&1 | tee -a {output.log_file}
-        rm -f $TSEBRA_TMP
-
-        N_GENES=$(awk '$3=="gene"{{n++}}END{{print n+0}}' {output.braker_per_run})
-        N_TX=$(awk '$3=="transcript"{{n++}}END{{print n+0}}' {output.braker_per_run})
-        echo "[INFO] Per-run output ({wildcards.etp_run}): $N_GENES genes, $N_TX transcripts" | tee -a {output.log_file}
-        """
 
 
 rule run_tsebra:

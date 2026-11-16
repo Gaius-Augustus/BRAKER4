@@ -95,10 +95,6 @@ def main():
     # Collect gene counts at each stage
     stages = []
 
-    # Detect dual mode (two separate GeneMark-ETP runs that are merged)
-    is_dual = (os.path.exists(os.path.join(d, 'GeneMark-ETP')) and
-               os.path.exists(os.path.join(d, 'GeneMark-ETP-isoseq')))
-
     def count_unique_genes(gtf_path):
         """Count unique gene_id values in a GTF file.
 
@@ -119,49 +115,29 @@ def main():
                     gene_ids.add(m.group(1))
         return len(gene_ids)
 
-    if is_dual:
-        # Dual mode: two parallel GeneMark-ETP runs, then merged
-        n_sr_pred = count_unique_genes(os.path.join(d, 'GeneMark-ETP', 'genemark.gtf'))
-        n_iso_pred = count_unique_genes(os.path.join(d, 'GeneMark-ETP-isoseq', 'genemark.gtf'))
-        if n_sr_pred > 0:
-            stages.append(('GeneMark-ETP (short-read)', n_sr_pred))
-        if n_iso_pred > 0:
-            stages.append(('GeneMark-ETP (IsoSeq)', n_iso_pred))
+    # GeneMark predictions (dual mode: one combined run in GeneMark-ETP-isoseq/)
+    for gm_dir in ['genemark', 'GeneMark-ET', 'GeneMark-EP', 'GeneMark-ES', 'GeneMark-ETP', 'GeneMark-ETP-isoseq']:
+        gtf = os.path.join(d, gm_dir, 'genemark.gtf')
+        if os.path.exists(gtf):
+            n = count_unique_genes(gtf)
+            stages.append(('GeneMark predictions', n))
+            break
 
-        # Training genes from each run
-        n_sr = count_unique_genes(os.path.join(d, 'GeneMark-ETP', 'training.gtf'))
-        n_iso = count_unique_genes(os.path.join(d, 'GeneMark-ETP-isoseq', 'training.gtf'))
-        if n_sr > 0:
-            stages.append(('Training genes (short-read)', n_sr))
-        if n_iso > 0:
-            stages.append(('Training genes (IsoSeq)', n_iso))
+    # GeneMark filtered (good genes)
+    for p in ['genemark/genemark.f.good.gtf', 'GeneMark-EP/genemark.f.good.gtf']:
+        gtf = os.path.join(d, p)
+        if os.path.exists(gtf):
+            n = count_unique_genes(gtf)
+            stages.append(('Filtered for training', n))
+            break
 
-        # Merged + deduplicated training set
-        merged_training = os.path.join(d, 'dual_etp_merged', 'training.gtf')
-        if os.path.exists(merged_training):
-            n_merged = count_unique_genes(merged_training)
-            stages.append(('Training genes (merged)', n_merged))
-    else:
-        # Single-mode: one GeneMark run
-        for gm_dir in ['genemark', 'GeneMark-ET', 'GeneMark-EP', 'GeneMark-ES', 'GeneMark-ETP']:
-            gtf = os.path.join(d, gm_dir, 'genemark.gtf')
-            if os.path.exists(gtf):
-                n = count_unique_genes(gtf)
-                stages.append(('GeneMark predictions', n))
-                break
-
-        # GeneMark filtered (good genes)
-        for p in ['genemark/genemark.f.good.gtf', 'GeneMark-EP/genemark.f.good.gtf']:
-            gtf = os.path.join(d, p)
-            if os.path.exists(gtf):
-                n = count_unique_genes(gtf)
-                stages.append(('Filtered for training', n))
-                break
-
-        # ETP training genes (single-run)
-        n = count_unique_genes(os.path.join(d, 'GeneMark-ETP', 'training.gtf'))
+    # ETP training genes (ETP/IsoSeq: GeneMark-ETP/, dual: GeneMark-ETP-isoseq/)
+    for etp_dir in ['GeneMark-ETP', 'GeneMark-ETP-isoseq']:
+        n = count_unique_genes(os.path.join(d, etp_dir, 'training.gtf'))
         if n > 0:
             stages.append(('ETP training genes', n))
+            break
+
 
     # After redundancy removal
     n = count_loci_in_gb(os.path.join(d, 'bonafide.f.gb'))

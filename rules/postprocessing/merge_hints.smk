@@ -8,7 +8,7 @@ def _get_merge_hints_inputs(wildcards):
     inputs = {}
 
     if mode == 'dual':
-        # Dual mode: merged hints from both ETP runs
+        # Dual mode: hints of the single combined GeneMark-ETP run
         inputs['etp_hints'] = f"output/{sample}/etp_hints_isoseq.gff"
     if mode in ('etp', 'isoseq'):
         # ETP/IsoSeq mode: hints come from GeneMark-ETP's get_etp_hints.py
