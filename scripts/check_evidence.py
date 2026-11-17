@@ -8,9 +8,9 @@ that rules/common.smk reads through get_effective_mode():
 introns   Count the intron hints of a GFF file and those with a multiplicity
           of at least --min-mult. Fewer than --min-introns of the latter
           means: not enough for GeneMark-ET (RNA-Seq, multiplicity >= 10) or
-          GeneMark-EP (proteins, multiplicity >= 4). The numbers are those
-          of check_genemark_hints() in braker.pl, which warns that GeneMark
-          may crash below 150 such introns.
+          GeneMark-EP (proteins, multiplicity >= 4). check_genemark_hints()
+          in braker.pl warns that GeneMark may crash below 150 such
+          introns. Only used with [PARAMS] fallback_min_introns > 0.
 
 result    Result of a GeneMark run (--tool GeneMark-ETP, GeneMark-ET or
           GeneMark-EP; 'etp' is an alias of this subcommand). The GeneMark

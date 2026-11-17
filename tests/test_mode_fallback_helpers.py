@@ -37,7 +37,10 @@ class Env:
         ns = {
             "os": os,
             "get_braker_mode": lambda s: modes[s],
-            "config": {"auto_mode_fallback": True} if config is None else config,
+            # fallback_min_introns > 0: the two checks before GeneMark are on, so
+            # that every decision point is covered; the default 0 has its own
+            # tests further down
+            "config": {"auto_mode_fallback": True, "fallback_min_introns": 150} if config is None else config,
             "workflow": types.SimpleNamespace(dryrun=dryrun),
         }
         exec(compile(_helper_block(), COMMON, "exec"), ns)
@@ -423,3 +426,43 @@ def test_merge_hints_shell_uses_params_hint_files():
     # no loop over the bare {input}, which would include the decision files
     assert not re.search(r"for\s+\w+\s+in\s+\{input\}", code)
     assert not re.search(r"\{input\}\s*;?\s*do", code)
+
+
+# --------------------------- default fallback_min_introns = 0: no pre-checks
+
+DEFAULT = {"auto_mode_fallback": True, "fallback_min_introns": 0}
+
+
+@pytest.mark.parametrize("planned, bad, expected, asked", [
+    ("etp", [], "etp", ["etp"]),
+    ("etp", ["rnaseq", "protein"], "etp", ["etp"]),      # the checks before GeneMark are not asked
+    ("etp", ["etp"], "ep", ["etp", "ep"]),
+    ("etp", ["etp", "ep"], "es", ["etp", "ep"]),
+    ("et", ["rnaseq"], "et", ["et"]),
+    ("et", ["et"], "es", ["et"]),
+    ("ep", ["protein"], "ep", ["ep"]),
+    ("ep", ["ep"], "es", ["ep"]),
+])
+def test_walk_chain_without_prechecks(planned, bad, expected, asked):
+    """With the default 0 only the results of the GeneMark runs decide."""
+    for config in (DEFAULT, {"auto_mode_fallback": True}):
+        env = make(planned, config=config)
+        seen = []
+
+        def enough(stage):
+            seen.append(stage)
+            return stage not in bad
+
+        assert env._walk_mode_chain("s", enough) == expected
+        assert seen == asked
+
+
+def test_decision_files_without_prechecks(cwd):
+    env = make("etp", config=DEFAULT, dryrun=True)
+    assert [os.path.basename(f) for f in env.mode_decision_files("s")] == ["etp_result.tsv"]
+    # a pre-check file of an earlier call with another setting is ignored
+    write_decision("s", "rnaseq", 0)
+    assert env.effective_mode_on_disk("s") == "etp"
+    write_decision("s", "etp", 0)
+    assert env.effective_mode_on_disk("s") == "ep"
+    assert [os.path.basename(f) for f in env.mode_decision_files("s")] == ["etp_result.tsv", "ep_result.tsv"]

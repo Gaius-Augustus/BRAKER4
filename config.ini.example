@@ -118,9 +118,12 @@ no_cleanup = 0
 ; continues in the next simpler mode instead of failing (ETP -> EP -> ES,
 ; ET -> ES; the report says so). Set to 0 to fail instead.
 auto_mode_fallback = 1
-; Fewer intron hints than this with enough multiplicity (RNA-Seq >= 10,
-; proteins >= 4) count as too little evidence for GeneMark-ET / GeneMark-EP.
-fallback_min_introns = 150
+; 0: only a GeneMark run that really failed triggers the fallback.
+; Greater than 0: also check the intron hints before GeneMark-ET, -ETP and
+; -EP; fewer than this number with enough multiplicity (RNA-Seq >= 10,
+; proteins >= 4) change the mode without trying GeneMark. braker.pl warns
+; below 150.
+fallback_min_introns = 0
 
 [fantasia]
 ; Optional functional annotation with FANTASIA-Lite (GPU validated on A100).

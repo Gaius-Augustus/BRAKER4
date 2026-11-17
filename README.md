@@ -558,7 +558,7 @@ masking_tool = repeatmasker          # repeat masking engine: "repeatmasker" (de
 use_minisplice = 0                  # set to 1 to score splice sites with minisplice before minimap2 (IsoSeq only)
 no_cleanup = 0                      # set to 1 to keep all intermediate files (debugging only)
 auto_mode_fallback = 1              # 0 to fail instead of continuing in a simpler mode when the evidence is too thin (ETP -> EP -> ES, ET -> ES)
-fallback_min_introns = 150          # fewer intron hints than this (RNA-Seq multiplicity >= 10, proteins >= 4) count as too little evidence
+fallback_min_introns = 0            # 0: only a failed GeneMark run triggers the fallback; > 0 (braker.pl warns below 150): also check the intron hints before GeneMark
 
 [fantasia]
 # Optional functional annotation of predicted proteins with FANTASIA-Lite.
@@ -844,7 +844,7 @@ my_species,genome.fa,,,,,,,,,,,eukaryota_odb12,
 
 ### Automatic mode fallback
 
-BRAKER4 plans the mode of a sample from the columns of `samples.csv`. If the evidence turns out to be too thin for the GeneMark program of that mode, the sample continues in the next simpler mode instead of failing:
+BRAKER4 plans the mode of a sample from the columns of `samples.csv`. If the GeneMark program of that mode fails because the evidence is too thin to train on, the sample continues in the next simpler mode instead of failing:
 
 ```
 ETP -> EP -> ES        ET -> ES
@@ -852,19 +852,26 @@ ETP -> EP -> ES        ET -> ES
 
 IsoSeq and dual mode have no fallback. The fallback is on by default and is switched off with `auto_mode_fallback = 0` (see [auto_mode_fallback](#auto_mode_fallback)). With `0`, a sample with too little evidence fails in GeneMark.
 
-The decisions are made at run time, at five points:
+The decisions are made at run time. By default only a GeneMark run that really failed changes the mode:
 
 | Decision point | Planned mode | Too little evidence if | Result |
 |----------------|--------------|------------------------|--------|
-| RNA-Seq check, before GeneMark-ET / GeneMark-ETP | ET, ETP | fewer than `fallback_min_introns` (150) RNA-Seq intron hints with multiplicity >= 10 | ET to ES; ETP to EP (GeneMark-ETP is not started) |
 | GeneMark-ETP result | ETP | GeneMark-ETP ran, but stopped for lack of training data: no spliced transcripts, no gene seeds from GeneMarkS-T, or fewer than 100 training genes | ETP to EP |
 | GeneMark-ET result | ET | `gmes_petap.pl` stopped with an error of its own in training | ET to ES |
-| Protein check, before GeneMark-EP | EP, or ETP after a fallback | fewer than `fallback_min_introns` (150) ProtHint intron hints with multiplicity >= 4; also when ProtHint stops because DIAMOND finds none of the input proteins in the genome | EP to ES |
 | GeneMark-EP result | EP, or ETP after a fallback | `gmes_petap.pl` stopped with an error of its own in training | EP to ES |
 
-The limits 150, 10 and 4 are those at which `braker.pl` warns that GeneMark may crash. A technical failure does not count as too little evidence: when GeneMark-ET, GeneMark-EP or GeneMark-ETP was killed by a signal (out of memory kill, time limit), or when its log shows a full disk or exhausted memory, the job still fails.
+A technical failure does not count as too little evidence: when GeneMark-ET, GeneMark-EP or GeneMark-ETP was killed by a signal (out of memory kill, time limit), when a program that GeneMark called crashed, or when the log shows a full disk or exhausted memory, the job still fails.
 
-An RNA-Seq library without any spliced read does not stop an ET or ETP sample any more: its intron hints file is empty, and the RNA-Seq check counts what the other libraries provide.
+With `fallback_min_introns` greater than 0, two checks before GeneMark are added. They save the time of a GeneMark run that is likely to fail, but they can also send a sample to a simpler mode although GeneMark would have worked, for example EP mode with proteins of a single species, or a genome with few introns. `braker.pl` warns below 150 such intron hints that GeneMark may crash, and only warns:
+
+| Decision point | Planned mode | Too little evidence if | Result |
+|----------------|--------------|------------------------|--------|
+| RNA-Seq check, before GeneMark-ET / GeneMark-ETP | ET, ETP | fewer than `fallback_min_introns` RNA-Seq intron hints with multiplicity >= 10 | ET to ES; ETP to EP (GeneMark-ETP is not started) |
+| Protein check, before GeneMark-EP | EP, or ETP after a fallback | fewer than `fallback_min_introns` ProtHint intron hints with multiplicity >= 4 | EP to ES (GeneMark-EP is not started) |
+
+When ProtHint stops because DIAMOND finds none of the input proteins in the genome, it writes empty hints instead of failing; GeneMark-EP (or the protein check) then decides for ES mode.
+
+An RNA-Seq library without any spliced read does not stop an ET or ETP sample any more: its intron hints file is empty, and GeneMark works with what the other libraries provide.
 
 After a fallback, the evidence that was too thin is not used any more:
 
@@ -1039,7 +1046,7 @@ Set to `0` to switch off the automatic mode fallback (see [Automatic mode fallba
 
 ### fallback_min_introns
 
-Minimum number of intron hints that the RNA-Seq check (before GeneMark-ET and GeneMark-ETP) and the protein check (before GeneMark-EP) require. Default is `150`. Only introns with enough multiplicity are counted: at least 10 for RNA-Seq (`bam2hints.gff`) and at least 4 for proteins (ProtHint hints). The multiplicity limits are fixed. The default values are the limits at which `braker.pl` warns that GeneMark may crash. Has no effect with `auto_mode_fallback = 0`. The value can also be set with the environment variable `BRAKER4_FALLBACK_MIN_INTRONS`.
+Default is `0`: the automatic mode fallback only reacts to a GeneMark run that really failed, and no intron hints are counted beforehand. A value greater than 0 adds two checks before GeneMark: the RNA-Seq check (before GeneMark-ET and GeneMark-ETP) and the protein check (before GeneMark-EP) then require this number of intron hints, and with fewer the sample changes its mode without trying GeneMark. Only introns with enough multiplicity are counted: at least 10 for RNA-Seq (`bam2hints.gff`) and at least 4 for proteins (ProtHint hints). The multiplicity limits are fixed. `braker.pl` warns below `150` such introns that GeneMark may crash. Has no effect with `auto_mode_fallback = 0`. The value can also be set with the environment variable `BRAKER4_FALLBACK_MIN_INTRONS`.
 
 ### translation_table
 

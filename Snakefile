@@ -12,11 +12,11 @@ rules/common.smk):
   GeneMark-ETP run)
 
 Authors: Henning Krall, Katharina J. Hoff
-Version: 0.6.0-beta
+Version: 0.7.0-beta
 """
 
 __author__ = "Henning Krall,Katharina J. Hoff"
-__version__ = "0.6.0-beta"
+__version__ = "0.7.0-beta"
 
 import pandas as pd
 import configparser
@@ -289,14 +289,16 @@ config['no_cleanup'] = config_parser.getboolean(
 # for the planned GeneMark mode continues in the next simpler mode instead
 # of failing: ETP -> EP -> ES and ET -> ES. The decisions are made at run
 # time by the checkpoints in rules/genemark/check_evidence.smk and read by
-# get_effective_mode() in rules/common.smk. fallback_min_introns is the
-# number of intron hints with enough multiplicity (RNA-Seq >= 10, proteins
-# >= 4) below which braker.pl warns that GeneMark-ET/EP may crash.
+# get_effective_mode() in rules/common.smk. fallback_min_introns = 0
+# (default): only a GeneMark run that really failed changes the mode. With a
+# value > 0 the intron hints are also checked before GeneMark (multiplicity
+# RNA-Seq >= 10, proteins >= 4); braker.pl warns below 150 such introns that
+# GeneMark-ET/EP may crash.
 config['auto_mode_fallback'] = config_parser.getboolean(
     'PARAMS', 'auto_mode_fallback', fallback=True
 )
 config['fallback_min_introns'] = config_parser.getint(
-    'PARAMS', 'fallback_min_introns', fallback=150
+    'PARAMS', 'fallback_min_introns', fallback=0
 )
 
 config['translation_table'] = config_parser.getint(

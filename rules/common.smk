@@ -97,15 +97,16 @@ def get_braker_mode(sample):
 # the Snakefile is parsed and decides which rule files are included. The
 # mode a sample really runs in (the EFFECTIVE mode) can be a simpler one
 # when the evidence turns out to be too thin ([PARAMS] auto_mode_fallback,
-# default on). Five checkpoints (rules/genemark/check_evidence.smk) write
-# one decision file each to output/<sample>/mode_selection/:
+# default on). Checkpoints (rules/genemark/check_evidence.smk) write one
+# decision file each to output/<sample>/mode_selection/:
 #
-#   rnaseq   rnaseq_evidence.tsv   RNA-Seq intron hints (planned ET, ETP)
 #   etp      etp_result.tsv        GeneMark-ETP found training genes (ETP)
 #   et       et_result.tsv         GeneMark-ET could train (ET)
-#   protein  protein_evidence.tsv  ProtHint intron hints (EP, also after a
-#                                  fallback from ETP)
-#   ep       ep_result.tsv         GeneMark-EP could train (EP)
+#   ep       ep_result.tsv         GeneMark-EP could train (EP, also after
+#                                  a fallback from ETP)
+#   and only with fallback_min_introns > 0 (default 0), before GeneMark:
+#   rnaseq   rnaseq_evidence.tsv   RNA-Seq intron hints (planned ET, ETP)
+#   protein  protein_evidence.tsv  ProtHint intron hints (EP)
 #
 # hintsfile.gff of a planned ET sample is the input of GeneMark-ET, so
 # merge_hints cannot depend on the decisions for such a sample: after a
@@ -253,16 +254,22 @@ def _is_dry_run():
 
 
 def _walk_mode_chain(sample, enough):
-    """Effective mode of a sample; enough(stage) answers one decision."""
+    """Effective mode of a sample; enough(stage) answers one decision.
+
+    The results of GeneMark-ETP, GeneMark-ET and GeneMark-EP are always
+    asked. The two checks before GeneMark (RNA-Seq and protein intron
+    hints) are only asked with fallback_min_introns > 0; the default 0
+    means that only a GeneMark run that really failed changes the mode."""
     planned = get_braker_mode(sample)
     mode = planned
-    if mode in ("etp", "et") and not enough("rnaseq"):
+    precheck = int(config.get("fallback_min_introns", 0) or 0) > 0
+    if precheck and mode in ("etp", "et") and not enough("rnaseq"):
         mode = "ep" if planned == "etp" else "es"
     if mode == "etp" and not enough("etp"):
         mode = "ep"
     if mode == "et" and not enough("et"):
         mode = "es"
-    if mode == "ep" and not enough("protein"):
+    if precheck and mode == "ep" and not enough("protein"):
         mode = "es"
     if mode == "ep" and not enough("ep"):
         mode = "es"

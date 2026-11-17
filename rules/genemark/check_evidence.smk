@@ -7,22 +7,28 @@ default on):
 
     ETP -> EP -> ES        ET -> ES
 
-Five checkpoints write one decision file each to
-output/<sample>/mode_selection/ (kept by collect_results, so that a finished
-run stays finished). get_effective_mode() in rules/common.smk reads them:
+Checkpoints write one decision file each to output/<sample>/mode_selection/
+(kept by collect_results, so that a finished run stays finished).
+get_effective_mode() in rules/common.smk reads them. By default
+(fallback_min_introns = 0) only the three checks of a GeneMark result are
+asked, so that only a GeneMark run that really failed changes the mode. The
+two checks before GeneMark (check_rnaseq_evidence, check_protein_evidence)
+are asked with fallback_min_introns > 0 only; they save the time of a
+GeneMark run that is likely to fail, but can also change the mode of a
+sample on which GeneMark would have worked:
 
     check_rnaseq_evidence   planned ET and ETP. Fewer than
-                            fallback_min_introns (150) RNA-Seq intron hints
+                            fallback_min_introns RNA-Seq intron hints
                             with multiplicity >= 10 in bam2hints.gff:
                             ET -> ES, ETP -> EP (GeneMark-ETP is not started).
-    check_etp_result        planned ETP that passed the RNA-Seq check.
+    check_etp_result        planned ETP (that passed the RNA-Seq check).
                             GeneMark-ETP ran, but stopped for lack of
                             training data (run_genemark_etp wrote
                             mode_selection/etp_insufficient.txt): ETP -> EP.
                             The intron count cannot predict this case: the
                             number of training genes is only known after
                             GeneMarkS-T, ProtHint and the filter have run.
-    check_et_result         planned ET that passed the RNA-Seq check.
+    check_et_result         planned ET (that passed the RNA-Seq check).
                             GeneMark-ET stopped with an error of its own in
                             training (run_genemark_et wrote
                             mode_selection/et_insufficient.txt, see
@@ -35,7 +41,7 @@ run stays finished). get_effective_mode() in rules/common.smk reads them:
                             DIAMOND finds no input protein in the genome,
                             run_prothint writes empty hints instead of
                             failing, and this check then counts 0 introns.
-    check_ep_result         EP that passed the protein check. GeneMark-EP
+    check_ep_result         EP (that passed the protein check). GeneMark-EP
                             stopped with an error of its own in training
                             (mode_selection/ep_insufficient.txt): EP -> ES.
 
@@ -45,9 +51,9 @@ EP -> ES), with one exception: hintsfile.gff of an ET sample is the input of
 GeneMark-ET and cannot depend on its result, so after ET -> ES the RNA-Seq
 intron hints stay in the AUGUSTUS hints file (GeneMark-ES trains AUGUSTUS).
 
-The limits (150 introns, multiplicity 10 for RNA-Seq and 4 for proteins) are
-those of check_genemark_hints() in braker.pl, which warns that GeneMark-ET/EP
-may crash below them. IsoSeq and dual mode have no fallback.
+check_genemark_hints() in braker.pl warns that GeneMark-ET/EP may crash below
+150 introns with multiplicity 10 (RNA-Seq) or 4 (proteins); it only warns.
+IsoSeq and dual mode have no fallback.
 
 A library without spliced reads gives an empty bam2hints file; for ET and ETP
 samples the bam2hints rule accepts that (the RNA-Seq check then counts what
@@ -92,7 +98,7 @@ checkpoint check_rnaseq_evidence:
         "benchmarks/{sample}/mode_selection/rnaseq_evidence.txt"
     params:
         script=os.path.join(script_dir, "check_evidence.py"),
-        min_introns=config.get("fallback_min_introns", 150)
+        min_introns=config.get("fallback_min_introns", 0)
     threads: 1
     resources:
         mem_mb=mem_single_thread,
@@ -213,7 +219,7 @@ checkpoint check_protein_evidence:
         "benchmarks/{sample}/mode_selection/protein_evidence.txt"
     params:
         script=os.path.join(script_dir, "check_evidence.py"),
-        min_introns=config.get("fallback_min_introns", 150)
+        min_introns=config.get("fallback_min_introns", 0)
     threads: 1
     resources:
         mem_mb=mem_single_thread,
