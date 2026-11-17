@@ -161,10 +161,10 @@ if [ "$LOCAL_ONLY" != "1" ]; then
 fi
 
 # ============================================================================
-# FANTASIA-Lite container + ProtT5 HuggingFace cache (optional, GPU-only)
+# FANTASIA-Lite container + ProtT5 HuggingFace cache (optional, GPU or CPU)
 # ============================================================================
 # This block is intentionally OPT-IN -- the SIF is ~6 GB and the ProtT5 weights
-# are another ~5 GB, and FANTASIA-Lite is the most fragile, GPU-only component
+# are another ~5 GB, and FANTASIA-Lite is the most fragile component
 # of BRAKER4 (validated only on an A100 in the Hoff lab). Set
 # BRAKER4_DOWNLOAD_FANTASIA=1 to stage both, otherwise this section is skipped.
 #
