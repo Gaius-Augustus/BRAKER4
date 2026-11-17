@@ -1,0 +1,2 @@
+sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_ids,varus_genus,varus_species,isoseq_bam,isoseq_fastq,busco_lineage,reference_gtf
+yeast_etp,../../test_data/Saccharomyces_cerevisiae_R64.fa,,../../test_data/Fungi.fa,,,,SRR5819434:SRR5819435,,,,,saccharomycetes_odb12,
