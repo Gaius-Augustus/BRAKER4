@@ -16,6 +16,20 @@
 # default) live in each scenario's optional scenario_overrides.sh, which is
 # sourced AFTER this file by run_test.sh.
 
+# Site-specific settings that do not belong in git (locations of tools and
+# data on your cluster, extra Singularity bind paths, the FANTASIA files) go
+# into test_scenarios/site_profile.sh. That file is ignored by git and is
+# sourced here if it exists; see site_profile.sh.example.
+_BRAKER4_PROFILE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$_BRAKER4_PROFILE_DIR/site_profile.sh" ]; then
+    source "$_BRAKER4_PROFILE_DIR/site_profile.sh"
+fi
+
+# Singularity bind arguments of the run scripts that read their input from
+# outside /home (scenarios 13 and 16 to 19). Add the file systems that hold
+# your data, e.g. "-B /home -B /data", in site_profile.sh.
+export SINGULARITY_BIND_ARGS="${SINGULARITY_BIND_ARGS:--B /home}"
+
 # How many cores snakemake itself uses (snakemake --cores / --jobs).
 export CORES="${CORES:-48}"
 

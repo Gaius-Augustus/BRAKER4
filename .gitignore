@@ -3,6 +3,7 @@ test_data/RNAseq.bam
 test_data/reads_R1.fastq*
 test_data/reads_R2.fastq*
 test_data/Arabidopsis_thaliana.fa
+test_data/Arabidopsis_thaliana/
 test_data/Ostreococcus_tauri.fa
 test_data/Viridiplantae.fa
 test_data/isoseq_lib2.bam
@@ -67,3 +68,6 @@ graphify-out/*
 
 # pixi environments
 .pixi/
+
+# Site-specific settings of the HPC test scenarios (storage paths of a cluster)
+test_scenarios/site_profile.sh

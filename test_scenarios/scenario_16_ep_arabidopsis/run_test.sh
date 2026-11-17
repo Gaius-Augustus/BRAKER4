@@ -51,7 +51,7 @@ snakemake \
     --restart-times 3 \
     --use-singularity \
     --singularity-prefix "$PIPELINE_DIR/.singularity_cache" \
-    --singularity-args "-B /home -B /projects --env PREPEND_PATH=/opt/conda/bin" \
+    --singularity-args "$SINGULARITY_BIND_ARGS --env PREPEND_PATH=/opt/conda/bin" \
     $EXECUTOR_ARGS
 
 echo ""

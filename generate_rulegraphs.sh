@@ -68,10 +68,9 @@ export BRAKER4_FANTASIA_HF_CACHE="$FANTASIA_DUMMY_HF"
 # of the shared config. Mirror that contract here so the rulegraph DAG
 # matches what `run_test.sh` would actually build.
 # Scenarios excluded by name. The athaliana benchmark is a real-data run that
-# lives only on brain (the HPC) — its samples.csv references absolute NAS
-# paths under /home/nas-hs/projs/braker4/data/Arabidopsis_thaliana/ that do
-# not exist on a workstation, so even if we built the DAG it would point at
-# files no local user can read. Keep it out of the rulegraph generator.
+# lives only on the HPC: its input data are not shipped and do not exist
+# on a workstation, so even if we built the DAG it would point at files no
+# local user can read. Keep it out of the rulegraph generator.
 EXCLUDED_SCENARIOS=(scenario_benchmark_athaliana)
 
 is_excluded() {

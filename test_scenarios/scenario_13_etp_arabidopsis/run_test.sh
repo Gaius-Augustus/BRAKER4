@@ -16,7 +16,7 @@ echo "============================================"
 echo ""
 echo "Configuration:"
 echo "  - Genome: A. thaliana (~135 MB, unmasked — masking runs in-pipeline)"
-echo "  - Proteins: /home/nas-hs/projs/braker4/data/Arabidopsis_thaliana/proteins.fa"
+echo "  - Proteins: test_data/Arabidopsis_thaliana/proteins.fa (OrthoDB embryophyta)"
 echo "  - RNA-Seq: VARUS BAM"
 echo "  - BRAKER Mode: ETP"
 echo "  - skip_optimize_augustus: 1"
@@ -55,7 +55,7 @@ snakemake \
     --restart-times 3 \
     --use-singularity \
     --singularity-prefix "$PIPELINE_DIR/.singularity_cache" \
-    --singularity-args "-B /home -B /projects --env PREPEND_PATH=/opt/conda/bin" \
+    --singularity-args "$SINGULARITY_BIND_ARGS --env PREPEND_PATH=/opt/conda/bin" \
     $EXECUTOR_ARGS
 
 echo ""

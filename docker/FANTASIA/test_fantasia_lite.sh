@@ -46,7 +46,7 @@ OUTDIR="${WORK_DIR}/test_output_$$"
 mkdir -p "$OUTDIR"
 
 echo "[$(date)] Running FANTASIA-Lite on test.fa (GPU mode)"
-LOOKUP="${FANTASIA_LOOKUP_DIR:-/home/nas-hs/data/db/EukBinDB/fantasia_v1_lookup}"
+LOOKUP="${FANTASIA_LOOKUP_DIR:?set FANTASIA_LOOKUP_DIR to the fantasia_v1_lookup directory}"
 singularity exec --nv \
     --bind "$OUTDIR":"$OUTDIR" \
     --bind "$LOOKUP":"$LOOKUP" \

@@ -176,7 +176,15 @@ All scenarios in this directory share **two** configuration files:
 | `compute_profile.sh` | Cluster / compute knobs: cores, partition list, memory, per-job runtime, SLURM on/off |
 | `config.ini` | Biology knobs shared by every scenario: optimisation flags, masking, ncRNA, etc. |
 
-Edit `compute_profile.sh` once to point the test suite at your own cluster — no per-scenario edits needed for the compute settings. Two things still need your attention: scenario 08 turns FANTASIA-Lite on (`scenario_08_es/scenario_overrides.sh`), so the `sif`, `hf_cache_dir` and `lookup_dir` paths in the `[fantasia]` section of `config.ini` must exist on your system, otherwise the Snakefile stops at startup; and several scenarios (13, 16, 17-19) read input files from fixed locations of the original cluster and need their `samples.csv` or script adapted. `test_scenarios_local/compute_profile.sh` plays the same role for the local (no-SLURM) tier.
+Edit `compute_profile.sh` once to point the test suite at your own cluster; no per-scenario edits are needed for the compute settings. Storage paths of your site do not go into tracked files: copy `site_profile.sh.example` to `site_profile.sh` (ignored by git, sourced by `compute_profile.sh`) and set them there:
+
+- Tools that are not on `PATH` on every node (`snakemake`, `singularity`).
+- `SINGULARITY_BIND_ARGS`, if input data live outside `/home` (default `-B /home`).
+- Scenario 08 turns FANTASIA-Lite on (`scenario_08_es/scenario_overrides.sh`). Set `BRAKER4_FANTASIA_SIF`, `BRAKER4_FANTASIA_HF_CACHE` and `BRAKER4_FANTASIA_LOOKUP_DIR`; the paths in the `[fantasia]` section of `config.ini` are placeholders, and the Snakefile stops at startup when the container file does not exist.
+
+Scenarios 13 and 16 to 19 use *A. thaliana* benchmark data that are not shipped. They read `genome.fa`, `proteins.fa` and `annotation.gff3` from `test_data/Arabidopsis_thaliana/` (ignored by git); link or copy your files there. Scenarios 17 to 19 also need the VARUS BAM that scenario 13 writes. Submit the `submit_snakemake.sh` and `run_braker3_*.sh` scripts with `sbatch` from their scenario directory.
+
+`test_scenarios_local/compute_profile.sh` plays the same role for the local (no-SLURM) tier.
 
 ### compute_profile.sh
 

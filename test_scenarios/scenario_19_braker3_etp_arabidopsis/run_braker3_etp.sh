@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=braker3_etp_ath
-#SBATCH --output=/home/hoffk83/git/BRAKER4/test_scenarios/scenario_19_braker3_etp_arabidopsis/braker3_etp.log
-#SBATCH --error=/home/hoffk83/git/BRAKER4/test_scenarios/scenario_19_braker3_etp_arabidopsis/braker3_etp.err
+#SBATCH --output=braker3_etp.log
+#SBATCH --error=braker3_etp.err
 #SBATCH --partition=batch,snowball,pinky
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=48
@@ -10,15 +10,26 @@
 
 set -euo pipefail
 
-SCENARIO_DIR=/home/hoffk83/git/BRAKER4/test_scenarios/scenario_19_braker3_etp_arabidopsis
-SIF_CACHE=/home/hoffk83/git/BRAKER4/.singularity_cache
+# Submit from this scenario directory:  sbatch run_braker3_etp.sh
+SCENARIO_DIR="${SLURM_SUBMIT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+if [ ! -f "$SCENARIO_DIR/run_braker3_etp.sh" ]; then
+    echo "ERROR: submit run_braker3_etp.sh from its scenario directory" >&2
+    exit 1
+fi
+TIER_DIR="$(cd "$SCENARIO_DIR/.." && pwd)"
+PIPELINE_DIR="$(cd "$TIER_DIR/.." && pwd)"
+# SINGULARITY_BIND_ARGS and the site settings (../site_profile.sh)
+source "$TIER_DIR/compute_profile.sh"
+SIF_CACHE=$PIPELINE_DIR/.singularity_cache
+# A. thaliana benchmark data, not shipped (see test_scenarios/README.md)
+ATH_DATA=$PIPELINE_DIR/test_data/Arabidopsis_thaliana
 BRAKER3_SIF=$SIF_CACHE/0ee9893ca6784f3cd184129689650c92.simg
 GFFCMP_SIF=$SIF_CACHE/2b70909c3b56a6698bf067440b597123.simg
 
-GENOME=/projects/AI-GUSTUS/tiberius_mesangiospermae_training_data/test/genomes/AthalianacolumbiaAraport11.genome.fa
-BAM=/home/hoffk83/git/BRAKER4/test_scenarios/scenario_13_etp_arabidopsis/output/ath_etp/varus/varus.sorted.bam
-PROTEINS=/home/hoffk83/GALBA2_test_data/proteins.fa
-REFERENCE=/projects/AI-GUSTUS/tiberius_mesangiospermae_training_data/test/annotations/AthalianacolumbiaAraport11.gff3
+GENOME=$ATH_DATA/genome.fa
+BAM=$TIER_DIR/scenario_13_etp_arabidopsis/output/ath_etp/varus/varus.sorted.bam
+PROTEINS=$ATH_DATA/proteins.fa
+REFERENCE=$ATH_DATA/annotation.gff3
 WORKDIR=$SCENARIO_DIR/output
 GFFCMP_DIR=$SCENARIO_DIR/gffcompare
 THREADS=48
@@ -39,7 +50,7 @@ AUGUSTUS_CONFIG=$SCENARIO_DIR/augustus_config
 if [ ! -d "$AUGUSTUS_CONFIG" ]; then
     echo "[INFO] Copying Augustus config from container..."
     singularity exec \
-        -B /home -B /projects \
+        $SINGULARITY_BIND_ARGS \
         "$BRAKER3_SIF" \
         cp -r /opt/Augustus/config "$AUGUSTUS_CONFIG"
     chmod -R u+w "$AUGUSTUS_CONFIG"
@@ -48,7 +59,7 @@ fi
 
 echo "[INFO] Running braker.pl ETP mode (BAM + proteins, skipOptimize)..."
 singularity exec \
-    -B /home -B /projects \
+    $SINGULARITY_BIND_ARGS \
     -B "${AUGUSTUS_CONFIG}:/opt/Augustus/config" \
     "$BRAKER3_SIF" \
     /opt/BRAKER/scripts/braker.pl \
@@ -68,7 +79,7 @@ echo "Reference CDS lines : $(wc -l < $GFFCMP_DIR/reference.CDS.gtf)"
 echo "Prediction CDS lines: $(wc -l < $GFFCMP_DIR/prediction.CDS.gtf)"
 
 singularity exec \
-    -B /home -B /projects \
+    $SINGULARITY_BIND_ARGS \
     "$GFFCMP_SIF" \
     gffcompare \
         --strict-match -e 3 -T \

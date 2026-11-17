@@ -1,0 +1,28 @@
+#!/bin/bash
+# Site-specific settings for the HPC test scenarios.
+#
+# Copy this file to test_scenarios/site_profile.sh and fill in the values of
+# your cluster. site_profile.sh is ignored by git and is sourced by
+# compute_profile.sh, so that no storage path of your site ends up in the
+# repository.
+
+# Tools that are not on PATH on every node (snakemake, singularity)
+# export PATH=/path/to/snakemake/bin:/path/to/singularity/bin:${PATH}
+
+# File systems outside /home that hold input data (scenarios 13, 16 to 19)
+# export SINGULARITY_BIND_ARGS="-B /home -B /data"
+
+# FANTASIA-Lite (scenario 08)
+# export BRAKER4_FANTASIA_SIF=/path/to/fantasia_lite.sif
+# export BRAKER4_FANTASIA_HF_CACHE=/path/to/hf_cache
+# export BRAKER4_FANTASIA_LOOKUP_DIR=/path/to/fantasia_v1_lookup
+# export BRAKER4_FANTASIA_PARTITION=gpu
+
+# A. thaliana benchmark data (scenarios 13 and 16 to 19) are read from
+# test_data/Arabidopsis_thaliana/ in the repository (ignored by git):
+#   genome.fa        genome assembly
+#   proteins.fa      protein set (e.g. OrthoDB Embryophyta)
+#   annotation.gff3  reference annotation for the accuracy comparison
+# Link or copy your files there, for example:
+#   mkdir -p test_data/Arabidopsis_thaliana
+#   ln -s /path/to/your/genome.fa test_data/Arabidopsis_thaliana/genome.fa

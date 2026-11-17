@@ -10,7 +10,7 @@
 # After pushing, on brain:
 #   singularity pull fantasia_lite_v1.0.1.sif \
 #       docker://katharinahoff/fantasia_for_brain:lite.v1.0.1
-#   cp fantasia_lite_v1.0.1.sif /projects/BOUDICCA/db/images/fantasia_lite.sif
+#   cp fantasia_lite_v1.0.1.sif /path/to/images/fantasia_lite.sif
 
 set -euo pipefail
 
@@ -28,6 +28,6 @@ docker push "$IMAGE:$TAG"
 echo "[$(date)] Done."
 echo ""
 echo "Next steps on brain:"
-echo "  singularity pull /projects/BOUDICCA/db/images/fantasia_lite_v1.0.1.sif \\"
+echo "  singularity pull /path/to/images/fantasia_lite_v1.0.1.sif \\"
 echo "      docker://katharinahoff/fantasia_for_brain:lite.v1.0.1"
 echo "  # then either replace the existing SIF or update run_fantasia.smk"
