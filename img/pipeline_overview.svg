@@ -243,7 +243,7 @@
 <text text-anchor="middle" x="534" y="-432.2" font-family="Helvetica,sans-Serif" font-size="16.00">FANTASIA&#45;Lite</text>
 <text text-anchor="middle" x="534" y="-414.2" font-family="Helvetica,sans-Serif" font-size="16.00">ProtT5 embeddings → GO terms</text>
 <text text-anchor="middle" x="534" y="-396.2" font-family="Helvetica,sans-Serif" font-size="16.00">GFF3 Ontology_term decoration</text>
-<text text-anchor="middle" x="534" y="-378.2" font-family="Helvetica,sans-Serif" font-size="16.00">(GPU only)</text>
+<text text-anchor="middle" x="534" y="-378.2" font-family="Helvetica,sans-Serif" font-size="16.00">(GPU or CPU)</text>
 </g>
 <!-- tsebra&#45;&gt;fantasia -->
 <g id="edge18" class="edge">

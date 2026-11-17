@@ -153,10 +153,10 @@ digraph BRAKER4 {
     ];
 
     /* =====================================================
-     *  FUNCTIONAL ANNOTATION  (optional, GPU-only)
+     *  FUNCTIONAL ANNOTATION  (optional, GPU or CPU)
      * ===================================================== */
     fantasia [
-        label    = "Functional annotation  (optional)\n\nFANTASIA-Lite\nProtT5 embeddings → GO terms\nGFF3 Ontology_term decoration\n(GPU only)",
+        label    = "Functional annotation  (optional)\n\nFANTASIA-Lite\nProtT5 embeddings → GO terms\nGFF3 Ontology_term decoration\n(GPU or CPU)",
         fillcolor = "#a2c4c9",
         style     = "filled,rounded,dashed",
         penwidth  = 1.4
@@ -239,7 +239,7 @@ digraph BRAKER4 {
     /* Pipeline → ncRNA (optional) */
     tsebra -> ncrna [style = "dashed"];
 
-    /* Pipeline → FANTASIA functional annotation (optional, GPU) */
+    /* Pipeline → FANTASIA functional annotation (optional, GPU or CPU) */
     tsebra -> fantasia [style = "dashed"];
 
     /* Outputs  (spine edge tsebra → out_genes has high weight) */
