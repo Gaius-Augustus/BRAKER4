@@ -10,6 +10,9 @@ Fixes BRAKER issues:
 - #71: Transcripts whose CDS chain (coordinates and frames) repeats an earlier
   transcript are removed; TSEBRA misses these when the transcript spans
   differ, e.g. an AUGUSTUS partial gene with a leading intron feature
+- #751: start and stop codons are read across introns; a split stop codon is
+  trimmed from the CDS and written as one stop_codon line per part (a split
+  start codon likewise gets one start_codon line per part)
 
 This rule runs after filter_internal_stop_codons and produces the final braker.gtf.
 Genes with broken structures after stop codon trimming are discarded entirely.
@@ -17,7 +20,7 @@ check_gtf_loci.py then fails the rule if any gene or transcript is not on a
 single sequence and strand, or its gene/transcript line span does not match
 its children (#62).
 
-Container: teambraker/braker3:latest (has BioPython)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; has BioPython)
 """
 
 

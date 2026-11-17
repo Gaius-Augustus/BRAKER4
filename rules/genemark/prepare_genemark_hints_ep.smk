@@ -15,7 +15,7 @@ Output:
     - genemark_hints_ep.gff - Protein intron hints for GeneMark-EP
     - genemark_evidence.gff - Evidence hints (src=M) for GeneMark-EP+
 
-Container: teambraker/braker3:latest (contains join_mult_hints.pl)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains join_mult_hints.pl)
 """
 
 def _get_prepare_ep_inputs(wildcards):

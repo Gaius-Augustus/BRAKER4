@@ -251,12 +251,12 @@ rule generate_statistics:
     This rule creates a summary report with key statistics about:
     - Number of genes, transcripts, and features
     - Gene structure statistics (exons per gene, CDS length, etc.)
-    - Comparison with original failed BRAKER3 predictions
+    - Mono- and multi-exonic gene counts and their ratio
+    - Sequence counts and total/average CDS and protein lengths
     - Training gene statistics
 
     Resources:
-        - Local rule (no cluster submission)
-        - Instant execution
+        - Single thread
 
     Input:
         braker_gtf: Final BRAKER GTF file

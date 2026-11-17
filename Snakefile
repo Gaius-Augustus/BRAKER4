@@ -1,11 +1,15 @@
 """
-BRAKER3 Snakemake Workflow
+BRAKER4 Snakemake Workflow
 
-Dynamic workflow supporting all BRAKER modes:
+Dynamic workflow supporting all BRAKER modes (get_braker_mode in
+rules/common.smk):
+- ES: Genome only (ab initio self-training)
 - ET: RNA-Seq only (Evidence from Transcripts)
 - EP: Proteins only (Evidence from Proteins)
-- ETP: RNA-Seq + Proteins (BRAKER3)
+- ETP: RNA-Seq + Proteins
 - IsoSeq: PacBio long-read + Proteins
+- dual: short-read RNA-Seq + PacBio long-read + Proteins (one combined
+  GeneMark-ETP run)
 
 Authors: Henning Krall, Katharina J. Hoff
 Version: 0.6.0-beta
@@ -123,7 +127,7 @@ config['samples_file'] = config_parser['paths'].get('samples_file', 'samples.csv
 config['fungus'] = config_parser.getboolean('PARAMS', 'fungus', fallback=False)
 config['min_contig'] = config_parser.getint('PARAMS', 'min_contig', fallback=10000)
 _container_defaults = {
-    'braker3_image':   'docker://teambraker/braker3:v3.1.1',
+    'braker3_image':   'docker://teambraker/braker3:v3.1.2',
     'minimap2_image':  'docker://katharinahoff/minimap-minisplice:v0.1',
     'minisplice_image':'docker://katharinahoff/minimap-minisplice:v0.1',
     'red_image':       'docker://quay.io/biocontainers/red:2018.09.10--h9948957_3',
@@ -665,6 +669,10 @@ if HAS_DUAL:
 # Evidence checks of the automatic mode fallback (checkpoints)
 if AUTO_MODE_FALLBACK:
     include: "rules/genemark/check_evidence.smk"
+    # decision files of an earlier call are only valid for the evidence they
+    # were made from (reset_stale_mode_decisions in rules/common.smk)
+    for _fallback_sample in SAMPLES:
+        reset_stale_mode_decisions(_fallback_sample)
 
 # GeneMark filtering (always needed, uses mode-dependent input functions)
 include: "rules/genemark/filter_genemark.smk"
@@ -772,10 +780,11 @@ if RUN_NCRNA:
         include: "rules/ncrna/run_feelnc.smk"
 
 # Include FANTASIA-Lite functional annotation rules (optional, GPU or CPU).
-# This is the most fragile component of BRAKER4 -- the upstream container
-# requires an NVIDIA GPU (validated on A100). See README "run_fantasia" section.
+# This is the most fragile component of BRAKER4. [fantasia] device = gpu
+# (default) needs an NVIDIA GPU (validated on A100); device = cpu runs without
+# one. See README "run_fantasia" section.
 if config.get('run_fantasia', False):
-    print("  ✓ FANTASIA-Lite functional annotation (GPU)")
+    print("  ✓ FANTASIA-Lite functional annotation (GPU or CPU)")
     include: "rules/postprocessing/run_fantasia.smk"
 
 # Include results collection rule

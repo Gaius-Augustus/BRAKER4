@@ -9,7 +9,8 @@
 # returns 0. Returns 1 when the failure must stay a failure:
 #   - the program was killed by a signal (exit code >= 128: out of memory
 #     kill, time limit, segmentation fault), or
-#   - a log shows a full disk or exhausted memory.
+#   - a log shows a full disk, exhausted memory, or the crash or kill of a
+#     program that GeneMark called (segmentation fault, "error code 11").
 # gmes_petap.pl has no error message of its own for too little evidence; it
 # stops somewhere in training (division by zero in parse_ET.pl, missing
 # model files, no valid sequences). Every error exit of the program itself
@@ -23,7 +24,7 @@ genemark_fallback_marker() {
     if [ "$code" -ge 128 ]; then
         return 1
     fi
-    if grep -qiE 'No space left on device|Disk quota exceeded|Cannot allocate memory|Out of memory' "$@" 2>/dev/null; then
+    if grep -qiE 'No space left on device|Disk quota exceeded|Cannot allocate memory|Out of memory|Segmentation fault|core dumped|error code (9|11|134|137|139)([^0-9]|$)' "$@" 2>/dev/null; then
         return 1
     fi
     local last

@@ -44,6 +44,7 @@ rule both_agree_rescue:
         augustus_gtf="output/{sample}/augustus.hints.fixed.gtf",
         genemark_gtf=_both_agree_genemark_input,
         hints=_both_agree_hints_input,
+        mode_decisions=mode_decision_files,
     output:
         rescued_gtf="output/{sample}/braker.rescued.gtf",
         rescue_log="output/{sample}/both_agree_rescue.log",

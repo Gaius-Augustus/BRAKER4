@@ -17,7 +17,7 @@ When run_best_by_compleasm = 0, this rule simply copies
 braker.tsebra.raw.gtf -> braker.tsebra.gtf without running anything.
 The default is 1 (enabled).
 
-Container: teambraker/braker3:latest (contains compleasm, tsebra, getAnnoFastaFromJoingenes)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains compleasm, tsebra, getAnnoFastaFromJoingenes)
 """
 
 
@@ -48,12 +48,12 @@ rule best_by_compleasm:
     before.
     """
     input:
-        unpack(lambda w: {
+        unpack(lambda w: with_mode_decisions(w, {
             "braker_raw":  f"output/{w.sample}/braker.tsebra.raw.gtf",
             "augustus_gtf": f"output/{w.sample}/augustus.hints.fixed.gtf",
             "genome": os.path.join(get_braker_dir(w), "genome.fa"),
             "genemark_gtf": _bbc_genemark_gtf(w),
-        })
+        }))
     output:
         braker_merged_gtf="output/{sample}/braker.tsebra.gtf",
         bbc_log="output/{sample}/best_by_compleasm.log"

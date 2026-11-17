@@ -99,7 +99,11 @@ rule collect_results:
         resultsdir="output/{sample}/results",
         no_cleanup=config.get('no_cleanup', False),
         mode=lambda w: effective_mode_on_disk(w.sample),
-        planned_mode=lambda w: get_braker_mode(w.sample)
+        planned_mode=lambda w: get_braker_mode(w.sample),
+        # decision files of the effective path (empty without fallback)
+        decisions=lambda w, input: ([] if "mode_decisions" not in input.keys()
+                                    else [input.mode_decisions] if isinstance(input.mode_decisions, str)
+                                    else list(input.mode_decisions))
     threads: 1
     resources:
         mem_mb=0 if config['slurm_args'].get('skip_mem') else 4000,
@@ -139,9 +143,21 @@ rule collect_results:
         fi
 
         # --- Automatic mode fallback: decisions and, if the mode changed, a note ---
-        if [ -d "$OUTDIR/mode_selection" ]; then
+        # Only the decisions this run rests on. A decision file left by an
+        # earlier run in this directory that is no longer on the path (e.g.
+        # ep_result.tsv after GeneMark-ETP succeeded in a second attempt) is
+        # removed, so that results and report describe this run.
+        DECISIONS=" {params.decisions} "
+        if [ -d "$OUTDIR/mode_selection" ] && [ -n "{params.decisions}" ]; then
             mkdir -p "$RESULTS/quality_control/mode_selection"
-            cp "$OUTDIR"/mode_selection/*.tsv "$RESULTS/quality_control/mode_selection/" 2>/dev/null || true
+            rm -f "$RESULTS"/quality_control/mode_selection/*.tsv
+            for f in "$OUTDIR"/mode_selection/*.tsv; do
+                [ -e "$f" ] || continue
+                case "$DECISIONS" in
+                    *" $f "*) cp "$f" "$RESULTS/quality_control/mode_selection/" ;;
+                    *) rm -f "$f" ;;
+                esac
+            done
         fi
         if [ "{params.mode}" != "{params.planned_mode}" ]; then
             echo "[WARNING] Automatic mode fallback: planned mode {params.planned_mode}, run in {params.mode} mode (reasons: $RESULTS/quality_control/mode_selection/)"

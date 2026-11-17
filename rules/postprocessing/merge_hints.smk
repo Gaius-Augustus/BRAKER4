@@ -38,6 +38,11 @@ def _get_merge_hints_inputs(wildcards):
     if config.get('use_compleasm_hints', True):
         inputs['compleasm_hints'] = f"output/{sample}/compleasm_hints.gff"
 
+    if get_braker_mode(sample) != 'et':
+        # evaluated again when a mode decision changes (not for planned ET,
+        # see above)
+        inputs = with_mode_decisions(wildcards, inputs)
+
     return inputs
 
 rule merge_hints:
@@ -69,7 +74,7 @@ rule merge_hints:
     nothing is copied back. NEED 5 x the input hint files + 5 GB; with less
     free sort spills to output/<sample>/.
 
-    Container: teambraker/braker3:latest (provides join_mult_hints.pl)
+    Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; provides join_mult_hints.pl)
 
     Output:
         hintsfile: Merged + collapsed hints file in GFF format
@@ -83,7 +88,9 @@ rule merge_hints:
     benchmark:
         "benchmarks/{sample}/merge_hints/merge_hints.txt"
     params:
-        tmp_root=TMP_ROOT
+        tmp_root=TMP_ROOT,
+        # the hints files among the inputs (not the mode decision files)
+        hint_files=lambda wildcards, input: [v for k, v in input.items() if k != "mode_decisions"]
     threads: 1
     resources:
         mem_mb=mem_single_thread,
@@ -100,13 +107,13 @@ rule merge_hints:
         # sort's temporary files go to the node-local disk
         source {script_dir}/tmp_dir.sh
         scratch_dir outDir "mergehints_{wildcards.sample}" "{params.tmp_root}" \
-            "$(need_gb 5 {input})" "$PWD/$(dirname {output.hintsfile})"
+            "$(need_gb 5 {params.hint_files})" "$PWD/$(dirname {output.hintsfile})"
         trap 'rm -rf -- "$SCRATCH"' EXIT
 
         # Concatenate all input hint files into a temporary unsorted file
         TMP_RAW={output.hintsfile}.raw
         > "$TMP_RAW"
-        for hints_file in {input}; do
+        for hints_file in {params.hint_files}; do
             if [ -f "$hints_file" ] && [ -s "$hints_file" ]; then
                 cat "$hints_file" >> "$TMP_RAW"
                 echo "[INFO] Added $(basename $hints_file): $(wc -l < $hints_file) hints" | tee -a {output.hints_stats}

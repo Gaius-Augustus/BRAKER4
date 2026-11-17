@@ -27,7 +27,7 @@ Output:
     - prothint_hints_iter2.gff: Improved protein hints
     - hintsfile_iter2.gff: Updated hintsfile (old ProtHint hints replaced)
 
-Container: teambraker/braker3:latest (contains prothint.py)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains prothint.py)
 """
 
 rule run_prothint_iter2:

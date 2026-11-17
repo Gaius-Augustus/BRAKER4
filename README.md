@@ -21,7 +21,7 @@ Katharina J. Hoff, University of Greifswald, Germany, katharina.hoff@uni-greifsw
 
 **Commercial use:** While BRAKER4 itself is under MIT license, GeneMark is not free for commercial use. If you intend to use BRAKER4 for commercial purposes, please contact the **GeneMark authors** Mark Borodovsky or Alex Lomsadze for a commercial license.
 
-> **Migrating from native BRAKER3 (`braker.pl`)?** The fastest path to your first BRAKER4 run is the dedicated step-by-step tutorial: **[MIGRATING_FROM_BRAKER3.md](MIGRATING_FROM_BRAKER3.md)**. It maps every `braker.pl` flag you already use to the equivalent `samples.csv` column or `config.ini` parameter, and walks through ET, EP, ETP, IsoSeq, dual, and ES translations with concrete examples.
+> **Migrating from native BRAKER3 (`braker.pl`)?** The fastest path to your first BRAKER4 run is the dedicated step-by-step tutorial: **[MIGRATING_FROM_BRAKER3.md](MIGRATING_FROM_BRAKER3.md)**. It maps every `braker.pl` flag you already use to the equivalent `samples.csv` column or `config.ini` parameter, and walks through ET, EP, ETP, and ES translations with concrete examples. For IsoSeq it lists the two `samples.csv` columns to fill.
 
 Contents
 ========
@@ -58,6 +58,8 @@ Contents
 -   [Citing BRAKER and software called by BRAKER](#citing-braker-and-software-called-by-braker)
 -   [License](#license)
 -   [Funding](#funding)
+-   [Acknowledgements](#acknowledgements)
+-   [Related Software](#related-software)
 -   [Usage of AI](#usage-of-ai)
 -   [Developer Notes](#developer-notes)
 
@@ -174,7 +176,7 @@ The pipeline trains GeneMark on the evidence, selects high-confidence gene predi
 <p align="center">
   <img src="img/pipeline_overview.svg" alt="BRAKER4 pipeline overview" width="85%">
   <br>
-  <em>Figure&nbsp;1. High-level overview of the BRAKER4 pipeline. Solid borders mark required steps; dashed borders mark optional steps that the user enables (e.g. repeat masking, ncRNA annotation, OMArk, gffcompare). GeneMark runs in one of several modes (ES / ET / EP+ / ETP) depending on the evidence provided in <code>samples.csv</code>. For the full Snakemake DAG of every rule and dependency, see the per-scenario rulegraphs in <code>test_scenarios/</code> and <code>test_scenarios_local/</code>; the <a href="test_scenarios/scenario_12_multi_mode/rulegraph.png">multi-mode rulegraph</a> shows all 7 BRAKER modes plus repeat masking and QC in a single DAG.</em>
+  <em>Figure&nbsp;1. High-level overview of the BRAKER4 pipeline. Solid borders mark required steps; dashed borders mark optional steps that the user enables (e.g. repeat masking, ncRNA annotation, OMArk, gffcompare). GeneMark runs in one of several modes (ES / ET / EP+ / ETP) depending on the evidence provided in <code>samples.csv</code>. For the full Snakemake DAG of every rule and dependency, see the per-scenario rulegraphs in <code>test_scenarios/</code> and <code>test_scenarios_local/</code>; the <a href="test_scenarios/scenario_12_multi_mode/rulegraph.png">multi-mode rulegraph</a> shows all 6 BRAKER modes (ES, ET, EP, ETP, IsoSeq, dual) plus repeat masking and QC in a single DAG.</em>
 </p>
 
 Keys to successful gene prediction
@@ -330,11 +332,11 @@ sudo apt-get install singularity-container
 
 Consult your HPC administrator if Singularity is not available. BRAKER4 will automatically pull Docker containers and convert them to Singularity images on the first run.
 
-**Container images** (defaults pinned in [rules/common.smk](rules/common.smk); sizes measured from a populated `.singularity_cache/`):
+**Container images** (defaults pinned in [Snakefile](Snakefile) (`_container_defaults`, the effective defaults) and repeated as fallbacks in [rules/common.smk](rules/common.smk); sizes measured from a populated `.singularity_cache/`):
 
 | Container | Image | Size | Used for |
 | --- | --- | --- | --- |
-| Main BRAKER | `teambraker/braker3:v3.1.1` | 2.4 GB | GeneMark-ES/ET/EP/ETP, AUGUSTUS, ProtHint, DIAMOND, TSEBRA, compleasm, HISAT2, samtools, SRA toolkit, minimap2, getAnnoFastaFromJoingenes — most rules in the pipeline |
+| Main BRAKER | `teambraker/braker3:v3.1.2` | 2.4 GB | GeneMark-ES/ET/EP/ETP, AUGUSTUS, ProtHint, DIAMOND, TSEBRA, compleasm, HISAT2, samtools, SRA toolkit, minimap2, getAnnoFastaFromJoingenes — most rules in the pipeline |
 | RepeatModeler/Masker | `dfam/tetools:latest` | 727 MB | RepeatModeler2 + RepeatMasker + TRF (only when `masking_tool = repeatmasker`, default) |
 | Red | `quay.io/biocontainers/red:2018.09.10--h9948957_3` | 13 MB | Red repeat detector (only when `masking_tool = red`) |
 | BUSCO | `ezlabgva/busco:v6.1.0_cv2` | 801 MB | BUSCO completeness assessment |
@@ -367,8 +369,8 @@ We want to be transparent about version sensitivity. Snakemake, the SLURM execut
 
 | Component | Local (workstation) | HPC (SLURM) |
 |-----------|-------------------|-------------|
-| Snakemake | 7.32.4 | 8.18.2 |
-| SLURM executor plugin | n/a | (bundled with Snakemake 8) |
+| Snakemake | 8.18.2 and 9.13.1 | 8.18.2 |
+| SLURM executor plugin | n/a | 2.6.0 (`snakemake-executor-plugin-slurm`, pinned in `pixi.toml`) |
 | Singularity | 3.x | 3.x |
 
 **Snakemake 7 vs. 8:** Snakemake 8 replaced the built-in `--cluster` flag with an installable executor plugin (`--executor slurm`). The plugin uses a two-tier architecture: jobs are submitted with `sbatch`, and commands inside the allocation run via `srun` through a `slurm-jobstep` sub-executor. This changes how error handling, container integration, and resource management work compared to Snakemake 7. If you experience unexpected failures on your cluster, check which Snakemake version you are running.
@@ -452,7 +454,7 @@ sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_i
 | `genome` | yes | Path to genome FASTA file. Headers are cut to the first word. Leading `;` comment lines (e.g. a FAIR-bioHeaders metadata block) are dropped from the working copy. |
 | `genome_masked` | no | Path to soft-masked genome. If empty, the masking tool selected by `masking_tool` (RepeatModeler2 + RepeatMasker by default, or Red if set) runs automatically. |
 | `protein_fasta` | no | Protein sequences in FASTA format, plain or gzipped (`.gz`). Multiple files can be colon-separated. We recommend OrthoDB. |
-| `bam_files` | no | Pre-aligned RNA-Seq BAM file(s), colon-separated. Must be coordinate-sorted. |
+| `bam_files` | no | Pre-aligned RNA-Seq BAM file(s), colon-separated. Unsorted BAMs are sorted by BRAKER4. Reference names must match the genome FASTA headers. |
 | `fastq_r1` | no | Paired-end RNA-Seq FASTQ R1 file(s), colon-separated. Requires `fastq_r2`. |
 | `fastq_r2` | no | Paired-end RNA-Seq FASTQ R2 file(s), colon-separated. |
 | `sra_ids` | no | NCBI SRA accession IDs, colon-separated (e.g. `SRR123456:SRR789012`). Downloaded automatically. |
@@ -483,7 +485,7 @@ The three `ena_*` columns are optional and can be appended after `reference_gtf`
 sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_ids,varus_genus,varus_species,isoseq_bam,isoseq_fastq,busco_lineage,reference_gtf
 fly,fly_genome.fa,,orthodb_arthropoda.fa,rnaseq.bam,,,,,,,,arthropoda_odb12,
 worm,worm_genome.fa,worm_masked.fa,orthodb_metazoa.fa,,reads_R1.fq.gz,reads_R2.fq.gz,,,,,,metazoa_odb12,
-plant,plant_genome.fa,,orthodb_viridiplantae.fa,,,,SRR123456:SRR789012,,,,,,eukaryota_odb12,reference.gtf
+plant,plant_genome.fa,,orthodb_viridiplantae.fa,,,,SRR123456:SRR789012,,,,,eukaryota_odb12,reference.gtf
 ```
 
 In this example, `fly` runs in ETP mode with a BAM file, `worm` runs in ETP mode with FASTQ reads and a pre-masked genome, and `plant` runs in ETP mode with reads downloaded from SRA.
@@ -514,7 +516,7 @@ augustus_config_path = augustus_config
 [containers]
 # Replace any docker:// URI with an absolute path to a local .sif file to
 # avoid pulling the image at runtime. All keys are optional (defaults shown).
-braker3_image = docker://teambraker/braker3:v3.1.1
+braker3_image = docker://teambraker/braker3:v3.1.2
 minimap2_image = docker://katharinahoff/minimap-minisplice:v0.1
 minisplice_image = docker://katharinahoff/minimap-minisplice:v0.1
 red_image = docker://quay.io/biocontainers/red:2018.09.10--h9948957_3
@@ -525,12 +527,15 @@ busco_image = docker://ezlabgva/busco:v6.1.0_cv2
 omark_image = docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0
 tetools_image = docker://dfam/tetools:latest
 varus_image = docker://gaiusaugustus/pyvarus:v2.0.0a0
+trnascan_image = docker://quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0
+feelnc_image = docker://quay.io/biocontainers/feelnc:0.2--pl526_0
+infernal_image = docker://quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2
 
 [PARAMS]
 fungus = 0                          # set to 1 for fungal genomes
 min_contig = 10000                  # skip contigs shorter than this (bp)
 # gm_max_intergenic = 10000        # TEST GENOMES ONLY — omit on real data (GeneMark chooses automatically)
-use_varus = 0                       # set to 1 to enable VARUS auto-download of RNA-Seq from SRA
+use_varus = 0                       # currently has no effect: VARUS runs when varus_genus and varus_species are filled in samples.csv
 varus_logan = 0                     # set to 1 to run the pyVARUS Logan pre-screen
 skip_optimize_augustus = 0          # set to 1 to skip AUGUSTUS optimization (saves time)
 skip_single_exon_downsampling = 0   # set to 1 to disable single-exon training-gene downsampling
@@ -541,9 +546,9 @@ use_dev_shm = 0                     # set to 1 to use /dev/shm as scratch for ma
 use_compleasm_hints = 1             # 0 to keep BUSCO CDSpart hints out of AUGUSTUS hintsfile (compleasm still runs)
 skip_busco = 0                      # set to 1 to skip the (slow) full BUSCO pipeline
 run_omark = 0                       # set to 1 to run OMArk (requires LUCA.h5 database, ~8.8 GB)
-translation_table = 1               # genetic code table (1=standard, 6=ciliate); only ES/ET/EP modes
+translation_table = 1               # genetic code table (1=standard, 6=ciliate, 29=Mesodinium); only ES/ET/EP modes
 gc_donor = 0.001                    # GC donor splice site probability for GeneMark (ES/EP modes)
-allow_hinted_splicesites = gcag,atac # non-canonical splice sites for AUGUSTUS (comma-separated)
+allow_hinted_splicesites = gcag,atac # non-canonical splice sites for AUGUSTUS and for the ET intron hints (comma-separated)
 augustus_chunksize = 3000000        # genome chunk size (bp) for parallel AUGUSTUS prediction
 augustus_overlap = 500000           # overlap (bp) between adjacent AUGUSTUS chunks
 run_ncrna = 0                       # set to 1 to annotate ncRNAs (tRNA, snoRNA, miRNA, lncRNA)
@@ -622,6 +627,8 @@ snakemake \
 ```
 
 Adjust `slurm_partition`, `mem_mb`, `--cores`, and `--jobs` to your cluster configuration. The `--jobs` parameter controls how many SLURM jobs can be submitted simultaneously.
+
+`[SLURM_ARGS] mem_of_node` is the memory of the whole node. Many multithreaded rules request all of it. Most single-threaded rules request `mem_of_node` divided by `cpus_per_task`, but at least 8000 MB (never more than `mem_of_node`), and more with each `--restart-times` attempt.
 
 Do not pass `--cores 1` with `--executor slurm`. Snakemake caps every rule's threads at `--cores`, SLURM jobs included. With `--cores 1`, each job is submitted with one CPU, and VARUS, GeneMark, AUGUSTUS etc. run with one or two threads whatever `[SLURM_ARGS] cpus_per_task` says. Either omit `--cores` or set it to at least `cpus_per_task`.
 
@@ -706,7 +713,9 @@ sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_i
 my_species,genome.fa,,,rnaseq1.bam:rnaseq2.bam,,,,,,,,eukaryota_odb12,
 ```
 
-BAM files must be coordinate-sorted. BRAKER4 will verify this and re-sort if necessary. If your BAM files were generated with STAR, make sure you used `--outSAMstrandField intronMotif`.
+BAM files do not have to be coordinate-sorted: BRAKER4 checks this and sorts them if necessary. If your BAM files were generated with STAR, make sure you used `--outSAMstrandField intronMotif`.
+
+BRAKER4 also checks each short-read BAM before it is used. The reference names (`@SQ` lines) must match the genome FASTA headers (first word of each header): the sample fails when none of them match, and a warning is logged when only some match or when lengths differ. The same name check is applied to IsoSeq BAMs. A BAM without any mapped reads stops the run. In ETP and dual mode the run also stops when spliced reads are present among the first 1 million alignments but none of them has an `XS` strand tag, because the StringTie step of GeneMark-ETP needs it (in other modes this is only a warning in the log).
 
 **Raw paired-end FASTQ files:**
 
@@ -853,7 +862,7 @@ The decisions are made at run time, at five points:
 | Protein check, before GeneMark-EP | EP, or ETP after a fallback | fewer than `fallback_min_introns` (150) ProtHint intron hints with multiplicity >= 4; also when ProtHint stops because DIAMOND finds none of the input proteins in the genome | EP to ES |
 | GeneMark-EP result | EP, or ETP after a fallback | `gmes_petap.pl` stopped with an error of its own in training | EP to ES |
 
-The limits 150, 10 and 4 are those at which `braker.pl` warns that GeneMark may crash. An error of GeneMark-ET or GeneMark-EP does not count as too little evidence when the program was killed by a signal (out of memory kill, time limit, segmentation fault) or when a log shows a full disk or exhausted memory. Such a job still fails.
+The limits 150, 10 and 4 are those at which `braker.pl` warns that GeneMark may crash. A technical failure does not count as too little evidence: when GeneMark-ET, GeneMark-EP or GeneMark-ETP was killed by a signal (out of memory kill, time limit), or when its log shows a full disk or exhausted memory, the job still fails.
 
 An RNA-Seq library without any spliced read does not stop an ET or ETP sample any more: its intron hints file is empty, and the RNA-Seq check counts what the other libraries provide.
 
@@ -861,16 +870,20 @@ After a fallback, the evidence that was too thin is not used any more:
 
 -   After ETP to EP: no RNA-Seq hints for AUGUSTUS, no UTRs, no lncRNA.
 -   After EP to ES: no protein hints.
--   After ET to ES: the RNA-Seq intron hints stay in the AUGUSTUS hints file, because that file is also the input of GeneMark-ET and is made before the decision. GeneMark-ES trains AUGUSTUS.
+-   After ET to ES: no UTRs, no lncRNA. The RNA-Seq intron hints stay in the AUGUSTUS hints file, because that file is also the input of GeneMark-ET and is made before the decision. GeneMark-ES trains AUGUSTUS.
 
 Where to see that a fallback happened:
 
 -   The HTML report shows a notice box "Automatic mode fallback" and a sentence with the reasons in the methods text. The Mode line shows the mode the sample really ran in.
--   `output/<sample>/results/quality_control/mode_selection/` holds one decision file (`.tsv`) per decision point that was reached. They are kept when the intermediate files are removed.
+-   `output/<sample>/results/quality_control/mode_selection/` holds one decision file (`.tsv`) per decision point that this run rests on. They are kept when the intermediate files are removed.
 -   The GeneMark logs (`logs/<sample>/genemark_etp/genemark_etp.log`, `genemark_et/genemark_et.log`, `genemark_ep/genemark_ep.log`) contain lines that start with `FALLBACK:`.
 -   `collect_results` prints a warning with the planned and the real mode.
 
-A dry run (`snakemake -n`) shows the planned mode plus the check jobs, because the decisions are made at run time. Runs that finished before the fallback existed are not affected: they have no decision files and nothing is recomputed.
+A dry run (`snakemake -n`) shows the planned mode plus the check jobs, because the decisions are made at run time.
+
+If you improve the evidence after a fallback (for example add an RNA-Seq library or fix the alignments) and call Snakemake again in the same directory, the decisions are made again and the sample is recomputed in the mode that the new evidence supports. BRAKER4 notices the change at startup: it compares the sample's row of `samples.csv`, the size and modification time of every file named in it, and the settings `fallback_min_introns`, `fungus`, `min_contig`, `gm_max_intergenic` and `translation_table` with `output/<sample>/mode_selection/evidence.fingerprint`. If they differ, it removes the old decision files, prints a line that starts with `NOTE:`, and the run proceeds like a new one.
+
+Runs that finished before the fallback existed get no decision files and keep their mode. Like any change of the rule code, updating BRAKER4 makes Snakemake recompute such a sample when it is called again in that directory; `--rerun-triggers mtime` avoids this.
 
 Description of selected configuration options
 ----------------------------------------------
@@ -897,7 +910,7 @@ By default, BRAKER4 downsamples single-exon training genes when assembling the A
 
 `downsampling_lambda` (default `2`) is the Poisson lambda parameter passed to the downsampling routine. Lower values are more aggressive (fewer single-exon genes survive); higher values are gentler. Most users do not need to change this.
 
-`downsampling_single_exon_skip_threshold` (default `80`) sets the percentage at which the pipeline auto-skips downsampling. When ≥ this percentage of candidate training genes are single-exon, downsampling is skipped on the assumption that the organism genuinely has many intronless genes (e.g. some fungi or protists) and downsampling would incorrectly remove legitimate training genes. Set to `100` to effectively disable the auto-skip, or to a lower value to trigger it earlier. This threshold has no effect when `skip_single_exon_downsampling = 1`.
+`downsampling_single_exon_skip_threshold` (default `95`) sets the percentage at which the pipeline auto-skips downsampling. When ≥ this percentage of candidate training genes are single-exon, downsampling is skipped on the assumption that the organism genuinely has many intronless genes (e.g. some fungi or protists) and downsampling would incorrectly remove legitimate training genes. Set to `100` to effectively disable the auto-skip, or to a lower value to trigger it earlier. This threshold has no effect when `skip_single_exon_downsampling = 1`.
 
 ### filter_single_exon_genes
 
@@ -909,7 +922,7 @@ Controls TSEBRA's `--filter_single_exon_genes`, which removes single-exon gene p
 
 ### use_varus
 
-Set to `1` to enable the VARUS auto-download workflow. With `use_varus = 1` and `varus_genus`/`varus_species` filled in `samples.csv`, BRAKER4 invokes VARUS to discover and download representative RNA-Seq runs from SRA for the target species, then aligns them with HISAT2 and feeds the resulting BAM into GeneMark. Default is `0`.
+This key currently has no effect: BRAKER4 never reads it, and setting it to `1` or `0` changes nothing. The VARUS auto-download workflow runs for every sample that has both `varus_genus` and `varus_species` filled in `samples.csv`. BRAKER4 then invokes VARUS to discover and download representative RNA-Seq runs from SRA for the target species and feeds the resulting BAM into GeneMark. To switch VARUS off for a sample, leave `varus_genus` and `varus_species` empty.
 
 VARUS is useful when you want RNA-Seq evidence but don't already have BAM/FASTQ files. Note that internet access and a reasonable amount of disk space are required, and the download step can take several hours depending on how much RNA-Seq is available for the species.
 
@@ -1012,7 +1025,7 @@ Point BRAKER4 at your local copy of LUCA.h5 via an `[OMARK]` section in `config.
 omamer_db = /path/to/LUCA.h5
 ```
 
-If unset, BRAKER4 falls back to `test_data/LUCA.h5` (the location used by the test scenarios). The value can also be overridden via the environment variable `BRAKER4_OMAMER_DB`.
+`omamer_db` must be set for real runs. If unset, BRAKER4 falls back to the relative path `../../test_data/LUCA.h5`, which only resolves from inside a test scenario directory. The value can also be overridden via the environment variable `BRAKER4_OMAMER_DB`.
 
 OMArk reads the NCBI taxonomy through ete3. Without further setup, ete3 downloads it from NCBI into `~/.etetoolkit/` on the first run, which fails on compute nodes without internet. In that case set `ete_taxa_path` in `[OMARK]` to a directory that holds `taxa.sqlite`, or `taxdump.tar.gz` from <https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz>. With only the tarball, the first OMArk job builds `taxa.sqlite` in that directory. The directory must then be writable, and the build takes about 6 minutes and 3 GB of memory. OMArk then reads the database with `-e` and does not go online. If `ete_taxa_path` is not set, BRAKER4 uses `shared_data/ete_taxa/` when that directory exists.
 
@@ -1066,7 +1079,7 @@ You will rarely need to change either value. Both apply to the iteration-1 and i
 Set to `1` to annotate non-coding RNAs in addition to protein-coding genes. Default is `0` (off). When enabled, the pipeline runs four ncRNA predictors in parallel:
 
 -   **pybarrnap** (Shimoyama, 2024): ribosomal RNA gene prediction (18S, 28S, 5.8S, 5S; all modes). Python re-implementation of barrnap using Rfam 14.10 HMM profiles via pyhmmer; resolves the eukaryotic 5.8S/28S overlap present in barrnap v0.9.
--   **tRNAscan-SE** (Chan & Lowe, 2019): transfer RNA gene prediction (all modes). Set `trnascan_high_confidence_filter = 1` to keep only the tRNAs that pass tRNAscan-SE's `EukHighConfidenceFilter`, which removes pseudogenes and low-scoring hits such as tRNA-derived SINEs. This is recommended for vertebrates and other genomes rich in tRNA-derived repeats. The unfiltered result stays in `ncrna/tRNAs.txt`, and the filter's report is in `ncrna/tRNAs.highconf.log`.
+-   **tRNAscan-SE** (Chan & Lowe, 2019): transfer RNA gene prediction (all modes). Set `trnascan_high_confidence_filter = 1` to keep only the tRNAs that pass tRNAscan-SE's `EukHighConfidenceFilter`, which removes pseudogenes and low-scoring hits such as tRNA-derived SINEs. This is recommended for vertebrates and other genomes rich in tRNA-derived repeats. The unfiltered result stays in `ncrna/tRNAs.txt`. The filter's report, `ncrna/tRNAs.highconf.log`, is not copied to `results/` and is removed by the cleanup, so it is only available with `no_cleanup = 1`.
 -   **Infernal/cmscan** (Nawrocki & Eddy, 2013): scans the genome against the Rfam database (Kalvari et al., 2021) to identify snoRNAs, snRNAs, miRNAs, ribozymes, and other structured ncRNAs (all modes)
 -   **FEELnc** (Wucher et al., 2017): long non-coding RNA identification from StringTie transcriptome assemblies (only when RNA-Seq evidence is available, i.e. ET, ETP, IsoSeq, or dual modes). FEELnc trains its coding-potential model on the BRAKER transcripts and needs at least 100 candidate transcripts and 100 BRAKER transcripts. Below that, `ncrna/lncRNAs.gff3` contains only a comment line that says why, and no lncRNA is called. Any other FEELnc error stops the run.
 
@@ -1082,7 +1095,7 @@ rfam_cm = /path/to/Rfam.cm
 rfam_clanin = /path/to/Rfam.clanin
 ```
 
-For backward compatibility, BRAKER4 also accepts `rfam_path = /path/to/rfam` if that directory contains both files. The Snakemake `infernal` rule indexes `Rfam.cm` with `cmpress` inside the Infernal container on first use. To download the Rfam files automatically into `shared_data/rfam/` (the default location), run `bash test_data/download_test_data.sh` before starting the pipeline. The script fetches Rfam 15.1, which matches the family-type table `scripts/rfam_family_types.tsv` used to assign ncRNA types and `gene_biotype`. Other Rfam releases also work, but hits to families missing from that table get no type.
+For backward compatibility, BRAKER4 also accepts `rfam_path = /path/to/rfam` if that directory contains both files. The Snakemake `run_cmscan` rule indexes `Rfam.cm` with `cmpress` inside the Infernal container on first use. To download the Rfam files automatically into `shared_data/rfam/` (the default location), run `bash test_data/download_test_data.sh` before starting the pipeline. The script fetches Rfam 15.1, which matches the family-type table `scripts/rfam_family_types.tsv` used to assign ncRNA types and `gene_biotype`. Other Rfam releases also work, but hits to families missing from that table get no type.
 
 ### masking_tool
 
@@ -1133,7 +1146,7 @@ After TSEBRA merges AUGUSTUS and GeneMark predictions, some BUSCO genes may be d
 
 In **dual mode** (short-read RNA-Seq + IsoSeq + proteins), GeneMark-ETP runs once on both read types, so `best_by_compleasm` runs once, as in the other modes. The decision (BUSCO percentages and which gene set was kept or enforced) is reported in the methods section of the HTML report.
 
-The script is a patched copy of `best_by_compleasm.py` from TSEBRA (Hoff et al., 2024) that supports `_odb12` lineages and reuses the pre-downloaded compleasm library at `shared_data/compleasm_downloads/`. Adds extra runtime (compleasm runs on three protein sets) but can recover dropped BUSCO genes.
+The script is a patched copy of `best_by_compleasm.py` from TSEBRA (Hoff et al., 2024) that supports `_odb12` lineages and reuses the compleasm lineage directory `compleasm_download_path` (default `<busco_download_path>/lineages`, see [Pre-downloading BUSCO and compleasm data](#pre-downloading-busco-and-compleasm-data-offline--firewalled-clusters)). Adds extra runtime (compleasm runs on three protein sets) but can recover dropped BUSCO genes.
 
 ### run_fantasia
 
@@ -1316,7 +1329,7 @@ automatically when this step runs.
 Output of BRAKER4
 =================
 
-After the pipeline completes, all important output files are collected in `output/{sample_name}/results/`. Intermediate files are automatically removed to keep the output directory clean.
+After the pipeline completes, all important output files are collected in `output/{sample_name}/results/`. Intermediate files are automatically removed to keep the output directory clean. Only `results/`, `output/{sample_name}/varus/` (when VARUS was used) and `output/{sample_name}/mode_selection/` survive the cleanup. With `no_cleanup = 1` nothing is removed.
 
 ```
 output/{sample_name}/results/
@@ -1327,24 +1340,40 @@ output/{sample_name}/results/
 ├── braker.aa.gz                # Predicted protein sequences (FASTA, gzipped)
 ├── braker.codingseq.gz         # Predicted coding sequences (FASTA, gzipped)
 ├── braker_utr.gtf.gz           # UTR-decorated gene set (if RNA-Seq or IsoSeq was provided, gzipped)
-├── braker.longest.gtf.gz       # GTF restricted to the longest coding isoform per gene locus (gzipped)
+├── braker.longest.gtf.gz       # GTF restricted to the longest coding isoform per gene locus (gzipped;
+│                                 #   only produced when skip_busco = 0)
 ├── braker.longest.aa.gz        # Proteins re-extracted from braker.longest.gtf, useful for
-│                                 #   downstream functional annotation (gzipped)
+│                                 #   downstream functional annotation (gzipped; only when skip_busco = 0)
 ├── genome.fa.gz                # Repeat-masked genome (only if pipeline ran masking, gzipped)
+├── genome_path.txt             # Path of the genome FASTA that was used for the run
 ├── gene_support.tsv            # Per-gene extrinsic evidence support summary
 ├── hintsfile.gff.gz            # All extrinsic evidence hints (gzipped)
+├── varus_runlist.tsv           # SRA runs chosen by VARUS (only if VARUS was used)
+├── varus_stats.txt             # VARUS run statistics (only if VARUS was used)
 ├── software_versions.tsv       # Versions of all software tools used
 ├── braker_report.html          # Self-contained HTML report with embedded figures
 ├── braker_citations.bib        # BibTeX citations for all tools used
+├── ncrna/                      # Per-predictor ncRNA files (only if run_ncrna = 1; uncompressed)
+│   ├── tRNAs.gff3                  # tRNAscan-SE tRNAs
+│   ├── tRNAs.txt                   # unfiltered tRNAscan-SE table
+│   ├── ncRNAs_infernal.gff3        # Infernal/Rfam ncRNAs
+│   ├── infernal.tblout             # raw Infernal table
+│   ├── lncRNAs.gff3                # FEELnc lncRNAs (only with transcript evidence)
+│   └── feelnc_classifier.txt       # FEELnc classifier output (only with transcript evidence)
 ├── ena/                        # ENA GFF3 export (only if ena_locus_tag_prefix is set)
 │   ├── braker.ena.gff3             # GFF3 for the Webin-CLI manifest (uncompressed)
 │   ├── braker.ena.ids.tsv          # BRAKER gene/transcript ID -> locus_tag
 │   └── braker.ena.report.txt       # Counts, and every feature left out or changed, with the reason
 └── quality_control/
     ├── busco_summary.txt           # Combined BUSCO completeness report (if skip_busco = 0)
-    ├── busco_figure.png            # BUSCO visualization (if skip_busco = 0)
+    ├── busco_genome_short_summary.txt    # BUSCO short summary, genome mode (if skip_busco = 0)
+    ├── busco_proteins_short_summary.txt  # BUSCO short summary, protein mode (if skip_busco = 0)
     ├── compleasm_summary.txt       # Compleasm proteome completeness (always produced)
+    ├── compleasm_genome_out/
+    │   └── summary.txt             # Compleasm genome completeness
     ├── completeness.png            # Combined BUSCO + compleasm visualization
+    ├── training_summary.txt        # Training gene counts and accuracy (text)
+    ├── training_summary.pdf        # Same plot as training_summary.png (PDF)
     ├── training_summary.png        # Training gene counts and accuracy on the held-out
                                      #   test set (AUGUSTUS before/after optimization,
                                      #   plus the final gene set as a QC check)
@@ -1400,8 +1429,8 @@ Example data
 
 Two test datasets are used:
 
-- **Local scenarios** (`test_scenarios_local/`, 8 scenarios): A small *A. thaliana* chr5 fragment (~1 MB, 8 contigs) included in `test_data/`. Fast, no SLURM needed. Each scenario exercises one BRAKER mode (ES, EP, ET/FASTQ, ETP/BAM, IsoSeq/BAM, IsoSeq/FASTA, dual) or feature (EP + Red masking).
-- **HPC scenarios** (`test_scenarios/`, 5 scenarios): The *Ostreococcus tauri* genome (~12.6 MB). Small enough for quick runs, large enough for realistic masking/alignment. Covers ES, EP+masking, ET+VARUS, ETP+SRA, and one multi-mode scenario that runs all 7 BRAKER modes in a single `samples.csv`.
+- **Local scenarios** (`test_scenarios_local/`, 8 scenarios): A small *A. thaliana* chr5 fragment (~1 MB, 8 contigs) included in `test_data/`. Fast, no SLURM needed. Each scenario exercises one BRAKER mode (ES, EP, ET/FASTQ, ETP/BAM, IsoSeq/BAM, IsoSeq/FASTQ, dual) or feature (EP + Red masking).
+- **HPC scenarios** (`test_scenarios/`): Scenarios 08 to 11 use the *Ostreococcus tauri* genome (~12.6 MB), small enough for quick runs and large enough for realistic masking/alignment: ES, EP+masking, ET+VARUS, and ETP+SRA. Scenario 12 runs all 6 BRAKER modes (ES, ET, EP, ETP, IsoSeq, dual; 7 samples, because IsoSeq is run from a BAM and from FASTQ) in a single `samples.csv` on the *A. thaliana* test genome from `test_data/`. Scenarios 13, 16 and 21 are larger benchmark scenarios (*A. thaliana* ETP with VARUS, *A. thaliana* EP, and *S. cerevisiae* ETP with two SRA libraries and `fungus = 1`); scenarios 17 to 19 hold only a native `braker.pl` script each, for comparison with 13 and 16. The configuration is shared per tier (`test_scenarios/config.ini`, `test_scenarios_local/config.ini`), not per scenario. See [test_scenarios/README.md](test_scenarios/README.md).
 
 The test data (RNA-Seq BAM, FASTQ, *O. tauri* genome, proteins) must be downloaded before running the test scenarios:
 
@@ -1409,7 +1438,7 @@ The test data (RNA-Seq BAM, FASTQ, *O. tauri* genome, proteins) must be download
 bash test_data/download_test_data.sh
 ```
 
-Each scenario contains its own `samples.csv`, `config.ini`, and `run_test.sh`. To run a test scenario:
+Each scenario contains its own `samples.csv` and `run_test.sh` (scenarios 17 to 19 only a native `braker.pl` script); the `config.ini` is shared by all scenarios of a tier. To run a test scenario:
 
 ```
 cd test_scenarios/scenario_11_etp_sra   # ETP mode with SRA + proteins
@@ -1446,7 +1475,7 @@ Common problems
 
 -   *GeneMark fails with "no data for training"!*
 
-    GeneMark by default only uses contigs longer than 50,000 bp for training. If you have a highly fragmented assembly, set `min_contig = 10000` (or lower) in `config.ini`.
+    GeneMark by default only uses contigs longer than 50,000 bp for training. BRAKER4 already sets `min_contig = 10000` by default. If you have a highly fragmented assembly, lower `min_contig` further in `config.ini`.
 
 -   *The pipeline fails on SLURM but works locally!*
 
@@ -1457,8 +1486,10 @@ Common problems
     This usually happens after a run was interrupted or after switching between `--executor slurm` and local execution (or vice versa). Run with `--unlock` to clear the lock:
 
     ```bash
-    snakemake --unlock -s /path/to/BRAKER4/Snakefile --configfile config.ini
+    snakemake --unlock -s /path/to/BRAKER4/Snakefile
     ```
+
+    Run it from your working directory. If you use a config file other than `config.ini` there, export `BRAKER4_CONFIG=/path/to/another.ini` first, as for the normal run.
 
     If `--unlock` alone does not help, delete the `.snakemake/` directory in your working directory and re-run. This directory holds only Snakemake metadata (locks, job tracking) — your output files are unaffected.
 
@@ -1562,12 +1593,12 @@ The `set +e` approach is safe because the rule explicitly checks for the expecte
 
 ProtHint's bundled Spaln dispatcher (`bin/run_spliced_alignment.pl`, Perl ithreads + `Thread::Queue` + `MCE::Mutex`) can hang forever after the last `Enqueueing pair ... (99.9%)` line, with no further progress and no error. BRAKER4 replaces it with `scripts/spaln_dispatcher.py`, a drop-in CLI-compatible dispatcher that runs one process group per batch from a single-threaded Python process instead of Perl threads. A watchdog kills a batch whose processes use no CPU for 1800 s (configurable via the `BRAKER4_SPALN_STALL_TIMEOUT` environment variable in seconds; `0` disables the watchdog), retries that batch once, and then skips it (up to 100 pairs) with a `WARNING` in the ProtHint log rather than hanging. Batch outputs are written in batch order. Spaln can also loop forever on a single protein/gene pair at 100% CPU ([ProtHint issue #14](https://github.com/gatech-genemark/ProtHint/issues/14)), which the CPU watchdog cannot see. A second limit kills a batch that runs longer than 7200 s wall-clock (`BRAKER4_SPALN_BATCH_TIMEOUT`, seconds; `0` disables it) and skips it without retry; the `WARNING` names the gene and protein that were being aligned.
 
-`scripts/make_prothint_shadow.sh <dest>` builds a symlinked copy of the container's `/opt/ETP/bin` tree with only that one file replaced. The `run_prothint`, `run_prothint_iter2`, `run_genemark_etp`, and `run_genemark_etp_isoseq` rules build this shadow tree next to their output directory (`<outdir>.bin`), run `prothint.py` / `gmetp.pl` from it, log an `[INFO]` line on success (or a `[WARNING]` and fall back to the container's own ProtHint if the shadow cannot be built), and remove the shadow tree when the rule finishes.
+`scripts/make_prothint_shadow.sh <dest>` builds a symlinked copy of the container's `/opt/ETP/bin` tree in which two files are replaced: ProtHint's `run_spliced_alignment.pl` by `spaln_dispatcher.py`, and GeneMark-ETP's `super.pl` by a copy patched with `sed` at run time (#110: it wrote the number of introns where `parse_set.pl` expects the number of exons, which made `gmhmme3` stop with "negative argument in LOG function" on genomes with few multi-intron genes). The `run_prothint`, `run_prothint_iter2`, `run_genemark_etp`, and `run_genemark_etp_isoseq` rules build this shadow tree next to their output directory (`<outdir>.bin`), run `prothint.py` / `gmetp.pl` from it, log an `[INFO]` line on success (or a `[WARNING]` and fall back to the container's own ProtHint if the shadow cannot be built), and remove the shadow tree when the rule finishes.
 
 ### Snakemake Version
 
 Developed and tested with:
-- **Local:** Snakemake 7.32.4
+- **Local:** Snakemake 8.18.2 and 9.13.1 (Snakemake 7 is not supported)
 - **HPC (SLURM):** Snakemake 8.18.2
 
 The SLURM executor in Snakemake 8 works differently from 7 -- it uses a plugin-based two-tier architecture (`sbatch` + `srun` via the `slurm-jobstep` sub-executor) instead of the built-in `--cluster` flag. This affects error handling and container integration.

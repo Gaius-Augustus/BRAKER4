@@ -8,7 +8,7 @@ on vertebrate and insect genomes (Heng Li, Algorithms Mol Biol 2026).
 Only runs when use_minisplice = 1 AND the sample has unaligned IsoSeq reads
 (isoseq_fastq column). Off by default.
 
-Container: quay.io/biocontainers/minisplice:0.4
+Container: MINISPLICE_CONTAINER (katharinahoff/minimap-minisplice, tag pinned in the Snakefile)
 """
 
 

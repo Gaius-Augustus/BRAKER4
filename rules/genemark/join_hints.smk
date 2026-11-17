@@ -11,7 +11,7 @@ Input:
 Output:
     - Single merged hintsfile.gff with multiplicities
 
-Container: teambraker/braker3:latest (contains join_mult_hints.pl)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains join_mult_hints.pl)
 """
 
 rule join_hints:

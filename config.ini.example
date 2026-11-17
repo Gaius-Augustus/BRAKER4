@@ -19,7 +19,8 @@ augustus_config_path = augustus_config
 ; Node-local scratch root for the rules that write many or large temporary
 ; files (GeneMark, ProtHint, AUGUSTUS prediction and optimization, BUSCO,
 ; compleasm, VARUS, alignment and BAM sorting, SRA downloads, hint merging,
-; best_by_compleasm, FEELnc, FANTASIA). Each job works in a private
+; best_by_compleasm, FEELnc, FANTASIA, and repeat masking unless use_dev_shm
+; = 1). Each job works in a private
 ; directory under it and copies only the kept files to output/<sample>/.
 ; Empty: each job's $TMPDIR, else /tmp. A job that finds less free space
 ; than it needs works in output/<sample>/ instead and says so with a
@@ -38,7 +39,7 @@ augustus_config_path = augustus_config
 ;   braker3_image = /path/to/braker3_v3.0.10.sif
 ;   braker3_image = docker://teambraker/braker3:devel
 ;
-;braker3_image = docker://teambraker/braker3:v3.1.1
+;braker3_image = docker://teambraker/braker3:v3.1.2
 ;minimap2_image = docker://katharinahoff/minimap-minisplice:v0.1
 ;minisplice_image = docker://katharinahoff/minimap-minisplice:v0.1
 ;red_image = docker://quay.io/biocontainers/red:2018.09.10--h9948957_3
@@ -62,7 +63,8 @@ min_contig = 10000
 ; LEAVE THIS COMMENTED OUT on real genomes — GeneMark chooses an appropriate value automatically.
 ; Only uncomment for tiny test genomes (e.g. gm_max_intergenic = 10000).
 ; gm_max_intergenic = 10000
-; Set to 1 to enable VARUS auto-download of RNA-Seq from SRA.
+; Currently has no effect: BRAKER4 does not read this key. VARUS runs for every
+; sample that has both varus_genus and varus_species filled in samples.csv.
 use_varus = 0
 ; Set to 1 to let pyVARUS run its Logan pre-screen before sampling (default 0:
 ; plain online sampling, as used for the benchmark BAMs).
@@ -73,6 +75,9 @@ skip_optimize_augustus = 0
 skip_single_exon_downsampling = 0
 ; Poisson lambda for single-exon downsampling (lower = more aggressive).
 downsampling_lambda = 2
+; Skip the downsampling when at least this percentage of the candidate
+; training genes are single-exon (code default: 95).
+downsampling_single_exon_skip_threshold = 95
 ; Drop single-exon genes without start- or stop-codon hint support in TSEBRA:
 ; auto = only for genomes > 300 Mbp, 1 = always, 0 = never.
 filter_single_exon_genes = auto
@@ -85,11 +90,12 @@ use_compleasm_hints = 1
 skip_busco = 0
 ; Set to 1 to run OMArk (requires LUCA.h5 database, ~8.8 GB; see [OMARK] below).
 run_omark = 0
-; Genetic code table (1 = standard, 6 = ciliate). Applies to ES/ET/EP modes only.
+; Genetic code table (1 = standard, 6 = ciliate, 29 = Mesodinium). Applies to ES/ET/EP modes only.
 translation_table = 1
 ; GC donor splice site probability for GeneMark (ES/EP modes).
 gc_donor = 0.001
-; Non-canonical splice sites passed to AUGUSTUS (comma-separated).
+; Non-canonical splice sites passed to AUGUSTUS and kept in the ET-mode
+; RNA-Seq intron hints (comma-separated).
 allow_hinted_splicesites = gcag,atac
 ; Genome chunk size (bp) for parallel AUGUSTUS prediction.
 augustus_chunksize = 3000000
@@ -151,12 +157,16 @@ enable = 0
 ; ete_taxa_path = /path/to/shared_data/ete_taxa
 
 [SLURM_ARGS]
-; These settings are used only when running with --executor slurm.
-; Adjust to match your cluster's available resources.
+; Per-job resources for --executor slurm. cpus_per_task also sets the thread
+; count of the multithreaded rules in local and single-allocation runs. If the
+; key is missing, it falls back to snakemake --cores (or 1). Adjust to match
+; your cluster's available resources.
 cpus_per_task = 48
-; Total node memory in MB.
+; Total node memory in MB (value in this template: 120000). If the key is
+; missing, the code default is 16000.
 mem_of_node = 120000
-; Maximum walltime in minutes (default: 72 hours).
+; Maximum walltime in minutes. The value in this template is 4320 (72 hours).
+; If the key is missing, the code default is 60 minutes.
 max_runtime = 4320
 ; Set to 1 to omit --mem from all sbatch submissions (for clusters that do
 ; not enforce memory accounting). When 1, mem_mb is set to 0 for all rules,

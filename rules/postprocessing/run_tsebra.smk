@@ -76,7 +76,7 @@ def get_tsebra_inputs(wildcards):
             "hintsfile":  get_augustus_hintsfile(sample),
         })
 
-    return inputs
+    return with_mode_decisions(wildcards, inputs)
 
 
 rule run_tsebra:

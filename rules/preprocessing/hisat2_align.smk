@@ -16,7 +16,7 @@ Input:
 Output:
     - Coordinate-sorted BAM file with index
 
-Container: teambraker/braker3:latest (contains hisat2, samtools)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains hisat2, samtools)
 """
 
 

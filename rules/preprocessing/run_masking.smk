@@ -2,8 +2,9 @@ rule run_masking:
     """
     Run RepeatModeler2 + RepeatMasker on genome.
 
-    Uses /dev/shm or /tmp for HPC-friendly I/O.
-    The working directory is cleaned up automatically on exit.
+    The work directory is /dev/shm when use_dev_shm is set and /dev/shm
+    exists, else a directory under [paths] tmp_dir (falls back to /tmp when
+    tmp_dir is empty), for HPC-friendly I/O. It is removed on exit.
 
     Input:
         genome: Input genome FASTA file

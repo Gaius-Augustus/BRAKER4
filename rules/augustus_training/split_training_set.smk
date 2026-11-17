@@ -15,8 +15,6 @@ rule split_training_set:
     - 600-1000 genes: 200 genes
     - > 1000 genes: 300 genes
 
-    This is a local rule (runs on head node) because randomSplit.pl is very fast.
-
     Input:
         gb_input: Clean GenBank file (after etraining filtering, optionally downsampled)
 

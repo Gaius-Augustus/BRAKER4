@@ -47,7 +47,8 @@ rule redundancy_removal:
         # introducing non-determinism in which loci survived.
         gb = "output/{sample}/bonafide.f.clean.gb",
         gtf = get_genemark_output,
-        genome = lambda w: os.path.join(get_braker_dir(w), "genome.fa")
+        genome = lambda w: os.path.join(get_braker_dir(w), "genome.fa"),
+        mode_decisions = mode_decision_files
     output:
         # Output names are unchanged. The "f" suffix now means "fully filtered
         # (etraining + DIAMOND)" rather than just "DIAMOND-filtered".

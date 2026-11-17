@@ -10,7 +10,8 @@
 # OMArk proteome quality assessment.
 export BRAKER4_RUN_OMARK=1
 
-# FANTASIA-Lite functional annotation (GPU-only). The shared HPC config.ini
+# FANTASIA-Lite functional annotation (runs on a GPU with [fantasia] device = gpu,
+# the default, or on CPU with device = cpu). The shared HPC config.ini
 # defines the SIF path, HuggingFace cache, and SLURM GPU partition; this flag
 # only flips the toggle for this one scenario. See README "run_fantasia" for
 # the fragility caveats.

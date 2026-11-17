@@ -8,11 +8,8 @@ rule compute_flanking_region:
     gene structures in the GTF file and calculates an appropriate flanking region
     based on intergenic distances (minimum of 10000bp or the calculated value).
 
-    This is a local rule because it's a quick statistical calculation that doesn't
-    require cluster resources.
-
     Input:
-        gtf: GeneMark-ETP gene predictions from failed BRAKER3 run
+        gtf: GeneMark training genes of the effective mode (get_genemark_output)
 
     Output:
         flanking_file: Full output from computeFlankingRegion.pl (includes statistics)
@@ -20,7 +17,8 @@ rule compute_flanking_region:
                        (used by downstream rules for GenBank conversion)
     """
     input:
-        gtf = get_genemark_output
+        gtf = get_genemark_output,
+        mode_decisions = mode_decision_files
     output:
         flanking_file = "output/{sample}/genome_gmst_for_HC.flanking.gtf",
         flanking_value = "output/{sample}/flanking_dna_value.txt"

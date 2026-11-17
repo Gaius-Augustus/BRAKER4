@@ -3,7 +3,8 @@ rule extract_hc_training_genes:
     Extract high-confidence training genes and filter out those with in-frame stop codons.
 
     This rule:
-    1. Uses model/hc.gff from failed BRAKER3 run (contains actual HC gene structures)
+    1. Uses hc.gff of the GeneMark-ETP run (GeneMark-ETP/hc.gff, or
+       GeneMark-ETP-isoseq/hc.gff in dual mode); it contains the actual HC gene structures
     2. Translates CDS sequences to check for in-frame stop codons
     3. Filters out genes with stop codons
     4. Creates clean HC GTF for TSEBRA

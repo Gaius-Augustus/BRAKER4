@@ -14,7 +14,7 @@ Output:
     - Marker file indicating download is complete
     - FASTQ files in output/{sample}/sra_fastq/
 
-Container: teambraker/braker3:latest (contains SRA Toolkit)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains SRA Toolkit)
 """
 
 rule download_sra:

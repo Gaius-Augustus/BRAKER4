@@ -95,3 +95,34 @@ def test_missing_log_file_does_not_break_the_decision(tmp_path):
     )
     assert proc.returncode == 0, proc.stderr
     assert marker.read_text().startswith("GeneMark-ET stopped with an error")
+
+
+@pytest.mark.parametrize("line", [
+    "Segmentation fault (core dumped)",
+    "Error on last system call, error code 11",
+    "Error on last system call, error code 137",
+    "sh: line 1: 12345 Segmentation fault      gmhmme3 -m model.mod",
+])
+def test_crash_of_called_program_is_no_fallback(tmp_path, line):
+    """A crash or kill of a program that GeneMark called is a technical
+    failure: no marker, return code 1."""
+    log = tmp_path / "gm.log"
+    log.write_text("some output\n" + line + "\nAbort program!!!\n")
+    marker = tmp_path / "mode_selection" / "x_insufficient.txt"
+    script = (f'source "{SCRIPT}"; genemark_fallback_marker GeneMark-ET 2 "{marker}" "{log}"')
+    result = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+    assert result.returncode == 1
+    assert not marker.exists()
+
+
+def test_error_code_of_training_failure_still_falls_back(tmp_path):
+    """Other numbers are not crashes: 'error code 1' and the division by zero
+    of parse_ET.pl stay a thin-evidence failure."""
+    log = tmp_path / "gm.log"
+    log.write_text("Illegal division by zero at /opt/ETP/bin/gmes/parse_ET.pl line 105.\n"
+                   "Error on last system call, error code 1\nerror code 110 seen\n")
+    marker = tmp_path / "mode_selection" / "x_insufficient.txt"
+    script = (f'source "{SCRIPT}"; genemark_fallback_marker GeneMark-ET 2 "{marker}" "{log}"')
+    result = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+    assert result.returncode == 0
+    assert marker.exists()

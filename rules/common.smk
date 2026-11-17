@@ -1,5 +1,5 @@
 """
-Common functions and configuration for BRAKER3 Snakemake workflow.
+Common functions and configuration for the BRAKER4 Snakemake workflow.
 
 This module provides:
 - Sample parsing from samples.csv
@@ -59,9 +59,12 @@ def get_braker_mode(sample):
     """
     Determine BRAKER mode for a sample.
 
+    Returns one of es, et, ep, etp, isoseq, dual:
+
+    - ES: Genome only (no RNA-Seq, no proteins, no IsoSeq)
     - ET: RNA-Seq only (no proteins)
     - EP: Proteins only (no RNA-Seq)
-    - ETP: RNA-Seq + Proteins (standard BRAKER3)
+    - ETP: RNA-Seq + Proteins
     - IsoSeq: PacBio long-read + Proteins (no short-read RNA-Seq)
     - dual: Short-read RNA-Seq + IsoSeq + Proteins (one combined ETP run with both)
     """
@@ -161,6 +164,87 @@ def mode_fallback_active(sample):
     return True
 
 
+# Settings that change what GeneMark can do with the evidence of a sample
+_MODE_FINGERPRINT_KEYS = ("fallback_min_introns", "fungus", "min_contig",
+                          "gm_max_intergenic", "translation_table")
+_MODE_MARKER_FILES = ("etp_insufficient.txt", "et_insufficient.txt", "ep_insufficient.txt")
+# samples whose decisions were complete at least once in this process
+_MODE_CHAIN_SETTLED = set()
+
+
+def mode_evidence_fingerprint(sample):
+    """What the mode decisions of a sample rest on, as text: its row of
+    samples.csv, size and modification time of every file named in it, and
+    the settings in _MODE_FINGERPRINT_KEYS."""
+    import re
+    row = samples_df[samples_df["sample_name"] == sample].iloc[0]
+    lines = []
+    for column in samples_df.columns:
+        value = row.get(column)
+        value = "" if pd.isna(value) else str(value)
+        lines.append(f"{column}\t{value}")
+        for token in re.split(r"[,:;\s]+", value):
+            if token and os.path.isfile(token):
+                st = os.stat(token)
+                lines.append(f"file\t{token}\t{st.st_size}\t{st.st_mtime_ns}")
+    for key in _MODE_FINGERPRINT_KEYS:
+        lines.append(f"config\t{key}\t{config.get(key, '')}")
+    return "\n".join(lines) + "\n"
+
+
+def reset_stale_mode_decisions(sample):
+    """Remove the decision files of a sample when its evidence changed.
+
+    Called once per sample when the workflow starts. Decision files of an
+    earlier Snakemake call are only valid for the evidence they were made
+    from. When a file named in samples.csv, the row itself or one of the
+    settings in _MODE_FINGERPRINT_KEYS changed (a library was added, the
+    alignments were redone), Snakemake computes the sample again, and the
+    old decisions must not steer that run: the decision files are removed,
+    and all decisions are made again as in a new run. results/.done of the
+    sample is removed as well, because Snakemake takes a job whose inputs
+    wait for a checkpoint as up to date when its output exists. The fingerprint is
+    kept in output/<sample>/mode_selection/evidence.fingerprint. Decision
+    files without a fingerprint (made before it existed) are kept.
+
+    Only the main Snakemake process does this, not the job processes of a
+    cluster executor, and a dry run only reports it. Returns True when
+    decisions were (or, in a dry run, would be) removed."""
+    import sys
+    if not mode_fallback_active(sample):
+        return False
+    if not getattr(workflow, "is_main_process", True):
+        return False
+    directory = f"output/{sample}/mode_selection"
+    fingerprint_path = f"{directory}/evidence.fingerprint"
+    current = mode_evidence_fingerprint(sample)
+    previous = None
+    if os.path.exists(fingerprint_path):
+        with open(fingerprint_path) as handle:
+            previous = handle.read()
+    if previous == current:
+        return False
+    old_files = [os.path.join(directory, name)
+                 for name in list(_MODE_STAGE_FILES.values()) + list(_MODE_MARKER_FILES)
+                 if os.path.exists(os.path.join(directory, name))]
+    reset = previous is not None and bool(old_files)
+    if _is_dry_run():
+        if reset:
+            print(f"NOTE: the evidence of sample {sample} changed since its mode decisions "
+                  f"were made; a real run makes them again.", file=sys.stderr)
+        return reset
+    if reset:
+        for path in old_files + [f"output/{sample}/results/.done"]:
+            if os.path.exists(path):
+                os.remove(path)
+        print(f"NOTE: the evidence of sample {sample} changed since its mode decisions "
+              f"were made ({directory}/); they are made again in this run.", file=sys.stderr)
+    os.makedirs(directory, exist_ok=True)
+    with open(fingerprint_path, "w") as handle:
+        handle.write(current)
+    return reset
+
+
 def _is_dry_run():
     try:
         return bool(workflow.dryrun)
@@ -197,6 +281,17 @@ def _mode_and_decision_files(sample, from_disk):
     if not mode_fallback_active(sample):
         return get_braker_mode(sample), []
     files = []
+    # Once the decisions of a sample were complete in this process, its
+    # jobs are planned. From then on an open decision (a check that runs
+    # again and changes the path, so that the next decision file does not
+    # exist yet) must not raise IncompleteCheckpointException any more:
+    # that would turn planned jobs into jobs with unknown inputs, which
+    # Snakemake 8 keeps in its job cache and later runs in that state, and
+    # it treats such a job as up to date when its old output exists.
+    # Instead the missing decision counts as 'enough' for now and its file
+    # is among the inputs, so the job waits for the check and is evaluated
+    # again afterwards.
+    settled = (not from_disk) and sample in _MODE_CHAIN_SETTLED
 
     def enough(stage):
         path = mode_stage_file(sample, stage)
@@ -205,19 +300,38 @@ def _mode_and_decision_files(sample, from_disk):
             if not os.path.exists(path):
                 return True
         else:
+            from snakemake.exceptions import IncompleteCheckpointException
+            from snakemake.io import checkpoint_target
             stage_cp = getattr(checkpoints, _MODE_STAGE_CHECKPOINTS[stage])
-            stage_cp.get(sample=sample)
+            pending = None
+            try:
+                stage_cp.get(sample=sample)
+            except IncompleteCheckpointException as error:
+                # the check has not run in this Snakemake call, or it will
+                # run again
+                pending = error
             if not os.path.exists(path):
+                if settled:
+                    # see above: stay planned, the decision file is an input
+                    return True
+                if pending is not None:
+                    raise pending
                 # get() only knows the checkpoint jobs that are in the DAG
                 # already. A later stage enters the DAG when an earlier
                 # decision asks for it, and get() then returns although
                 # the stage has not run: ask for it in the same way.
-                from snakemake.exceptions import IncompleteCheckpointException
-                from snakemake.io import checkpoint_target
                 raise IncompleteCheckpointException(stage_cp.rule, checkpoint_target(path))
+            # The file exists. If the check is pending (decision file of an
+            # earlier call, check runs again), plan with the old decision:
+            # the file is an input of every rule that depends on the mode
+            # (mode_decision_files), so such a job cannot start before the
+            # check has run again, and Snakemake evaluates it again then.
         return read_mode_decision(path).get("sufficient", "1") == "1"
 
-    return _walk_mode_chain(sample, enough), files
+    mode = _walk_mode_chain(sample, enough)
+    if not from_disk:
+        _MODE_CHAIN_SETTLED.add(sample)
+    return mode, files
 
 
 def get_effective_mode(sample):
@@ -235,6 +349,19 @@ def mode_decision_files(wildcards):
     """Input function: the decision files the effective mode rests on."""
     sample = wildcards.sample if hasattr(wildcards, 'sample') else wildcards
     return _mode_and_decision_files(sample, from_disk=_is_dry_run())[1]
+
+
+def with_mode_decisions(wildcards, inputs):
+    """inputs (a dict for unpack()) plus the decision files as
+    'mode_decisions'. Every rule whose inputs or params depend on the
+    effective mode needs them as inputs: only then does Snakemake evaluate
+    the rule again when a decision changes, e.g. on a second run in the same
+    directory after the evidence was improved."""
+    decisions = mode_decision_files(wildcards)
+    if decisions:
+        inputs = dict(inputs)
+        inputs["mode_decisions"] = decisions
+    return inputs
 
 
 def effective_has_transcripts(sample):
@@ -560,8 +687,9 @@ def get_isoseq_ids(sample):
     Get IsoSeq BAM ID for a sample.
 
     Returns ["isoseq"] if IsoSeq data is present, empty list otherwise.
-    IsoSeq BAMs provide transcript evidence like RNA-Seq and flow through
-    bam2hints → filter_introns → GeneMark-ET.
+    IsoSeq is NOT part of get_all_rnaseq_ids: it does not go through
+    bam2hints / filter_introns / GeneMark-ET but through GeneMark-ETP
+    (see get_isoseq_bam_for_etp).
     """
     types = detect_data_types(sample)
     if types["has_isoseq"]:
@@ -680,7 +808,9 @@ def get_genemark_output(wildcards):
     - ET mode: GeneMark-ET predictions (genemark.gtf)
     - EP mode: GeneMark-EP predictions (genemark.gtf)
     - ETP mode: GeneMark-ETP curated training genes (training.gtf)
-    - IsoSeq mode: GeneMark-ETP training genes (same as ETP, with isoseq container)
+    - IsoSeq mode: GeneMark-ETP training genes (same as ETP, GeneMark-ETP/training.gtf)
+    - dual mode: training.gtf of the combined short-read + IsoSeq GeneMark-ETP
+      run (GeneMark-ETP-isoseq/training.gtf)
     """
     sample = wildcards.sample if hasattr(wildcards, 'sample') else wildcards
     mode = get_effective_mode(sample)
@@ -783,7 +913,7 @@ def get_extrinsic_cfg(wildcards):
 # Container Configuration
 # ==============================================================================
 
-BRAKER3_CONTAINER = config.get("braker3_image", "docker://teambraker/braker3:v3.1.1")
+BRAKER3_CONTAINER = config.get("braker3_image", "docker://teambraker/braker3:v3.1.2")
 MINIMAP2_CONTAINER = config.get("minimap2_image", "docker://katharinahoff/minimap-minisplice:v0.1")
 MINISPLICE_CONTAINER = config.get("minisplice_image", "docker://katharinahoff/minimap-minisplice:v0.1")
 RED_CONTAINER = config.get("red_image", "docker://quay.io/biocontainers/red:2018.09.10--h9948957_3")
@@ -798,11 +928,8 @@ TRNASCAN_CONTAINER = config.get("trnascan_image", "docker://quay.io/biocontainer
 FEELNC_CONTAINER = config.get("feelnc_image", "docker://quay.io/biocontainers/feelnc:0.2--pl526_0")
 INFERNAL_CONTAINER = config.get("infernal_image", "docker://quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2")
 
-# GeneMark-ETP container: uses IsoSeq container when any sample is in IsoSeq mode
-# (the IsoSeq container has a GeneMark-ETP build that handles long-read evidence)
-# All other rules always use BRAKER3_CONTAINER
-# GeneMark-ETP container selection:
-# - now everyone uses the normal container
+# GeneMark-ETP container: the separate braker3:isoseq image is no longer used;
+# all GeneMark-ETP rules (etp, isoseq and dual mode) use BRAKER3_CONTAINER.
 GENEMARK_ETP_CONTAINER = BRAKER3_CONTAINER
 
 # ==============================================================================
@@ -812,7 +939,7 @@ GENEMARK_ETP_CONTAINER = BRAKER3_CONTAINER
 def print_workflow_summary():
     """Print summary of detected samples and their configurations."""
     print("\n" + "="*70)
-    print("BRAKER3 Snakemake Workflow")
+    print("BRAKER4 Snakemake Workflow")
     print("="*70)
     print(f"\nTotal samples: {len(SAMPLES)}")
 

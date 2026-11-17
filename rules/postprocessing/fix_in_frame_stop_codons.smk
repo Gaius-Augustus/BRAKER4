@@ -26,7 +26,8 @@ rule get_anno_fasta:
     """
     input:
         gtf = get_augustus_gtf,
-        genome = lambda w: os.path.join(get_braker_dir(w), "genome.fa")
+        genome = lambda w: os.path.join(get_braker_dir(w), "genome.fa"),
+        mode_decisions = mode_decision_files
     output:
         codingseq = "output/{sample}/augustus.hints.codingseq",
         aa = "output/{sample}/augustus.hints.aa",
@@ -127,7 +128,8 @@ rule fix_in_frame_stop_codons:
         bad_genes = "output/{sample}/bad_genes.lst",
         genome = lambda w: os.path.join(get_braker_dir(w), "genome.fa"),
         hintsfile = get_augustus_hintsfile,
-        species_params = "augustus_config/species/{sample}_rescuedB3/{sample}_rescuedB3_parameters.cfg.backup"
+        species_params = "augustus_config/species/{sample}_rescuedB3/{sample}_rescuedB3_parameters.cfg.backup",
+        mode_decisions = mode_decision_files
     output:
         gtf_fixed = "output/{sample}/augustus.hints.fixed.gtf",
         codingseq_fixed = "output/{sample}/augustus.hints.fixed.codingseq",

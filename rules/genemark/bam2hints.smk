@@ -12,7 +12,7 @@ Input:
 Output:
     - GFF file with intron hints
 
-Container: teambraker/braker3:latest (contains augustus/bin/bam2hints)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains augustus/bin/bam2hints)
 """
 
 rule bam2hints:

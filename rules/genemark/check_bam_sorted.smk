@@ -12,7 +12,7 @@ Output:
     - Coordinate-sorted BAM file
     - Index file (.csi)
 
-Container: teambraker/braker3:latest (contains samtools)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains samtools)
 """
 
 def get_input_bam(wildcards):

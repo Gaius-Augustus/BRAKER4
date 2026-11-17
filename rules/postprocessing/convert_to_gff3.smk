@@ -20,7 +20,8 @@ def _get_gtf_for_gff3(wildcards):
 rule fix_gtf:
     """Fix GTF format issues using AGAT (normalize attributes, add Parent relationships)."""
     input:
-        gtf=_get_gtf_for_gff3
+        gtf=_get_gtf_for_gff3,
+        mode_decisions=mode_decision_files
     output:
         gtf="output/{sample}/braker.fixed.gtf"
     log:

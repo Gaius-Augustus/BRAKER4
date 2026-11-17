@@ -10,7 +10,7 @@ container's ProtHint bin tree (scripts/make_prothint_shadow.sh) with
 the Spaln dispatcher replaced by scripts/spaln_dispatcher.py, to avoid
 the Perl-threads dispatcher hang (issue #98).
 
-Container: BRAKER3_CONTAINER (teambraker/braker3:v3.1.1 by default); the separate
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile); the separate
 braker3:isoseq image is no longer used (commit 0e2da56).
 """
 

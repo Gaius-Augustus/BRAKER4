@@ -22,7 +22,7 @@ If you have never used BRAKER before, read the main [README.md](README.md) first
 What does **not** change:
 
 - The workflow. GeneMark trains on extrinsic evidence, AUGUSTUS trains on the GeneMark output, TSEBRA merges the two. The same algorithms with the same parameters as BRAKER3.
-- Container image. The default `[containers] braker3_image` is `docker://teambraker/braker3:v3.1.1` — it is an updated version of the original BRAKER3 container that is no longer compatible with braker.pl and therefore note tagged as latest.
+- Container image. The default `[containers] braker3_image` is `docker://teambraker/braker3:v3.1.2` — it is an updated version of the original BRAKER3 container that is no longer compatible with braker.pl and therefore not tagged as latest.
 - Output formats. The final files are still `braker.gtf`, `braker.gff3`, `braker.aa`, `braker.codingseq`, `hintsfile.gff` — just collected into the `results/` subdirectory.
 
 ## Step 0 — prerequisites
@@ -86,7 +86,7 @@ mkdir ~/my_braker4_run
 cd ~/my_braker4_run
 ```
 
-Write a `samples.csv`. The header is fixed — copy it exactly:
+Write a `samples.csv`. BRAKER4 reads the columns by name, so their order does not matter, but the names must match. The header below carries all the evidence columns; copy it as a starting point. The optional `ena_locus_tag_prefix`, `ena_taxid`, and `ena_seqid_map` columns (see the README) can be appended after `reference_gtf`.
 
 ```csv
 sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_ids,varus_genus,varus_species,isoseq_bam,isoseq_fastq,busco_lineage,reference_gtf
@@ -260,7 +260,7 @@ snakemake \
 - `--executor slurm` → submit each rule as a separate `sbatch` job. Set `slurm_partition=` to your cluster's partition name.
 - `--cores 48` → cores per individual SLURM job. Match your `cpus_per_task` in `config.ini`.
 - `--jobs 48` → maximum number of SLURM jobs in flight at once.
-- `mem_mb=120000` → memory per SLURM job (MB). Match `mem_of_node` in `config.ini`.
+- `mem_mb=120000` → memory per SLURM job (MB). Match `mem_of_node` in `config.ini`. Most single-threaded rules request `mem_of_node` divided by `cpus_per_task`, but at least 8000 MB.
 
 **Run snakemake itself in `screen` or `tmux`**, or submit it as a long-running SLURM job. The Snakemake driver process must stay alive for the entire pipeline duration — it submits the children, monitors them, and assembles the DAG. If you log out of the head node and the driver dies, the SLURM children keep going but no new jobs get submitted.
 
@@ -307,7 +307,7 @@ Open `braker_report.html` in a browser. It will tell you:
 - BUSCO and compleasm completeness scores against your `busco_lineage`.
 - Hint-support statistics (what fraction of predicted genes are backed by RNA-Seq / protein hints).
 - Gene-set statistics (CDS lengths, exons per gene, mono-exonic vs multi-exonic ratio, etc.).
-- The exact `braker.pl`-equivalent command you would have had to run, plus all software versions and citations.
+- All software versions and citations.
 
 If a step looks wrong (e.g. far fewer genes than expected, or BUSCO completeness is unexpectedly low), look at the per-rule logs in `logs/{sample_name}/<rule_name>/` to find what happened. Each rule writes its own log file there. On SLURM, the captured stdout/stderr of each job lives in `.snakemake/slurm_logs/rule_<rule_name>/<sample_name>/<jobid>.log`.
 
@@ -379,7 +379,7 @@ snakemake --latency-wait 120 --restart-times 3 ...
 - [README.md](README.md) — full reference: every config option, every mode, every output file.
 - [test_scenarios/](test_scenarios/) — runnable HPC test scenarios for ET, EP, ETP, IsoSeq, dual, ES, the `athaliana` benchmark.
 - [test_scenarios_local/](test_scenarios_local/) — same scenarios but for a local workstation (no SLURM).
-- [TESTING_GUIDE.md](TESTING_GUIDE.md) — how to run the test suite end-to-end.
-- The [multi-mode rulegraph](test_scenarios/scenario_12_multi_mode/rulegraph.png) — visualises the entire DAG including all 7 modes plus repeat masking and QC.
+- [test_scenarios/README.md](test_scenarios/README.md) — how to run the test suite end-to-end.
+- The [multi-mode rulegraph](test_scenarios/scenario_12_multi_mode/rulegraph.png) — visualises the entire DAG including all 6 modes (ES, ET, EP, ETP, IsoSeq, dual) plus repeat masking and QC.
 
 If you get stuck, the per-rule logs in `logs/{sample_name}/` and the SLURM job logs in `.snakemake/slurm_logs/` are usually enough to identify what went wrong. Open an issue at <https://github.com/Gaius-Augustus/BRAKER4/issues> if you cannot.

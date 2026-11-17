@@ -16,7 +16,12 @@ Output:
     - genemark.f.bad.gtf - Filtered out genes
     - genemark.average_gene_length.out - Statistics
 
-Container: teambraker/braker3:latest (contains filterGenemark.pl)
+In every mode except ES (which skips filtering), filterGenemark.pl writes only the CDS line of
+single-exon genes; the start_codon/stop_codon rows of these genes are
+restored from the sorted GeneMark GTF by scripts/restore_genemark_codons.py
+after filterGenemark.pl and ensure_n_training_genes.py have run.
+
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains filterGenemark.pl)
 """
 
 rule filter_genemark:

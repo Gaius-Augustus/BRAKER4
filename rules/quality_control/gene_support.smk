@@ -6,10 +6,10 @@ are supported by hints from the hintsfile, split by evidence source
 (RNA-Seq vs protein).
 
 Output: TSV with per-transcript support statistics.
-Container: teambraker/braker3:latest (contains python3 + intervaltree)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains python3 + intervaltree)
 
-Note: Requires --singularity-args '--env PREPEND_PATH=/opt/conda/bin' to ensure
-the container's conda python is used (host /opt/conda may shadow it).
+Note: the rule sets PATH=/opt/conda/bin:$PATH itself so that the container's
+conda python is used; no --singularity-args are needed.
 """
 
 
@@ -17,7 +17,8 @@ rule gene_support_summary:
     """Compute per-gene evidence support from hints file."""
     input:
         gtf="output/{sample}/braker.gtf",
-        hints=lambda w: get_augustus_hintsfile(w)
+        hints=lambda w: get_augustus_hintsfile(w),
+        mode_decisions=mode_decision_files
     output:
         tsv="output/{sample}/gene_support.tsv"
     log:

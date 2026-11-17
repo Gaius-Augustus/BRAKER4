@@ -34,7 +34,8 @@ rule convert_to_genbank:
         gtf = get_genemark_output,
         filtered_gtf = get_genemark_training_gtf,
         flanking_value = "output/{sample}/flanking_dna_value.txt",
-        genome = lambda w: os.path.join(get_braker_dir(w), "genome.fa")
+        genome = lambda w: os.path.join(get_braker_dir(w), "genome.fa"),
+        mode_decisions = mode_decision_files
     output:
         gb = "output/{sample}/bonafide.gb"
     benchmark:

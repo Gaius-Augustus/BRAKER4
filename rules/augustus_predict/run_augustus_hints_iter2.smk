@@ -2,8 +2,9 @@
 Run AUGUSTUS prediction iteration 2 for EP mode.
 
 After ProtHint iteration 2 produces improved protein hints, AUGUSTUS
-is re-run with the updated hintsfile. This reuses the genome split
-and AUGUSTUS parameters from iteration 1 — only the hints change.
+is re-run with the updated hintsfile. The genome is split again (into
+an iteration-2 work directory) and the AUGUSTUS parameters from iteration 1
+are reused; only the hints change.
 
 This rule mirrors the second augustus("off") call in braker.pl's EP mode.
 

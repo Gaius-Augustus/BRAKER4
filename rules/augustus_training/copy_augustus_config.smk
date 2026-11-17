@@ -8,10 +8,7 @@ rule copy_augustus_config:
     Since containers are read-only, we need a local copy to create new species
     and train AUGUSTUS models.
 
-    This is a local rule (runs on head node, not submitted to SLURM) because:
-    - It's a simple file copy operation
-    - Needs to run only once at workflow start
-    - Doesn't require significant compute resources
+    It is a simple file copy that needs to run only once at workflow start.
 
     Output:
         config_dir: Directory containing AUGUSTUS configuration files

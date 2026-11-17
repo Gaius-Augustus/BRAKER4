@@ -5,7 +5,7 @@ Supports multiple IsoSeq BAMs (colon-separated in samples.csv).
 Each BAM is sorted and indexed independently. If multiple BAMs exist,
 they are merged downstream by merge_isoseq_bams.
 
-Container: teambraker/braker3:latest (contains samtools)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains samtools)
 """
 
 def get_input_isoseq_bam_by_id(wildcards):

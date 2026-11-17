@@ -13,7 +13,7 @@ Input:
 Output:
     - genemark.gtf - Ab initio gene predictions
 
-Container: teambraker/braker3:latest (contains gmes_petap.pl)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains gmes_petap.pl)
 """
 
 rule run_genemark_es:

@@ -99,7 +99,7 @@ def _get_merge_ncrna_inputs(wildcards):
     # lncRNA only when transcript evidence is in use for this sample
     if effective_has_transcripts(sample):
         inputs["lncrna"] = f"output/{sample}/ncrna/lncRNAs.gff3"
-    return inputs
+    return with_mode_decisions(wildcards, inputs)
 
 
 rule merge_rrna_into_gff3:

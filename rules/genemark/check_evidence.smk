@@ -53,6 +53,29 @@ A library without spliced reads gives an empty bam2hints file; for ET and ETP
 samples the bam2hints rule accepts that (the RNA-Seq check then counts what
 the other libraries have).
 
+Calling Snakemake again in the same directory (helpers in rules/common.smk):
+
+    - Every rule whose inputs or params depend on the effective mode has the
+      decision files as inputs (mode_decision_files, with_mode_decisions).
+      Only then does Snakemake evaluate the rule again when a check runs
+      again and decides differently. tests/test_mode_fallback_helpers.py
+      guards this.
+    - Decision files are only valid for the evidence they were made from.
+      reset_stale_mode_decisions() compares the sample's row of samples.csv,
+      size and modification time of the files named in it and a few settings
+      with mode_selection/evidence.fingerprint when the workflow starts; if
+      they differ it removes the decision files, the markers and
+      results/.done, and the run proceeds like a new one.
+    - A check that will run again while its old decision file exists does
+      not make the input functions wait (IncompleteCheckpointException):
+      they plan with the old decision. And once the decisions of a sample
+      were complete in the running process, a decision that changes the
+      path does not make them wait either; the next decision file is just
+      an input. Reason: Snakemake 8 treats a job whose inputs wait for a
+      checkpoint as up to date when its old output exists, and it keeps
+      such jobs in its job cache and runs them without inputs when another
+      job asks for their output later.
+
 Container: teambraker/braker3 (python3 only)
 """
 

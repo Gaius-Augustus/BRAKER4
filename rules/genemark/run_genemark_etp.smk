@@ -23,7 +23,12 @@ The ProtHint step run internally by gmetp.pl uses the same Spaln
 dispatcher shadow tree as run_prothint (scripts/make_prothint_shadow.sh,
 scripts/spaln_dispatcher.py) to avoid the Perl-threads dispatcher hang
 (issue #98); gmetp.pl is invoked from the shadow tree instead of the
-container's own copy.
+container's own copy. The shadow tree also holds a patched super.pl that
+writes exon counts into set.out (#110).
+
+Dual mode (short-read RNA-Seq + IsoSeq + proteins) is not run by this rule:
+it is one combined GeneMark-ETP run in run_genemark_etp_isoseq, writing to
+GeneMark-ETP-isoseq/.
 
 Mirrors braker.pl's GeneMark_ETP() + get_etp_hints_for_Augustus().
 
@@ -38,16 +43,17 @@ Output:
     - hc.gff: HC gene structures
     - etp_hints.gff: Combined hints for AUGUSTUS
 
-Container: teambraker/braker3:latest (contains gmetp.pl, get_etp_hints.py)
+Container: GENEMARK_ETP_CONTAINER (same image as BRAKER3_CONTAINER: teambraker/braker3, tag pinned in the Snakefile; contains gmetp.pl, get_etp_hints.py)
 """
 
 
 def _get_etp_bam_files(wildcards):
-    """Get sorted BAM files for GeneMark-ETP (short-read + IsoSeq for non-dual, short-read only for dual).
+    """Get sorted BAM files for GeneMark-ETP.
 
-    In dual mode, IsoSeq goes through a separate ETP run (run_genemark_etp_isoseq).
-    In isoseq mode, only IsoSeq BAMs are used.
-    In etp mode, only short-read BAMs are used.
+    In etp and dual mode, only short-read BAMs are returned (in dual mode the
+    IsoSeq BAM is added by run_genemark_etp_isoseq, which runs one combined
+    GeneMark-ETP).
+    In isoseq mode, only the IsoSeq BAM is returned.
     """
     sample = wildcards.sample
     mode = get_braker_mode(sample)
@@ -64,7 +70,7 @@ def _get_etp_bam_files(wildcards):
         for vid in get_varus_ids(sample):
             bams.append(f"output/{sample}/varus/{vid}.sorted.bam")
 
-    # IsoSeq BAMs (for isoseq mode only — dual mode has separate rule)
+    # IsoSeq BAM (isoseq mode only; dual mode adds it in run_genemark_etp_isoseq)
     if mode == 'isoseq':
         isoseq_bam = get_isoseq_bam_for_etp(sample)
         if isoseq_bam:
@@ -290,7 +296,7 @@ YAMLEOF
                 echo "HINT: The RNA-Seq data contain too few complete transcripts of this genome's genes for GeneMark-ETP. ProtHint then gets no gene seeds, so \"evidence.gff not found\" above is a consequence, not the cause." >> {log}
                 echo "  Typical reasons: few reads from this species (SRA runs from host tissue, a mixed sample or a related species), low coverage, or degraded RNA." >> {log}
                 echo "  Check the fraction of uniquely mapped reads (with VARUS: avgUmrPercent in output/{wildcards.sample}/varus/RunStatistics.csv)." >> {log}
-                echo "  Fallback: EP mode (proteins only): leave the RNA-Seq columns of samples.csv empty and set use_varus = 0." >> {log}
+                echo "  Without the automatic mode fallback: run EP mode (proteins only) by leaving the RNA-Seq columns of samples.csv empty." >> {log}
                 THIN_REASON="GeneMarkS-T found no usable genes in the $N_TX transcripts assembled from the RNA-Seq data"
             fi
             # Number of training genes GeneMark-ETP selected (gmetp.pl prints
@@ -354,6 +360,17 @@ YAMLEOF
                 tail -10 "$GMS_LOG" >> {log}
             fi
             save_debug
+            # A technical failure is not thin evidence (as in
+            # scripts/genemark_fallback.sh for ET and EP): killed by a
+            # signal, a crash of a program that GeneMark-ETP called (e.g.
+            # "Error on last system call, error code 11" of gmst.pl), full
+            # disk or exhausted memory.
+            if [ -n "$THIN_REASON" ]; then
+                if [ "$ETP_EXIT" -ge 128 ] || grep -qiE 'No space left on device|Disk quota exceeded|Cannot allocate memory|Out of memory|Segmentation fault|core dumped|error code (9|11|134|137|139)([^0-9]|$)' $WORKDIR/{log} 2>/dev/null; then
+                    echo "DIAGNOSTIC: GeneMark-ETP or a program it called was killed, crashed or ran out of disk space or memory (exit=$ETP_EXIT). This is a technical failure, so there is no automatic mode fallback." >> {log}
+                    THIN_REASON=""
+                fi
+            fi
             if [ "{params.fallback}" = "1" ] && [ -n "$THIN_REASON" ]; then
                 # Not enough RNA-Seq evidence for GeneMark-ETP: leave the
                 # reason for check_etp_result and empty placeholders for

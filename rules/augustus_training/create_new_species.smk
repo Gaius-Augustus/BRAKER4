@@ -13,9 +13,6 @@ rule create_new_species:
         backup); it is not an AUGUSTUS species.
     new_species.pl is skipped if the species already has a parameters file.
 
-    This is a local rule because it's a quick configuration step that doesn't require
-    cluster resources.
-
     Input:
         augustus_config: Local copy of AUGUSTUS config directory (dependency)
 

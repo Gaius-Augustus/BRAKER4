@@ -2,15 +2,15 @@
 
 Test scenarios covering all unique pipeline paths for the BRAKER4 Snakemake pipeline.
 
-**HPC scenarios** (`test_scenarios/`, 08-11): 4 scenarios on *O. tauri* genome, run on HPC with SLURM.
-**Local scenarios** (`test_scenarios_local/`, 01-07): 7 scenarios on small *A. thaliana* fragment, run locally with 8 cores.
+**HPC scenarios** (`test_scenarios/`): `run_all_tests.sh` runs scenarios 08-12 (08-11 on the *O. tauri* genome, 12 on the *A. thaliana* test genome), on HPC with SLURM. The directory also holds scenarios 13, 16, 17-19 and 21, which are started by hand (see the table below).
+**Local scenarios** (`test_scenarios_local/`, 01-08): 8 scenarios on small *A. thaliana* fragment, run locally with 8 cores.
 
 Together they cover every input type, every BRAKER mode, and masking — without redundancy.
 
 ## Quick Start
 
 ```bash
-# Run all HPC scenarios (two waves: fast first, then slow)
+# Run all HPC scenarios (08-12, all launched at once)
 cd test_scenarios
 bash run_all_tests.sh
 
@@ -40,18 +40,25 @@ For local testing (no SLURM, 8 cores, cheap scenarios only), see `test_scenarios
 
 ### HPC scenarios (`test_scenarios/`)
 
-Each covers a unique combination of input source and BRAKER mode on the *O. tauri* genome (~12.6 MB):
+Scenarios 08 to 11 each cover a unique combination of input source and BRAKER mode on the *O. tauri* genome (~12.6 MB). Scenario 12 uses the *A. thaliana* test genome from `test_data/`. The other tracked scenarios are larger benchmark scenarios. `run_all_tests.sh` runs 08 to 12 only; the others are started with their own `run_test.sh` (or `submit_snakemake.sh`).
 
-| #  | Name          | Mode | Evidence       | Masking       | Unique steps tested                      |
-|----|---------------|------|----------------|---------------|------------------------------------------|
-| 08 | es            | ES   | (none)         | Pre-masked    | GeneMark-ES (ab initio)                  |
-| 09 | ep\_masking   | EP   | Proteins       | RepeatMasker  | Masking + ProtHint + GeneMark-EP + iter2 |
-| 10 | et\_varus     | ET   | VARUS          | Pre-masked    | VARUS + GeneMark-ET                      |
-| 11 | etp\_sra      | ETP  | SRA + proteins | Pre-masked    | SRA download + HISAT2 + GeneMark-ETP     |
+| #  | Name                         | Mode      | Evidence                                          | Masking       | Unique steps tested                                          |
+|----|------------------------------|-----------|---------------------------------------------------|---------------|--------------------------------------------------------------|
+| 08 | es                           | ES        | (none)                                            | Pre-masked    | GeneMark-ES (ab initio), OMArk and FANTASIA-Lite             |
+| 09 | ep\_masking                  | EP        | Proteins                                          | RepeatMasker  | Masking + ProtHint + GeneMark-EP + iter2                     |
+| 10 | et\_varus                    | ET        | VARUS                                             | Pre-masked    | VARUS + GeneMark-ET                                          |
+| 11 | etp\_sra                     | ETP       | SRA + proteins                                    | Pre-masked    | SRA download + HISAT2 + GeneMark-ETP                         |
+| 12 | multi\_mode                  | all 6     | 7 samples: none, proteins, FASTQ, BAM + proteins, IsoSeq BAM + proteins, IsoSeq FASTQ + proteins, BAM + IsoSeq BAM + proteins | Pre-masked | All modes in one `samples.csv` (*A. thaliana* test genome) |
+| 13 | etp\_arabidopsis             | ETP       | VARUS + proteins                                  | Pre-masked    | *A. thaliana* benchmark with reference annotation (gffcompare) |
+| 16 | ep\_arabidopsis              | EP        | Proteins                                          | Pre-masked    | *A. thaliana* benchmark with reference annotation (gffcompare) |
+| 17 | braker3\_et\_arabidopsis     | ET (braker.pl) | BAM from scenario 13                         | n/a           | Native `braker.pl` script only, no `samples.csv`             |
+| 18 | braker3\_ep\_arabidopsis     | EP (braker.pl) | Proteins                                     | n/a           | Native `braker.pl` script only, no `samples.csv`             |
+| 19 | braker3\_etp\_arabidopsis    | ETP (braker.pl) | BAM from scenario 13 + proteins             | n/a           | Native `braker.pl` script only, no `samples.csv`             |
+| 21 | etp\_yeast\_fungus           | ETP       | 2 SRA libraries + OrthoDB v12 Fungi proteins      | RepeatMasker  | *S. cerevisiae* R64 with `fungus = 1` (issue #110)           |
 
 ### Local scenarios (`test_scenarios_local/`)
 
-Fast scenarios on the small *A. thaliana* chr5 fragment (~1 MB, pre-masked):
+Fast scenarios on the small *A. thaliana* chr5 fragment (~1 MB, pre-masked except scenario 08):
 
 | #  | Name            | Mode   | Evidence                     | Unique steps tested                           |
 |----|-----------------|--------|------------------------------|-----------------------------------------------|
@@ -60,8 +67,9 @@ Fast scenarios on the small *A. thaliana* chr5 fragment (~1 MB, pre-masked):
 | 03 | et\_fastq       | ET     | FASTQ                        | HISAT2 + GeneMark-ET                          |
 | 04 | etp\_bam        | ETP    | BAM + proteins               | BAM check + GeneMark-ETP                      |
 | 05 | isoseq\_bam     | IsoSeq | IsoSeq BAM (multi) + prot.  | IsoSeq BAM check + merge + IsoSeq ETP        |
-| 06 | isoseq\_fasta   | IsoSeq | IsoSeq FASTA + prot.        | minimap2 + IsoSeq ETP                         |
-| 07 | dual            | Dual   | BAM + IsoSeq BAM + prot.    | BAM + IsoSeq + dual ETP + merge               |
+| 06 | isoseq\_fastq   | IsoSeq | IsoSeq FASTQ + prot.        | minimap2 + IsoSeq ETP                         |
+| 07 | dual            | Dual   | BAM + IsoSeq BAM + prot.    | BAM + IsoSeq + one combined GeneMark-ETP run  |
+| 08 | ep\_redmask     | EP     | Proteins (unmasked genome)  | Red masking + ProtHint + GeneMark-EP          |
 
 ### Naming Convention
 
@@ -97,7 +105,7 @@ Fast scenarios on the small *A. thaliana* chr5 fragment (~1 MB, pre-masked):
 
 The `run_all_tests.sh` script launches each scenario's Snakemake process under `nohup`, so it survives shell disconnects and screen detachments. Each Snakemake process then submits its own SLURM jobs.
 
-All 4 HPC scenarios are launched concurrently. Scenarios 08 and 11 (pre-masked) finish faster; 09 (masking) and 10 (VARUS) take longer.
+All scenarios selected (by default 08 to 12) are launched concurrently, up to `MAX_CONCURRENT`. Scenarios 08 and 11 (pre-masked) finish faster; 09 (masking) and 10 (VARUS) take longer.
 
 ## Monitoring Running Tests
 
@@ -168,7 +176,7 @@ All scenarios in this directory share **two** configuration files:
 | `compute_profile.sh` | Cluster / compute knobs: cores, partition list, memory, per-job runtime, SLURM on/off |
 | `config.ini` | Biology knobs shared by every scenario: optimisation flags, masking, ncRNA, etc. |
 
-Edit `compute_profile.sh` once to point the test suite at your own cluster — no per-scenario edits needed. The same applies to `test_scenarios_local/compute_profile.sh` for the local (no-SLURM) tier.
+Edit `compute_profile.sh` once to point the test suite at your own cluster — no per-scenario edits needed for the compute settings. Two things still need your attention: scenario 08 turns FANTASIA-Lite on (`scenario_08_es/scenario_overrides.sh`), so the `sif`, `hf_cache_dir` and `lookup_dir` paths in the `[fantasia]` section of `config.ini` must exist on your system, otherwise the Snakefile stops at startup; and several scenarios (13, 16, 17-19) read input files from fixed locations of the original cluster and need their `samples.csv` or script adapted. `test_scenarios_local/compute_profile.sh` plays the same role for the local (no-SLURM) tier.
 
 ### compute_profile.sh
 
@@ -188,7 +196,7 @@ Knobs you'll typically tune:
 | `USE_SLURM` | `true` | `false` | Submit each rule as a SLURM job |
 | `BRAKER4_CPUS_PER_TASK` | `48` | `8` | CPUs requested per SLURM job |
 | `BRAKER4_MEM_OF_NODE` | `120000` | `32000` | MB requested per SLURM job |
-| `BRAKER4_MAX_RUNTIME` | `120` | `1440` | Per-job wall-time limit (minutes) |
+| `BRAKER4_MAX_RUNTIME` | `4320` | `1440` | Per-job wall-time limit (minutes) |
 | `DEFAULT_MEM_MB` | `120000` | `32000` | Snakemake `--default-resources mem_mb` cap |
 
 ### config.ini (shared biology defaults)
@@ -206,6 +214,7 @@ run_omark = 0
 skip_optimize_augustus = 1
 skip_single_exon_downsampling = 0
 downsampling_lambda = 2
+downsampling_single_exon_skip_threshold = 95
 use_varus = 0
 use_compleasm_hints = 1
 use_dev_shm = 0
@@ -217,7 +226,7 @@ Note that `[SLURM_ARGS]` is no longer in the shared config — those values are 
 
 ### Per-scenario overrides (scenario_overrides.sh)
 
-A handful of scenarios deviate from the shared defaults — for example, `scenario_08_es` is the OMArk QC test and needs `run_omark=1`, while `scenario_09_ep_masking` and `scenario_10_et_varus` need a longer per-job runtime than the 120-minute shared default. Those deviations live in an optional `scenario_overrides.sh` file inside the scenario directory:
+A handful of scenarios deviate from the shared defaults — for example, `scenario_08_es` is the OMArk and FANTASIA-Lite test and needs `run_omark=1` and `BRAKER4_RUN_FANTASIA=1`, while `scenario_21_etp_yeast_fungus` sets `fungus = 1` and its own cores, memory and runtime. Those deviations live in an optional `scenario_overrides.sh` file inside the scenario directory:
 
 ```bash
 # scenario_08_es/scenario_overrides.sh
@@ -237,7 +246,7 @@ Any value in `[SLURM_ARGS]` or `[PARAMS]` can be overridden via a `BRAKER4_<KEY_
 | `BRAKER4_MAX_RUNTIME` | `[SLURM_ARGS] max_runtime` |
 | `BRAKER4_RUN_OMARK` | `[PARAMS] run_omark` |
 | `BRAKER4_RUN_NCRNA` | `[PARAMS] run_ncrna` |
-| `BRAKER4_USE_VARUS` | `[PARAMS] use_varus` |
+| `BRAKER4_USE_VARUS` | `[PARAMS] use_varus` (currently has no effect: VARUS runs when `varus_genus` and `varus_species` are filled in `samples.csv`) |
 | `BRAKER4_SKIP_OPTIMIZE_AUGUSTUS` | `[PARAMS] skip_optimize_augustus` |
 | `BRAKER4_NO_CLEANUP` | `[PARAMS] no_cleanup` |
 | `BRAKER4_SKIP_BUSCO` | `[PARAMS] skip_busco` |
@@ -255,20 +264,21 @@ Each scenario produces final outputs in:
 
 ```
 scenario_XX_name/output/<sample_name>/results/
-├── braker.gtf                              # Gene predictions
-├── braker.gff3                             # GFF3 format
-├── braker.aa                               # Protein sequences
-├── braker.codingseq                        # CDS sequences
+├── braker.gtf.gz                           # Gene predictions (gzipped)
+├── braker.gff3.gz                          # GFF3 format (gzipped)
+├── braker.aa.gz                            # Protein sequences (gzipped)
+├── braker.codingseq.gz                     # CDS sequences (gzipped)
 ├── quality_control/
 │   ├── training_summary.txt                # Training gene counts + accuracy
 │   ├── training_summary.pdf                # Publication-quality training plot
-│   ├── busco_summary.txt                   # BUSCO completeness
+│   ├── training_summary.png                # Same plot as PNG
+│   ├── busco_summary.txt                   # BUSCO completeness (if skip_busco = 0)
 │   ├── compleasm_summary.txt               # Compleasm completeness
 │   └── omark_summary.txt                   # OMArk quality (if enabled)
-└── gene_support.tsv                        # Per-gene evidence support
+└── gene_support.tsv                        # Per-gene evidence support (not gzipped)
 ```
 
-All intermediate files are removed automatically after results collection.
+The tree shows a selection of the files; see the main README for the complete list (`braker_utr.gtf.gz`, `hintsfile.gff.gz`, `braker_report.html`, ...). All intermediate files are removed automatically after results collection (`output/<sample>/varus/` and `output/<sample>/mode_selection/` are kept).
 
 ## Troubleshooting
 
@@ -304,18 +314,18 @@ bash run_test.sh   # Snakemake picks up from where it left off
 
 ### VARUS scenarios fail at GeneMark-ETP
 
-VARUS needs enough data. With `--maxBatches 600` and `--batchSize 75000`, VARUS downloads up to 45M reads. If this is still insufficient (mapping rate < 5%), the genome may need proper repeat masking first, or VARUS may not find suitable RNA-Seq data for this species.
+VARUS needs enough data. If the amount VARUS downloads is insufficient (mapping rate < 5%), the genome may need proper repeat masking first, or VARUS may not find suitable RNA-Seq data for this species.
 
 ### Container python issues
 
-All `run_test.sh` scripts export `SINGULARITYENV_PREPEND_PATH=/opt/conda/bin` and shell blocks use `export PATH=/opt/conda/bin:$PATH` to ensure the container's python (with biopython, intervaltree, matplotlib) is used instead of the host's. If you see `ModuleNotFoundError`, check that the v3.0.8 container is being used.
+All `run_test.sh` scripts export `SINGULARITYENV_PREPEND_PATH=/opt/conda/bin` and shell blocks use `export PATH=/opt/conda/bin:$PATH` to ensure the container's python (with biopython, intervaltree, matplotlib) is used instead of the host's. If you see `ModuleNotFoundError`, check that the default main image (`teambraker/braker3:v3.1.2`) is being used.
 
 ## Rule Graphs
 
-Each scenario contains a `rulegraph.png` showing the execution DAG. To regenerate:
+Scenarios 08 to 12 in `test_scenarios/` and all scenarios in `test_scenarios_local/` contain a `rulegraph.png` showing the execution DAG (the other scenarios have none). To regenerate, run the script from the repository root:
 
 ```bash
-bash test_scenarios/generate_rulegraphs.sh
+bash generate_rulegraphs.sh
 ```
 
 Requires graphviz. Run on a workstation, not on HPC.

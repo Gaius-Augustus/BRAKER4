@@ -15,7 +15,7 @@ Input:
 Output:
     - genemark.gtf - Gene predictions trained with protein evidence
 
-Container: teambraker/braker3:latest (contains gmes_petap.pl)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains gmes_petap.pl)
 """
 
 rule run_genemark_ep:

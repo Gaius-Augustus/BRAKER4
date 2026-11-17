@@ -3,13 +3,17 @@ Run ProtHint to generate protein-based hints for gene prediction.
 
 ProtHint's bundled Perl-threads Spaln dispatcher can hang forever after
 the last batch is enqueued (issue #98). Before running prothint.py, this
-rule builds a symlinked shadow copy of the container's ProtHint bin tree
-via scripts/make_prothint_shadow.sh, with only the Spaln dispatcher
-replaced by scripts/spaln_dispatcher.py, and runs prothint.py from there.
-Falls back to the container's own prothint.py if the shadow cannot be
-built.
+rule builds a symlinked shadow copy of the container's GeneMark-ETP bin
+tree via scripts/make_prothint_shadow.sh and runs prothint.py from there.
+The shadow tree replaces two files: ProtHint's run_spliced_alignment.pl by
+scripts/spaln_dispatcher.py (#98; this is the replacement that matters for
+this rule) and super.pl by a copy patched with sed at run time so that
+set.out holds exon counts (#110; used by gmetp.pl, so it matters for
+run_genemark_etp and run_genemark_etp_isoseq, not for prothint.py).
+Everything else is symlinked to the original files. Falls back to the
+container's own prothint.py if the shadow cannot be built.
 
-Container: teambraker/braker3:latest (contains prothint.py, DIAMOND, Spaln)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains prothint.py, DIAMOND, Spaln)
 """
 
 rule run_prothint:

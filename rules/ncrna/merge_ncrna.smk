@@ -27,7 +27,7 @@ def _get_ncrna_merge_inputs(wildcards):
     if effective_has_transcripts(sample):
         inputs["lncrna"] = f"output/{sample}/ncrna/lncRNAs.gff3"
 
-    return inputs
+    return with_mode_decisions(wildcards, inputs)
 
 
 rule merge_ncrna_into_gff3:

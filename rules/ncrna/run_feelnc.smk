@@ -55,7 +55,8 @@ rule run_feelnc:
     input:
         stringtie=_get_feelnc_stringtie_gtf,
         braker_gtf="output/{sample}/braker.gtf",
-        genome=lambda wildcards: get_masked_genome(wildcards.sample)
+        genome=lambda wildcards: get_masked_genome(wildcards.sample),
+        mode_decisions=mode_decision_files
     output:
         lncrna_gtf="output/{sample}/ncrna/lncRNAs.gtf",
         classifier="output/{sample}/ncrna/feelnc_classifier.txt"

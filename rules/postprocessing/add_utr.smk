@@ -12,7 +12,7 @@ Two-step process:
    match of its own (#29). check_gtf_loci.py then fails the rule if a model
    spans several loci (#62)
 
-Container: teambraker/braker3:latest (contains stringtie, python3 + intervaltree)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains stringtie, python3 + intervaltree)
 """
 
 
@@ -188,7 +188,8 @@ rule add_utr:
     input:
         genes="output/{sample}/braker.gtf",
         stringtie=_get_stringtie_gtf,
-        isoseq_stringtie=_get_isoseq_stringtie_gtf
+        isoseq_stringtie=_get_isoseq_stringtie_gtf,
+        mode_decisions=mode_decision_files
     output:
         utr_gtf="output/{sample}/braker_utr.gtf"
     log:

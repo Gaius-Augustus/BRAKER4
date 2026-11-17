@@ -5,7 +5,9 @@ Runs BUSCO twice:
 1. Genome mode: assess genome assembly completeness
 2. Protein mode: assess predicted protein set completeness
 
-Then generates a combined summary text and comparison bar plot.
+Then generates a combined summary text. No BUSCO figure is generated here
+(the v6 container has no generate_plot.py); completeness_plot.py, invoked
+from collect_results, produces the combined BUSCO + compleasm figure.
 
 Container: ezlabgva/busco:v6.1.0_cv2
 """

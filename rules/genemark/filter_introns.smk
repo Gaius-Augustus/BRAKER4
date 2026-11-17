@@ -23,7 +23,7 @@ Input:
 Output:
     - Filtered hints with strand and multiplicity score
 
-Container: teambraker/braker3:latest (contains filterIntronsFindStrand.pl)
+Container: BRAKER3_CONTAINER (teambraker/braker3, tag pinned in the Snakefile; contains filterIntronsFindStrand.pl)
 """
 
 rule filter_introns_find_strand:
