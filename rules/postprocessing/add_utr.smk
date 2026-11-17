@@ -169,7 +169,7 @@ def _get_stringtie_gtf(wildcards):
     - EP/ES mode: should not be called (no transcript evidence)
     """
     sample = wildcards.sample
-    mode = get_braker_mode(sample)
+    mode = get_effective_mode(sample)
     if mode == 'dual':
         return f"output/{sample}/GeneMark-ETP-isoseq/rnaseq/stringtie/transcripts_merged.gff"
     elif mode in ('etp', 'isoseq'):

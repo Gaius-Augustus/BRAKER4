@@ -27,7 +27,7 @@ Container: quay.io/biocontainers/feelnc:0.2--pl526_0
 def _get_feelnc_stringtie_gtf(wildcards):
     """Get StringTie GTF for FEELnc, routing by mode."""
     sample = wildcards.sample
-    mode = get_braker_mode(sample)
+    mode = get_effective_mode(sample)
     if mode == 'dual':
         # StringTie assembly of the single combined GeneMark-ETP run
         return f"output/{sample}/GeneMark-ETP-isoseq/rnaseq/stringtie/transcripts_merged.gff"

@@ -28,7 +28,9 @@ rule run_augustus_hints_iter2:
     input:
         genome=lambda w: get_masked_genome(w.sample),
         hintsfile="output/{sample}/hintsfile_iter2.gff",
-        optimize_log="output/{sample}/optimize_augustus.log"
+        optimize_log="output/{sample}/optimize_augustus.log",
+        # decisions of the automatic mode fallback (for params.extrinsic_cfg)
+        mode_decisions=mode_decision_files
     output:
         augustus_gff="output/{sample}/augustus.hints_iter2.gff",
         augustus_gtf="output/{sample}/augustus.hints_iter2.gtf"

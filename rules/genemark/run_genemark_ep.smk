@@ -49,7 +49,12 @@ rule run_genemark_ep:
         gm_max_intergenic=f"--max_intergenic {config.get('gm_max_intergenic')}" if config.get("gm_max_intergenic") else "",
         gcode=f"--gcode {config.get('translation_table')}" if config.get("translation_table", 1) != 1 else "",
         gc_donor=config.get("gc_donor", 0.001),
-        tmp_root=TMP_ROOT
+        tmp_root=TMP_ROOT,
+        # 1: when GeneMark-EP stops with an error of its own, write the reason
+        # for check_ep_result and end without error, so that the sample continues
+        # in ES mode (auto_mode_fallback, scripts/genemark_fallback.sh)
+        fallback=1 if config.get("auto_mode_fallback", True) else 0,
+        thin_marker=lambda wildcards: f"output/{wildcards.sample}/mode_selection/ep_insufficient.txt"
     container:
         BRAKER3_CONTAINER
     shell:
@@ -66,6 +71,10 @@ rule run_genemark_ep:
         LOG_ABS=$(readlink -f {log})
 
         echo "Running GeneMark-EP..." > $LOG_ABS
+        THIN_MARKER=$WORKDIR/{params.thin_marker}
+        mkdir -p "$(dirname "$THIN_MARKER")"
+        rm -f "$THIN_MARKER"
+        source {script_dir}/genemark_fallback.sh
 
         source {script_dir}/tmp_dir.sh
         finalDir=$WORKDIR/{params.outdir}
@@ -107,10 +116,22 @@ rule run_genemark_ep:
 
         echo "Command: $CMD" >> $LOG_ABS
 
-        eval $CMD 1>> $LOG_FILE_ABS 2>> $LOG_ABS
+        if eval $CMD 1>> $LOG_FILE_ABS 2>> $LOG_ABS; then
+            GM_EXIT=0
+        else
+            GM_EXIT=$?
+        fi
 
         if [ ! -f genemark.gtf ]; then
-            echo "ERROR: GeneMark-EP failed to produce genemark.gtf" >> $LOG_ABS
+            echo "ERROR: GeneMark-EP failed to produce genemark.gtf (exit=$GM_EXIT)" >> $LOG_ABS
+            cd $WORKDIR
+            if [ "{params.fallback}" = "1" ] && genemark_fallback_marker GeneMark-EP "$GM_EXIT" "$THIN_MARKER" "$LOG_FILE_ABS" "$LOG_ABS"; then
+                echo "FALLBACK: $(cat "$THIN_MARKER")" >> $LOG_ABS
+                echo "FALLBACK: auto_mode_fallback is on, the sample continues in ES mode with the GeneMark-ES prediction. Set auto_mode_fallback = 0 in config.ini to fail here instead." >> $LOG_ABS
+                # empty placeholder for the output of this rule (not read in ES mode)
+                : > "$finalDir/genemark.gtf"
+                exit 0
+            fi
             exit 1
         fi
 

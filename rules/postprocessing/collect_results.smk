@@ -32,7 +32,12 @@ def _get_collect_inputs(wildcards):
         inputs["busco_summary"] = f"output/{sample}/busco/busco_summary.txt"
 
     types = detect_data_types(sample)
-    has_transcripts = any([types[k] for k in ['has_bam', 'has_fastq', 'has_sra', 'has_varus', 'has_isoseq']])
+    # the mode the sample really ran in (automatic mode fallback); the
+    # decision files are inputs so that params.mode can read them
+    has_transcripts = effective_has_transcripts(sample)
+    decisions = mode_decision_files(sample)
+    if decisions:
+        inputs["mode_decisions"] = decisions
     if has_transcripts:
         inputs["utr_gtf"] = f"output/{sample}/braker_utr.gtf"
 
@@ -71,8 +76,7 @@ def _get_collect_inputs(wildcards):
         inputs["gff3_ncrna"] = f"output/{sample}/braker_with_ncRNA.gff3"
         inputs["trna"] = f"output/{sample}/ncrna/tRNAs.gff3"
         inputs["infernal"] = f"output/{sample}/ncrna/ncRNAs_infernal.gff3"
-        mode = get_braker_mode(sample)
-        if mode in ('et', 'etp', 'isoseq', 'dual'):
+        if has_transcripts:
             inputs["lncrna"] = f"output/{sample}/ncrna/lncRNAs.gff3"
 
     if get_ena_settings(sample)["locus_tag_prefix"]:
@@ -94,7 +98,8 @@ rule collect_results:
         outdir="output/{sample}",
         resultsdir="output/{sample}/results",
         no_cleanup=config.get('no_cleanup', False),
-        mode=lambda w: get_braker_mode(w.sample)
+        mode=lambda w: effective_mode_on_disk(w.sample),
+        planned_mode=lambda w: get_braker_mode(w.sample)
     threads: 1
     resources:
         mem_mb=0 if config['slurm_args'].get('skip_mem') else 4000,
@@ -131,6 +136,15 @@ rule collect_results:
                 cp "$OUTDIR/genome.fa" "$RESULTS/"
                 echo "[INFO] Including cleaned genome in results"
             fi
+        fi
+
+        # --- Automatic mode fallback: decisions and, if the mode changed, a note ---
+        if [ -d "$OUTDIR/mode_selection" ]; then
+            mkdir -p "$RESULTS/quality_control/mode_selection"
+            cp "$OUTDIR"/mode_selection/*.tsv "$RESULTS/quality_control/mode_selection/" 2>/dev/null || true
+        fi
+        if [ "{params.mode}" != "{params.planned_mode}" ]; then
+            echo "[WARNING] Automatic mode fallback: planned mode {params.planned_mode}, run in {params.mode} mode (reasons: $RESULTS/quality_control/mode_selection/)"
         fi
 
         # --- Core gene predictions (copy first, gzip AFTER report generation) ---
@@ -313,6 +327,7 @@ rule collect_results:
             -o "$RESULTS" \
             -s "{params.sample}" \
             --mode "{params.mode}" \
+            --planned-mode "{params.planned_mode}" \
             2>/dev/null || echo "[WARNING] HTML report generation failed (non-fatal)"
 
         # Copy BibTeX to results if generated
@@ -342,7 +357,10 @@ rule collect_results:
             echo "[INFO] Removing intermediate files..."
             for item in "$OUTDIR"/*; do
                 basename=$(basename "$item")
-                if [ "$basename" = "results" ] || [ "$basename" = "varus" ]; then
+                # mode_selection/ holds the decisions of the automatic mode
+                # fallback; without them a later snakemake call in this
+                # directory would decide (and compute the evidence) again.
+                if [ "$basename" = "results" ] || [ "$basename" = "varus" ] || [ "$basename" = "mode_selection" ]; then
                     continue
                 fi
                 rm -rf "$item"

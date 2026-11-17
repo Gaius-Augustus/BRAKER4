@@ -23,9 +23,8 @@ def _get_ncrna_merge_inputs(wildcards):
         "infernal": f"output/{sample}/ncrna/ncRNAs_infernal.gff3",
     }
 
-    # lncRNA only available when transcript evidence exists
-    mode = get_braker_mode(sample)
-    if mode in ('et', 'etp', 'isoseq', 'dual'):
+    # lncRNA only when transcript evidence is in use
+    if effective_has_transcripts(sample):
         inputs["lncrna"] = f"output/{sample}/ncrna/lncRNAs.gff3"
 
     return inputs

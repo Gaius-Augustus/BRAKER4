@@ -24,6 +24,12 @@ rule bam2hints:
         "logs/{sample}/bam2hints/{bam_id}.log"
     benchmark:
         "benchmarks/{sample}/bam2hints/{bam_id}.txt"
+    params:
+        # 1: a library without spliced reads is not an error, because the
+        # RNA-Seq check of the automatic mode fallback (check_evidence.smk)
+        # then sends an ET sample to ES and an ETP sample to EP mode
+        allow_empty=lambda wildcards: 1 if (config.get("auto_mode_fallback", True)
+                                            and get_braker_mode(wildcards.sample) in ("et", "etp")) else 0
     threads: 1
     resources:
         mem_mb=mem_single_thread,
@@ -41,8 +47,13 @@ rule bam2hints:
 
         # Check output was created
         if [ ! -s {output.hints} ]; then
-            echo "ERROR: bam2hints produced empty output" >> {log}
-            exit 1
+            if [ "{params.allow_empty}" = "1" ]; then
+                echo "WARNING: bam2hints found no spliced reads in {input.bam} (empty output); the RNA-Seq check of the automatic mode fallback decides how the sample continues" >> {log}
+                : > {output.hints}
+            else
+                echo "ERROR: bam2hints produced empty output" >> {log}
+                exit 1
+            fi
         fi
 
         n_hints=$(grep -c 'intron' {output.hints} || echo "0")

@@ -63,6 +63,8 @@ _env_overrides = {
     'BRAKER4_RUN_OMARK':                      ('PARAMS', 'run_omark'),
     'BRAKER4_OMAMER_DB':                      ('OMARK', 'omamer_db'),
     'BRAKER4_NO_CLEANUP':                     ('PARAMS', 'no_cleanup'),
+    'BRAKER4_AUTO_MODE_FALLBACK':             ('PARAMS', 'auto_mode_fallback'),
+    'BRAKER4_FALLBACK_MIN_INTRONS':           ('PARAMS', 'fallback_min_introns'),
     'BRAKER4_TRANSLATION_TABLE':              ('PARAMS', 'translation_table'),
     'BRAKER4_GC_DONOR':                       ('PARAMS', 'gc_donor'),
     'BRAKER4_ALLOW_HINTED_SPLICESITES':       ('PARAMS', 'allow_hinted_splicesites'),
@@ -277,6 +279,20 @@ config['omamer_db'] = config_parser.get(
 
 config['no_cleanup'] = config_parser.getboolean(
     'PARAMS', 'no_cleanup', fallback=False
+)
+
+# Automatic mode fallback (default on): a sample whose evidence is too thin
+# for the planned GeneMark mode continues in the next simpler mode instead
+# of failing: ETP -> EP -> ES and ET -> ES. The decisions are made at run
+# time by the checkpoints in rules/genemark/check_evidence.smk and read by
+# get_effective_mode() in rules/common.smk. fallback_min_introns is the
+# number of intron hints with enough multiplicity (RNA-Seq >= 10, proteins
+# >= 4) below which braker.pl warns that GeneMark-ET/EP may crash.
+config['auto_mode_fallback'] = config_parser.getboolean(
+    'PARAMS', 'auto_mode_fallback', fallback=True
+)
+config['fallback_min_introns'] = config_parser.getint(
+    'PARAMS', 'fallback_min_introns', fallback=150
 )
 
 config['translation_table'] = config_parser.getint(
@@ -579,6 +595,9 @@ if GLOBAL_DATA_TYPES['needs_masking']:
         print("  ✓ RepeatModeler2 + RepeatMasker (genome masking)")
 if GLOBAL_DATA_TYPES['has_reference_gtf']:
     print("  ✓ gffcompare evaluation against reference annotation")
+if config['auto_mode_fallback'] and _MODES & {'etp', 'et', 'ep'}:
+    print("  ✓ Automatic mode fallback when the evidence is too thin "
+          "(ETP -> EP -> ES, ET -> ES; auto_mode_fallback = 0 turns it off)")
 print()
 
 # Include SRA download rules
@@ -616,9 +635,14 @@ if GLOBAL_DATA_TYPES['has_bam'] or GLOBAL_DATA_TYPES['has_varus'] or GLOBAL_DATA
     include: "rules/genemark/filter_introns.smk"
     include: "rules/genemark/run_genemark_et.smk"
 
-# Include GeneMark-ES (needed for EP mode seeding and ES mode)
+# Automatic mode fallback (ETP -> EP -> ES, ET -> ES): samples whose mode is
+# decided at run time need the rules of the modes they can fall back to.
+AUTO_MODE_FALLBACK = config['auto_mode_fallback'] and bool(_MODES & {'etp', 'et', 'ep'})
+
+# Include GeneMark-ES (needed for EP mode seeding, ES mode, and as the last
+# fallback of ET and EP samples)
 HAS_ES = any(get_braker_mode(s) == 'es' for s in SAMPLES)
-if GLOBAL_DATA_TYPES['has_proteins'] or HAS_ES:
+if GLOBAL_DATA_TYPES['has_proteins'] or HAS_ES or (AUTO_MODE_FALLBACK and 'et' in _MODES):
     include: "rules/genemark/run_genemark_es.smk"
 
 # Include EP mode rules (protein-only evidence)
@@ -637,6 +661,10 @@ if HAS_ETP:
 HAS_DUAL = any(get_braker_mode(s) == 'dual' for s in SAMPLES)
 if HAS_DUAL:
     include: "rules/genemark/run_genemark_etp_isoseq.smk"
+
+# Evidence checks of the automatic mode fallback (checkpoints)
+if AUTO_MODE_FALLBACK:
+    include: "rules/genemark/check_evidence.smk"
 
 # GeneMark filtering (always needed, uses mode-dependent input functions)
 include: "rules/genemark/filter_genemark.smk"
@@ -659,9 +687,10 @@ include: "rules/postprocessing/merge_hints.smk"
 include: "rules/augustus_predict/run_augustus_hints.smk"
 include: "rules/postprocessing/fix_in_frame_stop_codons.smk"
 
-# Include AUGUSTUS iteration 2 for EP mode (ProtHint refinement)
+# Include AUGUSTUS iteration 2 for EP mode (ProtHint refinement); ETP samples
+# can fall back to EP mode
 HAS_EP = any(get_braker_mode(s) == 'ep' for s in SAMPLES)
-if HAS_EP:
+if HAS_EP or (AUTO_MODE_FALLBACK and 'etp' in _MODES):
     include: "rules/augustus_predict/run_augustus_hints_iter2.smk"
 
 # TSEBRA merging (always included, mode-aware per sample)

@@ -49,6 +49,7 @@ Contents
         -   [BRAKER4 with PacBio IsoSeq and protein data](#braker4-with-pacbio-isoseq-and-protein-data)
         -   [BRAKER4 with IsoSeq, short-read RNA-Seq, and protein data (dual mode)](#braker4-with-isoseq-short-read-rna-seq-and-protein-data-dual-mode)
         -   [BRAKER4 with genome only (ES mode)](#braker4-with-genome-only-es-mode)
+        -   [Automatic mode fallback](#automatic-mode-fallback)
     -   [Description of selected configuration options](#description-of-selected-configuration-options)
 -   [Output of BRAKER4](#output-of-braker4)
 -   [Example data](#example-data)
@@ -551,6 +552,8 @@ run_best_by_compleasm = 1           # rescue dropped BUSCO genes after TSEBRA me
 masking_tool = repeatmasker          # repeat masking engine: "repeatmasker" (default) or "red" (much faster)
 use_minisplice = 0                  # set to 1 to score splice sites with minisplice before minimap2 (IsoSeq only)
 no_cleanup = 0                      # set to 1 to keep all intermediate files (debugging only)
+auto_mode_fallback = 1              # 0 to fail instead of continuing in a simpler mode when the evidence is too thin (ETP -> EP -> ES, ET -> ES)
+fallback_min_introns = 150          # fewer intron hints than this (RNA-Seq multiplicity >= 10, proteins >= 4) count as too little evidence
 
 [fantasia]
 # Optional functional annotation of predicted proteins with FANTASIA-Lite.
@@ -830,6 +833,45 @@ sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_i
 my_species,genome.fa,,,,,,,,,,,eukaryota_odb12,
 ```
 
+### Automatic mode fallback
+
+BRAKER4 plans the mode of a sample from the columns of `samples.csv`. If the evidence turns out to be too thin for the GeneMark program of that mode, the sample continues in the next simpler mode instead of failing:
+
+```
+ETP -> EP -> ES        ET -> ES
+```
+
+IsoSeq and dual mode have no fallback. The fallback is on by default and is switched off with `auto_mode_fallback = 0` (see [auto_mode_fallback](#auto_mode_fallback)). With `0`, a sample with too little evidence fails in GeneMark.
+
+The decisions are made at run time, at five points:
+
+| Decision point | Planned mode | Too little evidence if | Result |
+|----------------|--------------|------------------------|--------|
+| RNA-Seq check, before GeneMark-ET / GeneMark-ETP | ET, ETP | fewer than `fallback_min_introns` (150) RNA-Seq intron hints with multiplicity >= 10 | ET to ES; ETP to EP (GeneMark-ETP is not started) |
+| GeneMark-ETP result | ETP | GeneMark-ETP ran, but stopped for lack of training data: no spliced transcripts, no gene seeds from GeneMarkS-T, or fewer than 100 training genes | ETP to EP |
+| GeneMark-ET result | ET | `gmes_petap.pl` stopped with an error of its own in training | ET to ES |
+| Protein check, before GeneMark-EP | EP, or ETP after a fallback | fewer than `fallback_min_introns` (150) ProtHint intron hints with multiplicity >= 4; also when ProtHint stops because DIAMOND finds none of the input proteins in the genome | EP to ES |
+| GeneMark-EP result | EP, or ETP after a fallback | `gmes_petap.pl` stopped with an error of its own in training | EP to ES |
+
+The limits 150, 10 and 4 are those at which `braker.pl` warns that GeneMark may crash. An error of GeneMark-ET or GeneMark-EP does not count as too little evidence when the program was killed by a signal (out of memory kill, time limit, segmentation fault) or when a log shows a full disk or exhausted memory. Such a job still fails.
+
+An RNA-Seq library without any spliced read does not stop an ET or ETP sample any more: its intron hints file is empty, and the RNA-Seq check counts what the other libraries provide.
+
+After a fallback, the evidence that was too thin is not used any more:
+
+-   After ETP to EP: no RNA-Seq hints for AUGUSTUS, no UTRs, no lncRNA.
+-   After EP to ES: no protein hints.
+-   After ET to ES: the RNA-Seq intron hints stay in the AUGUSTUS hints file, because that file is also the input of GeneMark-ET and is made before the decision. GeneMark-ES trains AUGUSTUS.
+
+Where to see that a fallback happened:
+
+-   The HTML report shows a notice box "Automatic mode fallback" and a sentence with the reasons in the methods text. The Mode line shows the mode the sample really ran in.
+-   `output/<sample>/results/quality_control/mode_selection/` holds one decision file (`.tsv`) per decision point that was reached. They are kept when the intermediate files are removed.
+-   The GeneMark logs (`logs/<sample>/genemark_etp/genemark_etp.log`, `genemark_et/genemark_et.log`, `genemark_ep/genemark_ep.log`) contain lines that start with `FALLBACK:`.
+-   `collect_results` prints a warning with the planned and the real mode.
+
+A dry run (`snakemake -n`) shows the planned mode plus the check jobs, because the decisions are made at run time. Runs that finished before the fallback existed are not affected: they have no decision files and nothing is recomputed.
+
 Description of selected configuration options
 ----------------------------------------------
 
@@ -977,6 +1019,14 @@ OMArk reads the NCBI taxonomy through ete3. Without further setup, ete3 download
 ### no_cleanup
 
 Set to `1` to keep all intermediate files after the pipeline finishes. By default (`0`) the `collect_results` rule copies the important outputs into `output/{sample_name}/results/` and deletes everything else. Keep this at `0` for production runs. Only enable it when debugging a rule failure and you need to inspect intermediate state.
+
+### auto_mode_fallback
+
+Set to `0` to switch off the automatic mode fallback (see [Automatic mode fallback](#automatic-mode-fallback)). Default is `1`: a sample whose evidence is too thin for its planned GeneMark mode continues in the next simpler mode (ETP to EP to ES, ET to ES) instead of failing. With `0`, such a sample fails in GeneMark, as it did before the fallback existed, and no evidence checks are run. IsoSeq and dual mode never fall back. The value can also be set with the environment variable `BRAKER4_AUTO_MODE_FALLBACK`.
+
+### fallback_min_introns
+
+Minimum number of intron hints that the RNA-Seq check (before GeneMark-ET and GeneMark-ETP) and the protein check (before GeneMark-EP) require. Default is `150`. Only introns with enough multiplicity are counted: at least 10 for RNA-Seq (`bam2hints.gff`) and at least 4 for proteins (ProtHint hints). The multiplicity limits are fixed. The default values are the limits at which `braker.pl` warns that GeneMark may crash. Has no effect with `auto_mode_fallback = 0`. The value can also be set with the environment variable `BRAKER4_FALLBACK_MIN_INTRONS`.
 
 ### translation_table
 
@@ -1304,6 +1354,7 @@ output/{sample_name}/results/
     ├── introns_per_gene.png        # Intron count histogram
     ├── evidence_support.png        # Transcript/protein hint support plot
     ├── runtime_plot.png            # Resource consumption (time + RAM) plot
+    ├── mode_selection/             # Decision files of the automatic mode fallback (*.tsv, see above)
     ├── omark_summary.txt           # OMArk proteome quality (if run_omark = 1)
     ├── gffcompare.stats            # Accuracy vs reference (if reference_gtf provided)
     └── accuracy_final_gene_set.txt # Final gene set scored on the held-out AUGUSTUS
@@ -1388,6 +1439,10 @@ Common problems
 -   *Singularity cannot see my input files!*
 
     Singularity containers can only access directories that are explicitly bound. Add bind paths with `--singularity-args "-B /your/data/path"`. The default only binds `/home`.
+
+-   *GeneMark-ETP stops because there is too little RNA-Seq evidence!*
+
+    This is handled automatically. The sample continues in EP mode (and in ES mode if the protein evidence is also too thin) and the report says so. See [Automatic mode fallback](#automatic-mode-fallback). You do not need to change `samples.csv`. If you prefer the run to fail, set `auto_mode_fallback = 0`. To find out why the RNA-Seq data were not enough for GeneMark-ETP, read the `DIAGNOSTIC:` and `HINT:` lines in `logs/<sample>/genemark_etp/genemark_etp.log` (for example library strandedness, or too few reads from the target species).
 
 -   *GeneMark fails with "no data for training"!*
 

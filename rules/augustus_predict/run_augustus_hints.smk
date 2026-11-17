@@ -47,7 +47,9 @@ rule run_augustus_hints:
     input:
         genome = lambda w: get_masked_genome(w.sample),
         hintsfile = "output/{sample}/hintsfile.gff",
-        optimize_log = "output/{sample}/optimize_augustus.log"
+        optimize_log = "output/{sample}/optimize_augustus.log",
+        # decisions of the automatic mode fallback (for params.extrinsic_cfg)
+        mode_decisions = mode_decision_files
     output:
         job_lst = "output/{sample}/augustus_hints.job.lst",
         augustus_gff = "output/{sample}/augustus.hints.gff",

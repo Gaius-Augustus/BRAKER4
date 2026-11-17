@@ -11,9 +11,8 @@ Container: quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0
 def _get_gtf_for_gff3(wildcards):
     """Get the best GTF for GFF3 conversion: UTR-decorated if available."""
     sample = wildcards.sample
-    types = detect_data_types(sample)
-    has_transcripts = any([types[k] for k in ['has_bam', 'has_fastq', 'has_sra', 'has_varus', 'has_isoseq']])
-    if has_transcripts:
+    # no UTR decoration after a fallback to EP or ES mode
+    if effective_has_transcripts(sample):
         return f"output/{sample}/braker_utr.gtf"
     return f"output/{sample}/braker.gtf"
 

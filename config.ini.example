@@ -108,6 +108,13 @@ masking_tool = repeatmasker
 use_minisplice = 0
 ; Set to 1 to keep all intermediate files (useful for debugging, uses extra disk).
 no_cleanup = 0
+; Automatic mode fallback: a sample with too little evidence for its mode
+; continues in the next simpler mode instead of failing (ETP -> EP -> ES,
+; ET -> ES; the report says so). Set to 0 to fail instead.
+auto_mode_fallback = 1
+; Fewer intron hints than this with enough multiplicity (RNA-Seq >= 10,
+; proteins >= 4) count as too little evidence for GeneMark-ET / GeneMark-EP.
+fallback_min_introns = 150
 
 [fantasia]
 ; Optional functional annotation with FANTASIA-Lite (GPU validated on A100).

@@ -44,7 +44,7 @@ def get_tsebra_inputs(wildcards):
     so no extra dependency is added).
     """
     sample = wildcards.sample
-    mode = get_braker_mode(sample)
+    mode = get_effective_mode(sample)
     augustus_gtf = f"output/{sample}/augustus.hints.fixed.gtf"
 
     inputs = {
@@ -88,7 +88,7 @@ rule run_tsebra:
     benchmark:
         "benchmarks/{sample}/run_tsebra/run_tsebra.txt"
     params:
-        mode=lambda w: get_braker_mode(w.sample),
+        mode=lambda w: effective_mode_on_disk(w.sample),
         filter_se=config['filter_single_exon_genes']
     threads: 1
     resources:

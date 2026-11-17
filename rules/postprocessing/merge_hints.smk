@@ -2,7 +2,13 @@
 def _get_merge_hints_inputs(wildcards):
     """Get mode-dependent hint sources for merging."""
     sample = wildcards.sample
-    mode = get_braker_mode(sample)
+    if get_braker_mode(sample) == 'et':
+        # hintsfile.gff is the input of GeneMark-ET: it cannot depend on the
+        # mode decisions (the result of GeneMark-ET is one of them). After a
+        # fallback from ET to ES the RNA-Seq intron hints stay in the file.
+        mode = 'et'
+    else:
+        mode = get_effective_mode(sample)
     types = detect_data_types(sample)
 
     inputs = {}
@@ -13,13 +19,18 @@ def _get_merge_hints_inputs(wildcards):
     if mode in ('etp', 'isoseq'):
         # ETP/IsoSeq mode: hints come from GeneMark-ETP's get_etp_hints.py
         inputs['etp_hints'] = f"output/{sample}/etp_hints.gff"
-    else:
-        # ET/EP mode: separate hint sources
+    elif mode == 'dual':
         has_rnaseq = any([types[k] for k in ['has_bam', 'has_fastq', 'has_sra', 'has_varus']])
         if has_rnaseq:
             inputs['bam2hints'] = f"output/{sample}/bam2hints.gff"
         if types['has_proteins']:
             inputs['prothint'] = f"output/{sample}/prothint_hints.gff"
+    elif mode == 'et':
+        inputs['bam2hints'] = f"output/{sample}/bam2hints.gff"
+    elif mode == 'ep':
+        # also after a fallback from ETP: the RNA-Seq hints are not used
+        inputs['prothint'] = f"output/{sample}/prothint_hints.gff"
+    # ES mode (also after a fallback from EP): no evidence hints
 
     # Compleasm-derived CDSpart hints (optional, for all modes). Compleasm
     # ALWAYS runs because best_by_compleasm needs it for BUSCO rescue, but

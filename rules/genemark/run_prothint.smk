@@ -37,7 +37,13 @@ rule run_prothint:
         "benchmarks/{sample}/prothint/prothint.txt"
     params:
         outdir=lambda wildcards: f"output/{wildcards.sample}/prothint",
-        tmp_root=TMP_ROOT
+        tmp_root=TMP_ROOT,
+        # 1: when DIAMOND finds no protein of the input set in the genome,
+        # write empty hints and end without error; the protein check of the
+        # automatic mode fallback (check_evidence.smk) then sends the sample
+        # to ES mode. Planned EP and ETP samples only (not dual mode).
+        fallback=lambda wildcards: 1 if (config.get("auto_mode_fallback", True)
+                                         and get_braker_mode(wildcards.sample) in ("ep", "etp")) else 0
     threads: int(config['slurm_args']['cpus_per_task'])
     resources:
         mem_mb=int(config['slurm_args']['mem_of_node']),
@@ -104,6 +110,17 @@ rule run_prothint:
         if [ ! -f "$outDir/prothint_augustus.gff" ]
         then
             echo "ERROR: ProtHint failed (exit=$PROTHINT_EXIT), no prothint_augustus.gff" >> {log}
+            if [ "{params.fallback}" = "1" ] && grep -q "No homologous proteins were found by DIAMOND" "$outDir/prothint_run.log" 2>/dev/null
+            then
+                # no protein evidence at all: empty hints, the protein check
+                # (check_protein_evidence) then decides for ES mode
+                echo "FALLBACK: DIAMOND found no protein of {input.proteins} in the genome, so there are no protein hints." >> {log}
+                echo "FALLBACK: auto_mode_fallback is on, the sample continues in ES mode. Set auto_mode_fallback = 0 in config.ini to fail here instead." >> {log}
+                : > "$HINTS_ABS"
+                : > "$EVIDENCE_ABS"
+                rm -rf $SHADOW_DIR
+                exit 0
+            fi
             exit 1
         fi
 

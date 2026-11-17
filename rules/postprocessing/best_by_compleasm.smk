@@ -24,7 +24,7 @@ Container: teambraker/braker3:latest (contains compleasm, tsebra, getAnnoFastaFr
 def _bbc_genemark_gtf(wildcards):
     """GeneMark prediction GTF of the sample's mode."""
     sample = wildcards.sample
-    mode = get_braker_mode(sample)
+    mode = get_effective_mode(sample)
     if mode == 'es':
         return f"output/{sample}/GeneMark-ES/genemark.gtf"
     elif mode == 'ep':
@@ -67,7 +67,7 @@ rule best_by_compleasm:
         runtime=int(config['slurm_args']['max_runtime'])
     params:
         run_bbc=config.get('run_best_by_compleasm', True),
-        mode=lambda w: get_braker_mode(w.sample),
+        mode=lambda w: effective_mode_on_disk(w.sample),
         busco_lineage=lambda w: get_busco_lineage(w),
         library_path=config['compleasm_download_path'],
         tmp_dir=lambda w: f"output/{w.sample}/best_by_compleasm_tmp",

@@ -45,7 +45,12 @@ rule run_genemark_et:
         fungus="--fungus" if config.get("fungus", False) else "",
         gm_max_intergenic=f"--max_intergenic {config.get('gm_max_intergenic')}" if config.get("gm_max_intergenic") else "",
         gcode=f"--gcode {config.get('translation_table')}" if config.get("translation_table", 1) != 1 else "",
-        tmp_root=TMP_ROOT
+        tmp_root=TMP_ROOT,
+        # 1: when GeneMark-ET stops with an error of its own, write the reason
+        # for check_et_result and end without error, so that the sample continues
+        # in ES mode (auto_mode_fallback, scripts/genemark_fallback.sh)
+        fallback=1 if config.get("auto_mode_fallback", True) else 0,
+        thin_marker=lambda wildcards: f"output/{wildcards.sample}/mode_selection/et_insufficient.txt"
     container:
         BRAKER3_CONTAINER
     shell:
@@ -61,6 +66,10 @@ rule run_genemark_et:
         LOG_ABS=$(readlink -f {log})
 
         : > $LOG_ABS
+        THIN_MARKER=$WORKDIR/{params.thin_marker}
+        mkdir -p "$(dirname "$THIN_MARKER")"
+        rm -f "$THIN_MARKER"
+        source {script_dir}/genemark_fallback.sh
         source {script_dir}/tmp_dir.sh
         finalDir=$WORKDIR/{params.outdir}
         scratch_dir outDir "gmet_{wildcards.sample}" "{params.tmp_root}" \
@@ -72,7 +81,7 @@ rule run_genemark_et:
         # Run GeneMark-ET
         cd "$outDir"
 
-        gmes_petap.pl \
+        if gmes_petap.pl \
             --verbose \
             --sequence $GENOME_ABS \
             --ET $HINTS_ABS \
@@ -84,10 +93,23 @@ rule run_genemark_et:
             --soft_mask auto \
             1> $LOG_FILE_ABS \
             2>> $LOG_ABS
+        then
+            GM_EXIT=0
+        else
+            GM_EXIT=$?
+        fi
 
         # Check if output was created
         if [ ! -f genemark.gtf ]; then
-            echo "ERROR: GeneMark-ET failed to produce genemark.gtf" >> $LOG_ABS
+            echo "ERROR: GeneMark-ET failed to produce genemark.gtf (exit=$GM_EXIT)" >> $LOG_ABS
+            cd $WORKDIR
+            if [ "{params.fallback}" = "1" ] && genemark_fallback_marker GeneMark-ET "$GM_EXIT" "$THIN_MARKER" "$LOG_FILE_ABS" "$LOG_ABS"; then
+                echo "FALLBACK: $(cat "$THIN_MARKER")" >> $LOG_ABS
+                echo "FALLBACK: auto_mode_fallback is on, the sample continues in ES mode (GeneMark-ES trains AUGUSTUS; the RNA-Seq hints stay in the AUGUSTUS hints file). Set auto_mode_fallback = 0 in config.ini to fail here instead." >> $LOG_ABS
+                # empty placeholder for the output of this rule (not read in ES mode)
+                : > "$finalDir/genemark.gtf"
+                exit 0
+            fi
             exit 1
         fi
 

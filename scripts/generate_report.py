@@ -257,7 +257,42 @@ def _etp_dir(mode):
     return "GeneMark-ETP-isoseq" if "Dual" in mode else "GeneMark-ETP"
 
 
-def generate_methods_text(workdir, mode):
+def read_mode_fallback(workdir, planned_mode, mode):
+    """Sentence on an automatic mode fallback, '' when there was none.
+
+    planned_mode and mode are the Snakemake mode keys (es/et/ep/etp/...).
+    The reasons come from the decision files that the evidence checks
+    (rules/genemark/check_evidence.smk) wrote to <workdir>/mode_selection/.
+    """
+    if not planned_mode or not mode or planned_mode == mode:
+        return ""
+    reasons = []
+    for name in ("rnaseq_evidence.tsv", "etp_result.tsv", "et_result.tsv",
+                 "protein_evidence.tsv", "ep_result.tsv"):
+        path = os.path.join(workdir, "mode_selection", name)
+        if not os.path.exists(path):
+            continue
+        entries = {}
+        with open(path) as fh:
+            for line in fh:
+                key, _, value = line.rstrip("\n").partition("\t")
+                if key:
+                    entries[key] = value
+        if entries.get("sufficient", "1") != "1":
+            reasons.append(entries.get("reason", "not enough evidence"))
+    note = (f"The sample was set up for {planned_mode.upper()} mode, but the "
+            f"evidence was not enough for it, so BRAKER4 ran it in "
+            f"{mode.upper()} mode (automatic mode fallback)")
+    if reasons:
+        note += ": " + "; ".join(reasons)
+    note += "."
+    if planned_mode == "et" and mode == "es":
+        note += (" GeneMark-ES trained AUGUSTUS; the RNA-Seq intron hints "
+                 "were still given to AUGUSTUS.")
+    return note
+
+
+def generate_methods_text(workdir, mode, mode_note=""):
     """Generate a single cohesive methods paragraph from pipeline outputs.
 
     Instead of collecting per-rule text chunks, this function inspects
@@ -297,6 +332,8 @@ def generate_methods_text(workdir, mode):
     else:
         pipeline_text += "."
     parts.append(pipeline_text)
+    if mode_note:
+        parts.append(mode_note)
 
     # --- Repeat masking ---
     if os.path.exists(os.path.join(d, "preprocessing", "genome.fa.masked")):
@@ -1144,7 +1181,7 @@ footer {
 """
 
 
-def generate_html(sample_name, mode, methods_text, citations, images, qc_data, benchmarks=None, outdir=".", software_versions=None, warnings=None):
+def generate_html(sample_name, mode, methods_text, citations, images, qc_data, benchmarks=None, outdir=".", software_versions=None, warnings=None, mode_note=""):
     """Generate the full HTML report."""
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -1245,6 +1282,12 @@ def generate_html(sample_name, mode, methods_text, citations, images, qc_data, b
         warnings_html = (
             '<div class="warning"><strong>Warning: some steps failed and were '
             f'skipped; the pipeline continued.</strong><ul>{items}</ul></div>\n'
+        )
+
+    if mode_note:
+        warnings_html += (
+            '<div class="warning"><strong>Automatic mode fallback.</strong> '
+            f'{html_escape(mode_note)}</div>\n'
         )
 
     html = f"""<!DOCTYPE html>
@@ -1486,6 +1529,10 @@ def main():
     parser.add_argument("--mode", default=None,
                         help="Snakemake mode key (es/et/ep/etp/isoseq/dual); "
                              "overrides filesystem-based detect_mode()")
+    parser.add_argument("--planned-mode", default=None,
+                        help="mode key planned from samples.csv; when it "
+                             "differs from --mode the report says that the "
+                             "automatic mode fallback changed the mode")
     args = parser.parse_args()
 
     d = args.workdir
@@ -1508,7 +1555,8 @@ def main():
         mode = detect_mode(d)
 
     # Generate methods text from pipeline outputs (single cohesive paragraph)
-    methods_text = generate_methods_text(d, mode)
+    mode_note = read_mode_fallback(d, args.planned_mode, args.mode)
+    methods_text = generate_methods_text(d, mode, mode_note)
 
     # Read citations accumulated by rules
     citations_text = read_file(os.path.join(d, "report_citations.txt"))
@@ -1599,7 +1647,7 @@ def main():
     for w in warnings:
         print("WARNING: " + w, file=sys.stderr)
 
-    html = generate_html(sample_name, mode, methods_text, citations, images, qc_data, benchmarks, outdir=out, software_versions=software_versions, warnings=warnings)
+    html = generate_html(sample_name, mode, methods_text, citations, images, qc_data, benchmarks, outdir=out, software_versions=software_versions, warnings=warnings, mode_note=mode_note)
     html_path = os.path.join(out, "braker_report.html")
     with open(html_path, "w") as f:
         f.write(html)

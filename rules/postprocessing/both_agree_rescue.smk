@@ -13,7 +13,7 @@ new genes (never modifies existing predictions).
 def _both_agree_genemark_input(wildcards):
     """Return the GeneMark GTF path for the sample's pipeline mode."""
     sample = wildcards.sample
-    mode = get_braker_mode(sample)
+    mode = get_effective_mode(sample)
     if mode == 'es':
         return f"output/{sample}/GeneMark-ES/genemark.gtf"
     elif mode == 'ep':
@@ -30,7 +30,7 @@ def _both_agree_hints_input(wildcards):
     """Return the hints file path.  ES mode has no hints, so we return
     an empty placeholder that the script handles gracefully (no rescues)."""
     sample = wildcards.sample
-    mode = get_braker_mode(sample)
+    mode = get_effective_mode(sample)
     if mode == 'es':
         # ES has no hints — rule will find zero intron hints and rescue nothing.
         # Return the GeneMark GTF as a dummy dep so the rule still runs.

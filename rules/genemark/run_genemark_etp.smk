@@ -86,6 +86,15 @@ rule run_genemark_etp:
     StringTie GFFs go to output/<sample>/GeneMark-ETP/failed_run_debug/.
     NEED 1 x BAMs + 10 x genome + 5 x proteins (+ 5 GB each); with less
     free the job works in output/<sample>/GeneMark-ETP/ as before.
+
+    Automatic mode fallback (auto_mode_fallback, planned ETP mode only):
+    when GeneMark-ETP stops for lack of training data (no spliced
+    transcripts, no gene seeds, or fewer than 100 training genes), the job
+    writes the reason to
+    output/<sample>/mode_selection/etp_insufficient.txt, leaves empty
+    placeholders for its outputs and ends without error; the checkpoint
+    check_etp_result (check_evidence.smk) then sends the sample to EP mode.
+    Every other failure, and every failure in IsoSeq mode, still fails.
     """
     input:
         genome=lambda wildcards: get_masked_genome(wildcards.sample),
@@ -110,7 +119,13 @@ rule run_genemark_etp:
         species_name=lambda wildcards: get_species_name(wildcards),
         fungus="--fungus" if config.get("fungus", False) else "",
         translation_table=config.get("translation_table", 1),
-        tmp_root=TMP_ROOT
+        tmp_root=TMP_ROOT,
+        # 1: when GeneMark-ETP stops for lack of training data, write the
+        # marker for check_etp_result and end without error, so that the
+        # sample continues in EP mode (auto_mode_fallback, planned ETP only)
+        fallback=lambda wildcards: 1 if (config.get("auto_mode_fallback", True)
+                                         and get_braker_mode(wildcards.sample) == "etp") else 0,
+        thin_marker=lambda wildcards: f"output/{wildcards.sample}/mode_selection/etp_insufficient.txt"
     container:
         GENEMARK_ETP_CONTAINER
     shell:
@@ -126,6 +141,9 @@ rule run_genemark_etp:
 
         finalDir=$(readlink -f {params.outdir})
         rm -rf "$finalDir/failed_run_debug"
+        mkdir -p "$(dirname {params.thin_marker})"
+        THIN_MARKER=$WORKDIR/{params.thin_marker}
+        rm -f "$THIN_MARKER"
         GENOME_ABS=$(readlink -f {input.genome})
         PROTEINS_ABS=$(readlink -f {input.proteins})
         LOG_ABS=$WORKDIR/{log}
@@ -240,6 +258,12 @@ YAMLEOF
             # Stranded reads assembled unstranded (or poor alignments) can leave
             # StringTie with single-exon transcripts only; GeneMark-ETP then
             # fails much later, in training (#67).
+            # THIN_REASON is set when GeneMark-ETP stopped for lack of
+            # training data; with auto_mode_fallback the sample then
+            # continues in EP mode (see the end of this block).
+            THIN_REASON=""
+            N_TX=0
+            N_MULTI=0
             TGFF=$outDir/rnaseq/stringtie/transcripts_merged.gff
             if [ -s "$TGFF" ]; then
                 read -r N_TX N_MULTI < <(awk -F'\t' '$3 == "exon" && match($9, /transcript_id "[^"]+"/) {{ n[substr($9, RSTART, RLENGTH)]++ }} END {{ for (t in n) {{ tx++; if (n[t] > 1) m++ }} print tx + 0, m + 0 }}' "$TGFF")
@@ -248,6 +272,7 @@ YAMLEOF
                     echo "HINT: StringTie assembled 0 multi-exon transcripts, so GeneMark-ETP has no spliced genes to train on." >> {log}
                     echo "  Check library strandedness and the alignments: GeneMark-ETP runs StringTie without a strand option (no --rf/--fr), and BAM files of stranded reads need the XS tag (HISAT2 --rna-strandness, STAR --outSAMstrandField intronMotif)." >> {log}
                     echo "  Fallback: ET mode (RNA-Seq only) or EP mode (proteins only) do not use StringTie." >> {log}
+                    THIN_REASON="StringTie assembled $N_TX transcripts from the RNA-Seq data, none of them spliced, so GeneMark-ETP had no spliced genes to train on"
                 fi
             fi
             # GeneMarkS-T found no usable genes in the assembled transcripts:
@@ -266,11 +291,25 @@ YAMLEOF
                 echo "  Typical reasons: few reads from this species (SRA runs from host tissue, a mixed sample or a related species), low coverage, or degraded RNA." >> {log}
                 echo "  Check the fraction of uniquely mapped reads (with VARUS: avgUmrPercent in output/{wildcards.sample}/varus/RunStatistics.csv)." >> {log}
                 echo "  Fallback: EP mode (proteins only): leave the RNA-Seq columns of samples.csv empty and set use_varus = 0." >> {log}
+                THIN_REASON="GeneMarkS-T found no usable genes in the $N_TX transcripts assembled from the RNA-Seq data"
             fi
+            # Number of training genes GeneMark-ETP selected (gmetp.pl prints
+            # "# from file training.list parsed IDs: N"). With a handful of
+            # genes training fails in different places: division by zero in
+            # parse_set.pl, or no model and then no pred_m/genemark.gtf.
+            N_TRAIN=$(grep "from file training.list parsed IDs:" $WORKDIR/{log} | tail -1 | awk '{{print $NF}}')
+            case "$N_TRAIN" in
+                ''|*[!0-9]*) N_TRAIN=unknown ;;
+                *) if [ "$N_TRAIN" -lt 100 ]; then
+                       echo "DIAGNOSTIC: GeneMark-ETP selected only $N_TRAIN training genes; about 100 spliced genes are needed to train." >> {log}
+                       if [ -z "$THIN_REASON" ]; then
+                           THIN_REASON="GeneMark-ETP found only $N_TRAIN training genes ($N_TX transcripts assembled from the RNA-Seq data, $N_MULTI of them spliced)"
+                       fi
+                   fi ;;
+            esac
             if [ "$NO_SEEDS" -eq 1 ]; then
                 :
             elif grep -q "Illegal division by zero" $WORKDIR/{log} 2>/dev/null; then
-                N_TRAIN=$(grep "genes found for training:" $WORKDIR/{log} | tail -1 | awk '{{print $NF}}' 2>/dev/null || echo "unknown")
                 echo "HINT: GeneMark-ETP crashed in model training (parse_set.pl / train_super.pl division by zero)." >> {log}
                 echo "  Training genes found: $N_TRAIN (minimum needed: ~100 multi-exon genes)." >> {log}
                 echo "  Likely causes:" >> {log}
@@ -315,6 +354,20 @@ YAMLEOF
                 tail -10 "$GMS_LOG" >> {log}
             fi
             save_debug
+            if [ "{params.fallback}" = "1" ] && [ -n "$THIN_REASON" ]; then
+                # Not enough RNA-Seq evidence for GeneMark-ETP: leave the
+                # reason for check_etp_result and empty placeholders for
+                # the outputs of this rule (not read in EP mode).
+                echo "$THIN_REASON" > "$THIN_MARKER"
+                echo "FALLBACK: $THIN_REASON." >> {log}
+                echo "FALLBACK: auto_mode_fallback is on, the sample continues in EP mode (proteins only). Set auto_mode_fallback = 0 in config.ini to fail here instead." >> {log}
+                mkdir -p "$finalDir/rnaseq/stringtie"
+                for f in "$finalDir/genemark.gtf" "$TRAINING_ABS" "$HC_GFF_ABS" "$ETP_HINTS_ABS" "$finalDir/rnaseq/stringtie/transcripts_merged.gff"; do
+                    [ -e "$f" ] || : > "$f"
+                done
+                rm -rf $SHADOW_DIR
+                exit 0
+            fi
             exit 1
         fi
 

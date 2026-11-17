@@ -207,6 +207,8 @@ A few flags you might want to flip:
 | `run_omark = 1` | Run OMArk on the predicted proteins. Requires the LUCA.h5 database (~8.8 GB). |
 | `run_ncrna = 1` | Predict ncRNAs (rRNA, tRNA, snoRNA, miRNA, lncRNA) in addition to coding genes. |
 | `use_compleasm_hints = 0` | Keep BUSCO compleasm CDSpart hints out of the AUGUSTUS hintsfile. Closer to native braker.pl behavior. |
+| `auto_mode_fallback = 0` | Fail when the evidence is too thin for the planned GeneMark mode. Default is `1`: the sample continues in the next simpler mode (ETP to EP to ES, ET to ES). `braker.pl` has no such fallback; it only warns that GeneMark may crash. |
+| `fallback_min_introns = 150` | Number of intron hints (RNA-Seq multiplicity >= 10, proteins >= 4) below which the evidence counts as too thin. These are the limits at which `braker.pl` warns. |
 | `skip_optimize_augustus = 1` | Skip the slow AUGUSTUS parameter optimization step. Saves ~30 min on small test runs but slightly reduces accuracy. Recommended only for testing. |
 
 For the full list see the README's [Description of selected configuration options](README.md#description-of-selected-configuration-options).

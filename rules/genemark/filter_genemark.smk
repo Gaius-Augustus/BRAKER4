@@ -22,7 +22,8 @@ Container: teambraker/braker3:latest (contains filterGenemark.pl)
 rule filter_genemark:
     input:
         gtf=get_genemark_output,
-        hints=get_genemark_hints_for_filter
+        hints=get_genemark_hints_for_filter,
+        mode_decisions=mode_decision_files
     output:
         good_gtf="output/{sample}/genemark/genemark.f.good.gtf",
         bad_gtf="output/{sample}/genemark/genemark.f.bad.gtf",
@@ -36,7 +37,7 @@ rule filter_genemark:
         mem_mb=mem_single_thread,
         runtime=int(config['slurm_args']['max_runtime'])
     params:
-        mode=lambda wildcards: get_braker_mode(wildcards.sample)
+        mode=lambda wildcards: effective_mode_on_disk(wildcards.sample)
     container:
         BRAKER3_CONTAINER
     shell:

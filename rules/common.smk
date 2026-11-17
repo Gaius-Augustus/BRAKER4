@@ -85,6 +85,164 @@ def get_braker_mode(sample):
     else:
         return "es"
 
+
+# ==============================================================================
+# Automatic mode fallback (ETP -> EP -> ES, ET -> ES)
+# ==============================================================================
+#
+# get_braker_mode() is the mode PLANNED from samples.csv; it is known when
+# the Snakefile is parsed and decides which rule files are included. The
+# mode a sample really runs in (the EFFECTIVE mode) can be a simpler one
+# when the evidence turns out to be too thin ([PARAMS] auto_mode_fallback,
+# default on). Five checkpoints (rules/genemark/check_evidence.smk) write
+# one decision file each to output/<sample>/mode_selection/:
+#
+#   rnaseq   rnaseq_evidence.tsv   RNA-Seq intron hints (planned ET, ETP)
+#   etp      etp_result.tsv        GeneMark-ETP found training genes (ETP)
+#   et       et_result.tsv         GeneMark-ET could train (ET)
+#   protein  protein_evidence.tsv  ProtHint intron hints (EP, also after a
+#                                  fallback from ETP)
+#   ep       ep_result.tsv         GeneMark-EP could train (EP)
+#
+# hintsfile.gff of a planned ET sample is the input of GeneMark-ET, so
+# merge_hints cannot depend on the decisions for such a sample: after a
+# fallback from ET to ES, AUGUSTUS still gets the RNA-Seq intron hints.
+#
+# Rules downstream of GeneMark must use get_effective_mode() in their input
+# functions and effective_mode_on_disk() in params (with
+# mode_decision_files as an input, so that the decisions exist when the
+# params are evaluated). Code that runs while the Snakefile is parsed, and
+# rules upstream of the checkpoints, must keep get_braker_mode().
+
+_MODE_STAGE_FILES = {
+    "rnaseq":  "rnaseq_evidence.tsv",
+    "etp":     "etp_result.tsv",
+    "et":      "et_result.tsv",
+    "protein": "protein_evidence.tsv",
+    "ep":      "ep_result.tsv",
+}
+_MODE_STAGE_CHECKPOINTS = {
+    "rnaseq":  "check_rnaseq_evidence",
+    "etp":     "check_etp_result",
+    "et":      "check_et_result",
+    "protein": "check_protein_evidence",
+    "ep":      "check_ep_result",
+}
+
+
+def mode_stage_file(sample, stage):
+    """Path of the decision file of one stage."""
+    return f"output/{sample}/mode_selection/{_MODE_STAGE_FILES[stage]}"
+
+
+def read_mode_decision(path):
+    """Read a decision file (key<TAB>value lines) into a dict."""
+    entries = {}
+    with open(path) as handle:
+        for line in handle:
+            key, _, value = line.rstrip("\n").partition("\t")
+            if key:
+                entries[key] = value
+    return entries
+
+
+def mode_fallback_active(sample):
+    """True when the effective mode of the sample is decided at run time."""
+    if not config.get("auto_mode_fallback", True):
+        return False
+    if get_braker_mode(sample) not in ("etp", "et", "ep"):
+        return False
+    # A run that finished before the fallback existed has no decision
+    # files and its intermediate files are gone; asking for the decisions
+    # would start it again from the alignments.
+    if (os.path.exists(f"output/{sample}/results/.done")
+            and not os.path.isdir(f"output/{sample}/mode_selection")):
+        return False
+    return True
+
+
+def _is_dry_run():
+    try:
+        return bool(workflow.dryrun)
+    except Exception:
+        return False
+
+
+def _walk_mode_chain(sample, enough):
+    """Effective mode of a sample; enough(stage) answers one decision."""
+    planned = get_braker_mode(sample)
+    mode = planned
+    if mode in ("etp", "et") and not enough("rnaseq"):
+        mode = "ep" if planned == "etp" else "es"
+    if mode == "etp" and not enough("etp"):
+        mode = "ep"
+    if mode == "et" and not enough("et"):
+        mode = "es"
+    if mode == "ep" and not enough("protein"):
+        mode = "es"
+    if mode == "ep" and not enough("ep"):
+        mode = "es"
+    return mode
+
+
+def _mode_and_decision_files(sample, from_disk):
+    """(effective mode, decision files it rests on).
+
+    from_disk=False asks the checkpoints, which makes Snakemake run them
+    and evaluate the calling input function again afterwards.
+    from_disk=True only reads decision files that exist and takes a missing
+    one as 'enough evidence': used for params, and for dry runs, which
+    therefore show the planned mode until the decisions are made.
+    """
+    if not mode_fallback_active(sample):
+        return get_braker_mode(sample), []
+    files = []
+
+    def enough(stage):
+        path = mode_stage_file(sample, stage)
+        files.append(path)
+        if from_disk:
+            if not os.path.exists(path):
+                return True
+        else:
+            stage_cp = getattr(checkpoints, _MODE_STAGE_CHECKPOINTS[stage])
+            stage_cp.get(sample=sample)
+            if not os.path.exists(path):
+                # get() only knows the checkpoint jobs that are in the DAG
+                # already. A later stage enters the DAG when an earlier
+                # decision asks for it, and get() then returns although
+                # the stage has not run: ask for it in the same way.
+                from snakemake.exceptions import IncompleteCheckpointException
+                from snakemake.io import checkpoint_target
+                raise IncompleteCheckpointException(stage_cp.rule, checkpoint_target(path))
+        return read_mode_decision(path).get("sufficient", "1") == "1"
+
+    return _walk_mode_chain(sample, enough), files
+
+
+def get_effective_mode(sample):
+    """Mode the sample really runs in. Only for input functions."""
+    return _mode_and_decision_files(sample, from_disk=_is_dry_run())[0]
+
+
+def effective_mode_on_disk(sample):
+    """Effective mode for params: decision files only, no checkpoint call.
+    The rule needs mode_decision_files among its inputs."""
+    return _mode_and_decision_files(sample, from_disk=True)[0]
+
+
+def mode_decision_files(wildcards):
+    """Input function: the decision files the effective mode rests on."""
+    sample = wildcards.sample if hasattr(wildcards, 'sample') else wildcards
+    return _mode_and_decision_files(sample, from_disk=_is_dry_run())[1]
+
+
+def effective_has_transcripts(sample):
+    """Transcript evidence in use (UTRs, lncRNA): not after a fallback to
+    EP or ES mode. Only for input functions."""
+    return get_effective_mode(sample) in ("et", "etp", "isoseq", "dual")
+
+
 # ==============================================================================
 # Input Validation
 # ==============================================================================
@@ -525,7 +683,7 @@ def get_genemark_output(wildcards):
     - IsoSeq mode: GeneMark-ETP training genes (same as ETP, with isoseq container)
     """
     sample = wildcards.sample if hasattr(wildcards, 'sample') else wildcards
-    mode = get_braker_mode(sample)
+    mode = get_effective_mode(sample)
     if mode == 'es':
         return f"output/{sample}/GeneMark-ES/genemark.gtf"
     elif mode == 'ep':
@@ -548,7 +706,7 @@ def get_genemark_hints_for_filter(wildcards):
     In IsoSeq mode: combined hints from GeneMark-ETP (same as ETP)
     """
     sample = wildcards.sample if hasattr(wildcards, 'sample') else wildcards
-    mode = get_braker_mode(sample)
+    mode = get_effective_mode(sample)
     if mode == 'es':
         return f"output/{sample}/empty_hints.gff"
     elif mode == 'ep':
@@ -566,7 +724,7 @@ def get_genemark_training_gtf(wildcards):
     In ETP/IsoSeq mode: GeneMark-ETP training genes (training.gtf from ETP)
     """
     sample = wildcards.sample if hasattr(wildcards, 'sample') else wildcards
-    mode = get_braker_mode(sample)
+    mode = get_effective_mode(sample)
     if mode == 'dual':
         return f"output/{sample}/GeneMark-ETP-isoseq/training.gtf"
     elif mode in ('etp', 'isoseq'):
@@ -582,7 +740,7 @@ def get_augustus_gtf(wildcards):
     In all other modes: uses iteration 1 output
     """
     sample = wildcards.sample if hasattr(wildcards, 'sample') else wildcards
-    mode = get_braker_mode(sample)
+    mode = get_effective_mode(sample)
     if mode == 'ep':
         return f"output/{sample}/augustus.hints_iter2.gtf"
     else:
@@ -596,7 +754,7 @@ def get_augustus_hintsfile(wildcards):
     In all other modes: standard hintsfile
     """
     sample = wildcards.sample if hasattr(wildcards, 'sample') else wildcards
-    mode = get_braker_mode(sample)
+    mode = get_effective_mode(sample)
     if mode == 'ep':
         return f"output/{sample}/hintsfile_iter2.gff"
     else:
@@ -609,9 +767,11 @@ def get_extrinsic_cfg(wildcards):
     - ET mode: rnaseq.cfg (RNA-Seq evidence only)
     - EP mode: ep.cfg (protein evidence only)
     - ETP/IsoSeq mode: etp.cfg (combined transcript + protein evidence)
+
+    Used in params: the rule needs mode_decision_files among its inputs.
     """
     sample = wildcards.sample if hasattr(wildcards, 'sample') else wildcards
-    mode = get_braker_mode(sample)
+    mode = effective_mode_on_disk(sample)
     if mode in ('etp', 'isoseq', 'dual'):
         return "/opt/BRAKER/scripts/cfg/etp.cfg"
     elif mode == 'ep':
