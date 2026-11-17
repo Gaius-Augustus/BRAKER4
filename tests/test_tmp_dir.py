@@ -305,14 +305,25 @@ def test_rule_uses_scratch_dir_safely(name):
     i = 0
     while lines[i].rstrip().endswith("\\"):
         i += 1
-    trap = lines[i + 1].strip()
-    if trap.startswith("#"):  # comment explaining an extended trap
-        trap = lines[i + 2].strip()
+    i += 1
+    # comment lines explaining an extended trap
+    while lines[i].strip().startswith("#"):
+        i += 1
     allowed = ["trap 'rm -rf -- \"$SCRATCH\"' EXIT"]
     if "SHADOW_DIR=$outDir.bin" in shell:
         # the ProtHint shadow tree next to the scratch dir is removed too
         # (braces doubled: Snakemake shell template)
         allowed = ["trap 'rm -rf -- \"$SCRATCH\" ${{SCRATCH:+\"$SCRATCH.bin\"}}' EXIT"]
+    sort_tmp = 'SORT_TMP=$(mktemp -d "$outDir/.samtools_sort_XXXXXX")'
+    if lines[i].strip() == sort_tmp:
+        # samtools sort chunks in a private directory per job (parallel
+        # jobs and retries collided on sort.NNNN.bam): the directory has to
+        # exist before the trap that removes it together with the scratch
+        i += 1
+        allowed = ["trap 'rm -rf -- \"$SCRATCH\" \"$SORT_TMP\"' EXIT"]
+    else:
+        assert "SORT_TMP" not in shell, "SORT_TMP not created right after scratch_dir"
+    trap = lines[i].strip()
     assert trap in allowed
     assert len(re.findall(r"^\s*trap ", shell, re.M)) == 1
     # Snakemake formats the shell block: a literal ${VAR...} must be ${{...}}
