@@ -39,7 +39,7 @@ augustus_config_path = augustus_config
 ;   braker3_image = /path/to/braker3_v3.0.10.sif
 ;   braker3_image = docker://teambraker/braker3:devel
 ;
-;braker3_image = docker://teambraker/braker3:v3.1.2
+;braker3_image = docker://teambraker/braker3:v3.1.3
 ;minimap2_image = docker://katharinahoff/minimap-minisplice:v0.1
 ;minisplice_image = docker://katharinahoff/minimap-minisplice:v0.1
 ;red_image = docker://quay.io/biocontainers/red:2018.09.10--h9948957_3

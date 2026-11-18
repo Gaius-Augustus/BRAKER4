@@ -336,7 +336,7 @@ Consult your HPC administrator if Singularity is not available. BRAKER4 will aut
 
 | Container | Image | Size | Used for |
 | --- | --- | --- | --- |
-| Main BRAKER | `teambraker/braker3:v3.1.2` | 2.4 GB | GeneMark-ES/ET/EP/ETP, AUGUSTUS, ProtHint, DIAMOND, TSEBRA, compleasm, HISAT2, samtools, SRA toolkit, minimap2, getAnnoFastaFromJoingenes — most rules in the pipeline |
+| Main BRAKER | `teambraker/braker3:v3.1.3` | 2.4 GB | GeneMark-ES/ET/EP/ETP, AUGUSTUS, ProtHint, DIAMOND, TSEBRA, compleasm, HISAT2, samtools, SRA toolkit, minimap2, getAnnoFastaFromJoingenes — most rules in the pipeline |
 | RepeatModeler/Masker | `dfam/tetools:latest` | 727 MB | RepeatModeler2 + RepeatMasker + TRF (only when `masking_tool = repeatmasker`, default) |
 | Red | `quay.io/biocontainers/red:2018.09.10--h9948957_3` | 13 MB | Red repeat detector (only when `masking_tool = red`) |
 | BUSCO | `ezlabgva/busco:v6.1.0_cv2` | 801 MB | BUSCO completeness assessment |
@@ -516,7 +516,7 @@ augustus_config_path = augustus_config
 [containers]
 # Replace any docker:// URI with an absolute path to a local .sif file to
 # avoid pulling the image at runtime. All keys are optional (defaults shown).
-braker3_image = docker://teambraker/braker3:v3.1.2
+braker3_image = docker://teambraker/braker3:v3.1.3
 minimap2_image = docker://katharinahoff/minimap-minisplice:v0.1
 minisplice_image = docker://katharinahoff/minimap-minisplice:v0.1
 red_image = docker://quay.io/biocontainers/red:2018.09.10--h9948957_3

@@ -920,7 +920,7 @@ def get_extrinsic_cfg(wildcards):
 # Container Configuration
 # ==============================================================================
 
-BRAKER3_CONTAINER = config.get("braker3_image", "docker://teambraker/braker3:v3.1.2")
+BRAKER3_CONTAINER = config.get("braker3_image", "docker://teambraker/braker3:v3.1.3")
 MINIMAP2_CONTAINER = config.get("minimap2_image", "docker://katharinahoff/minimap-minisplice:v0.1")
 MINISPLICE_CONTAINER = config.get("minisplice_image", "docker://katharinahoff/minimap-minisplice:v0.1")
 RED_CONTAINER = config.get("red_image", "docker://quay.io/biocontainers/red:2018.09.10--h9948957_3")

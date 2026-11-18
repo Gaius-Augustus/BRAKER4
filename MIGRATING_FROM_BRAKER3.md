@@ -22,7 +22,7 @@ If you have never used BRAKER before, read the main [README.md](README.md) first
 What does **not** change:
 
 - The workflow. GeneMark trains on extrinsic evidence, AUGUSTUS trains on the GeneMark output, TSEBRA merges the two. The same algorithms with the same parameters as BRAKER3.
-- Container image. The default `[containers] braker3_image` is `docker://teambraker/braker3:v3.1.2` — it is an updated version of the original BRAKER3 container that is no longer compatible with braker.pl and therefore not tagged as latest.
+- Container image. The default `[containers] braker3_image` is `docker://teambraker/braker3:v3.1.3`, an updated version of the original BRAKER3 container. braker.pl runs in it as well.
 - Output formats. The final files are still `braker.gtf`, `braker.gff3`, `braker.aa`, `braker.codingseq`, `hintsfile.gff` — just collected into the `results/` subdirectory.
 
 ## Step 0 — prerequisites

@@ -326,7 +326,7 @@ VARUS needs enough data. If the amount VARUS downloads is insufficient (mapping 
 
 ### Container python issues
 
-All `run_test.sh` scripts export `SINGULARITYENV_PREPEND_PATH=/opt/conda/bin` and shell blocks use `export PATH=/opt/conda/bin:$PATH` to ensure the container's python (with biopython, intervaltree, matplotlib) is used instead of the host's. If you see `ModuleNotFoundError`, check that the default main image (`teambraker/braker3:v3.1.2`) is being used.
+All `run_test.sh` scripts export `SINGULARITYENV_PREPEND_PATH=/opt/conda/bin` and shell blocks use `export PATH=/opt/conda/bin:$PATH` to ensure the container's python (with biopython, intervaltree, matplotlib) is used instead of the host's. If you see `ModuleNotFoundError`, check that the default main image (`teambraker/braker3:v3.1.3`) is being used.
 
 ## Rule Graphs
 
