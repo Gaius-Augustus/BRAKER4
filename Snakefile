@@ -79,6 +79,8 @@ _env_overrides = {
     'BRAKER4_USE_MINISPLICE':                 ('PARAMS', 'use_minisplice'),
     'BRAKER4_USE_VARUS':                      ('PARAMS', 'use_varus'),
     'BRAKER4_VARUS_LOGAN':                    ('PARAMS', 'varus_logan'),
+    'BRAKER4_VARUS_FASTQ':                    ('PARAMS', 'varus_fastq'),
+    'BRAKER4_VARUS_MAX_BATCHES':              ('PARAMS', 'varus_max_batches'),
     'BRAKER4_SKIP_SINGLE_EXON_DOWNSAMPLING':              ('PARAMS', 'skip_single_exon_downsampling'),
     'BRAKER4_DOWNSAMPLING_LAMBDA':                        ('PARAMS', 'downsampling_lambda'),
     'BRAKER4_DOWNSAMPLING_SINGLE_EXON_SKIP_THRESHOLD':    ('PARAMS', 'downsampling_single_exon_skip_threshold'),
@@ -137,7 +139,7 @@ _container_defaults = {
     'busco_image':     'docker://ezlabgva/busco:v6.1.0_cv2',
     'omark_image':     'docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0',
     'tetools_image':   'docker://dfam/tetools:latest',
-    'varus_image':     'docker://gaiusaugustus/pyvarus:v2.0.0a0',
+    'varus_image':     'docker://gaiusaugustus/pyvarus:v2.1.3',
     'trnascan_image': 'docker://quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0',
     'feelnc_image': 'docker://quay.io/biocontainers/feelnc:0.2--pl526_0',
     'infernal_image': 'docker://quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2',
@@ -208,6 +210,24 @@ config['varus_logan'] = config_parser.getboolean(
     'varus_logan',
     fallback=False
 )
+
+# varus_fastq = 1: the local FASTQ libraries of a sample (fastq_r1, fastq_r2)
+# are not aligned in full with HISAT2; pyVARUS samples batches of reads from
+# them (varus run --fastq), together with SRA runs when varus_genus and
+# varus_species are filled in. varus_max_batches is the upper bound on the
+# number of batches (50,000 read pairs each) of one pyVARUS run.
+config['varus_fastq'] = config_parser.getboolean(
+    'PARAMS',
+    'varus_fastq',
+    fallback=False
+)
+config['varus_max_batches'] = config_parser.getint(
+    'PARAMS',
+    'varus_max_batches',
+    fallback=1000
+)
+if config['varus_max_batches'] < 1:
+    raise ValueError("[PARAMS] varus_max_batches must be at least 1")
 
 config['skip_single_exon_downsampling'] = config_parser.getboolean(
     'PARAMS',
@@ -591,7 +611,7 @@ if 'ep' in _MODES:
 if 'es' in _MODES:
     print("  ✓ GeneMark-ES (ab initio, no evidence)")
 if GLOBAL_DATA_TYPES['has_varus']:
-    print("  ✓ VARUS auto-download and alignment")
+    print("  ✓ VARUS sampling and alignment (SRA runs and/or local FASTQ)")
 if GLOBAL_DATA_TYPES['has_isoseq_fastq']:
     print("  ✓ minimap2 IsoSeq FASTQ/FASTA alignment")
 if GLOBAL_DATA_TYPES['needs_masking']:

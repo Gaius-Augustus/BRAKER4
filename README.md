@@ -87,7 +87,7 @@ Key differences:
 
 -   **Optional non-coding RNA prediction.** When `run_ncrna = 1` is set in `config.ini`, BRAKER4 predicts rRNAs with pybarrnap, tRNAs with tRNAscan-SE, non-coding RNA families with Infernal against Rfam, and (when transcript evidence is available) long non-coding RNAs with FEELnc. All four predictors' results are merged into a single `braker_with_ncRNA.gff3`. By default (`run_ncrna = 0`), no ncRNA prediction is performed and only the protein-coding gene set is produced.
 
--   **Automated RNA-Seq sampling.** If you do not have RNA-Seq data at hand, BRAKER4 can use VARUS to automatically select and download suitable RNA-Seq libraries from NCBI's SRA for your species. Just provide the genus and species name in `samples.csv`.
+-   **Automated RNA-Seq sampling.** If you do not have RNA-Seq data at hand, BRAKER4 can use VARUS to automatically select and download suitable RNA-Seq libraries from NCBI's SRA for your species. Just provide the genus and species name in `samples.csv`. For very large local RNA-Seq data sets, `varus_fastq = 1` lets VARUS sample batches of reads from your own FASTQ libraries instead of aligning them in full.
 
 -   **Automatic UTR decoration.** If transcriptome data is provided, StringTie2 assembles transcripts and decorates all protein coding gene models that have support by evidence with UTRs if possible. A UTR stops before the nearest gene on the same strand that has its own transcript support, so read-through assemblies do not turn a neighbouring gene into UTR. In dual mode (short reads + IsoSeq), the IsoSeq reads are also assembled on their own, and their UTRs take priority wherever they match a gene.
 
@@ -342,7 +342,7 @@ Consult your HPC administrator if Singularity is not available. BRAKER4 will aut
 | BUSCO | `ezlabgva/busco:v6.1.0_cv2` | 801 MB | BUSCO completeness assessment |
 | AGAT | `quay.io/biocontainers/agat:1.4.1--pl5321hdfd78af_0` | 370 MB | GTF↔GFF3 conversion, normalization |
 | OMArk | `quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0` | 455 MB | OMArk + OMAmer (optional, only when `run_omark = 1`) |
-| pyVARUS | `gaiusaugustus/pyvarus:v2.0.0a0` | 458 MB (compressed) | pyVARUS auto-download of RNA-Seq from SRA (optional Logan pre-screen), plus HISAT2, minimap2, samtools, sra-tools, zstd (optional). Built from [pyVARUS/docker](https://github.com/Gaius-Augustus/pyVARUS/tree/main/docker) |
+| pyVARUS | `gaiusaugustus/pyvarus:v2.1.3` | 458 MB (compressed) | pyVARUS sampling of RNA-Seq from SRA and, with `varus_fastq = 1`, from local FASTQ libraries (optional Logan pre-screen), plus HISAT2, minimap2, samtools, sra-tools, zstd (optional). Built from [pyVARUS/docker](https://github.com/Gaius-Augustus/pyVARUS/tree/main/docker) |
 | minimap2 + minisplice | `katharinahoff/minimap-minisplice:v0.1` | ~200 MB | minimap2 ≥ 2.29 splice:hq for IsoSeq alignment, plus the minisplice CNN splice-site scorer (only when an IsoSeq FASTA/FASTQ is provided unaligned; minisplice is used only when `use_minisplice = 1`) |
 | pybarrnap | `quay.io/biocontainers/pybarrnap:0.5.1--pyhdfd78af_0` | 115 MB | rRNA prediction (only when `run_ncrna = 1`) |
 | tRNAscan-SE | `quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0` | 32 MB | tRNA prediction (only when `run_ncrna = 1`) |
@@ -455,8 +455,8 @@ sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_i
 | `genome_masked` | no | Path to soft-masked genome. If empty, the masking tool selected by `masking_tool` (RepeatModeler2 + RepeatMasker by default, or Red if set) runs automatically. |
 | `protein_fasta` | no | Protein sequences in FASTA format, plain or gzipped (`.gz`). Multiple files can be colon-separated. We recommend OrthoDB. |
 | `bam_files` | no | Pre-aligned RNA-Seq BAM file(s), colon-separated. Unsorted BAMs are sorted by BRAKER4. Reference names must match the genome FASTA headers. |
-| `fastq_r1` | no | Paired-end RNA-Seq FASTQ R1 file(s), colon-separated. Requires `fastq_r2`. |
-| `fastq_r2` | no | Paired-end RNA-Seq FASTQ R2 file(s), colon-separated. |
+| `fastq_r1` | no | Paired-end RNA-Seq FASTQ R1 file(s), colon-separated. Requires `fastq_r2`. With `varus_fastq = 1` the files must be gzip-compressed (`*.fastq.gz` or `*.fq.gz`). |
+| `fastq_r2` | no | Paired-end RNA-Seq FASTQ R2 file(s), colon-separated. With `varus_fastq = 1` the same rules as for `fastq_r1` apply. |
 | `sra_ids` | no | NCBI SRA accession IDs, colon-separated (e.g. `SRR123456:SRR789012`). Downloaded automatically. |
 | `varus_genus` | no | Genus name for VARUS automatic RNA-Seq selection. Requires `varus_species`. |
 | `varus_species` | no | Species name for VARUS. |
@@ -526,7 +526,7 @@ pybarrnap_image = docker://quay.io/biocontainers/pybarrnap:0.5.1--pyhdfd78af_0
 busco_image = docker://ezlabgva/busco:v6.1.0_cv2
 omark_image = docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0
 tetools_image = docker://dfam/tetools:latest
-varus_image = docker://gaiusaugustus/pyvarus:v2.0.0a0
+varus_image = docker://gaiusaugustus/pyvarus:v2.1.3
 trnascan_image = docker://quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0
 feelnc_image = docker://quay.io/biocontainers/feelnc:0.2--pl526_0
 infernal_image = docker://quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2
@@ -537,6 +537,8 @@ min_contig = 10000                  # skip contigs shorter than this (bp)
 # gm_max_intergenic = 10000        # TEST GENOMES ONLY — omit on real data (GeneMark chooses automatically)
 use_varus = 0                       # currently has no effect: VARUS runs when varus_genus and varus_species are filled in samples.csv
 varus_logan = 0                     # set to 1 to run the pyVARUS Logan pre-screen
+varus_fastq = 0                     # set to 1 to let pyVARUS sample reads from the local FASTQ libraries (fastq_r1/fastq_r2)
+varus_max_batches = 1000            # upper bound on the number of 50,000-read-pair batches of one pyVARUS run
 skip_optimize_augustus = 0          # set to 1 to skip AUGUSTUS optimization (saves time)
 skip_single_exon_downsampling = 0   # set to 1 to disable single-exon training-gene downsampling
 downsampling_lambda = 2             # Poisson lambda for single-exon downsampling (lower = more aggressive)
@@ -754,6 +756,34 @@ VARUS will query SRA, select RNA-Seq libraries with good coverage, download and 
 
 You can combine BAM files, FASTQ files, SRA IDs, and VARUS for the same sample. All evidence will be merged.
 
+pyVARUS 2.1.2 and later do not sample PacBio or Oxford Nanopore libraries in a short-read run.
+
+**Sampling local FASTQ libraries with VARUS (very large RNA-Seq data sets):**
+
+By default, local FASTQ libraries are aligned in full by HISAT2. If a sample has very large local RNA-Seq data, set `varus_fastq = 1` in `[PARAMS]`. pyVARUS (>= 2.1.0) then samples reads from the libraries in `fastq_r1` and `fastq_r2` and only these reads are aligned:
+
+```csv
+sample_name,genome,genome_masked,protein_fasta,bam_files,fastq_r1,fastq_r2,sra_ids,varus_genus,varus_species,isoseq_bam,isoseq_fastq,busco_lineage,reference_gtf
+my_species,genome.fa,,,,lib1_R1.fastq.gz:lib2_R1.fastq.gz,lib1_R2.fastq.gz:lib2_R2.fastq.gz,,,,,,eukaryota_odb12,
+```
+
+Each library is cut into batches of 50,000 read pairs. Batches are drawn in shuffled order, and the VARUS algorithm decides how many batches to take from which library, so reads that add no new coverage are not aligned. If the sample also has `varus_genus` and `varus_species`, SRA runs and local libraries compete for the batches in one pyVARUS run (if SRA has no RNA-Seq runs for the species, pyVARUS samples from the local libraries alone). The result is the single VARUS BAM `output/<sample>/varus/varus.sorted.bam`, which is used like any other RNA-Seq BAM (ET, ETP, dual mode).
+
+Requirements with `varus_fastq = 1`:
+
+-   Files must be gzip-compressed and named `*.fastq.gz` or `*.fq.gz`. BRAKER4 stops at startup otherwise.
+-   Libraries are paired-end as before: fill both `fastq_r1` and `fastq_r2`.
+-   Two libraries of one sample must not have the same name after the mate marker is removed.
+-   Sampling from local libraries only needs no internet access.
+
+The number of batches of one run, for SRA and local sampling alike, is limited by `varus_max_batches` (default 1000, at most 50 million read pairs). With `varus_fastq = 0` (default) everything behaves as before.
+
+Three things to know before you switch it on:
+
+-   Use it for large libraries only. pyVARUS 2.1.3 stops when the last library has handed out all its batches and discards the batches that are still being aligned at that moment. In our tests a library of 400,000 read pairs (8 batches) contributed 2 batches when it was alone and 4 when there were two such libraries. With a few million read pairs or less, leave `varus_fastq = 0`.
+-   pyVARUS rejects a library if fewer than 5% of the reads of a batch map uniquely to the genome. If it rejects all of them, the rule stops with an error that says so.
+-   Local libraries get no preference over SRA runs. In a test with 266 SRA runs, one local library and `varus_max_batches = 20`, no batch came from the local library. Keep the default of 1000 batches or leave `varus_genus` and `varus_species` empty if the local reads must be used.
+
 ### BRAKER4 with protein data (EP mode — BRAKER2 equivalent)
 
 This mode is suitable when no RNA-Seq data is available. A large database of proteins should be used. The proteins can be of unknown evolutionary distance to the target species. This reproduces the [BRAKER2 pipeline](https://github.com/Gaius-Augustus/BRAKER) (Bruna et al. 2021).
@@ -936,6 +966,14 @@ VARUS is useful when you want RNA-Seq evidence but don't already have BAM/FASTQ 
 ### varus_logan
 
 Set to `1` to let pyVARUS run its Logan pre-screen, which ranks candidate SRA runs by their Logan contigs before the first download. Default is `0`: BRAKER4 passes `--no-logan` and pyVARUS samples runs online only, the way the benchmark BAMs were produced before Logan was available.
+
+### varus_fastq
+
+Set to `1` to let pyVARUS (>= 2.1.0) sample reads from the local FASTQ libraries of every sample (`fastq_r1`, `fastq_r2`) instead of aligning them in full with HISAT2. Default is `0`. Each library is cut into batches of 50,000 read pairs, the batches are drawn in shuffled order, and the VARUS algorithm decides how many to take from which library. If the sample also has `varus_genus` and `varus_species`, SRA runs and local libraries compete for the batches in one run. The result is `output/<sample>/varus/varus.sorted.bam`. The files must be gzip-compressed and named `*.fastq.gz` or `*.fq.gz`, otherwise BRAKER4 stops at startup. Intended for very large local RNA-Seq data sets. Can also be set via `BRAKER4_VARUS_FASTQ=1`. See "Sampling local FASTQ libraries with VARUS" in the section on RNA-Seq inputs.
+
+### varus_max_batches
+
+Upper bound on the number of batches of one pyVARUS run, for SRA and local sampling alike. Default is `1000`, the pyVARUS default. One batch is 50,000 read pairs, so 1000 batches are at most 50 million read pairs. Can also be set via `BRAKER4_VARUS_MAX_BATCHES`.
 
 ### use_dev_shm
 
@@ -1355,8 +1393,9 @@ output/{sample_name}/results/
 ├── genome_path.txt             # Path of the genome FASTA that was used for the run
 ├── gene_support.tsv            # Per-gene extrinsic evidence support summary
 ├── hintsfile.gff.gz            # All extrinsic evidence hints (gzipped)
-├── varus_runlist.tsv           # SRA runs chosen by VARUS (only if VARUS was used)
-├── varus_stats.txt             # VARUS run statistics (only if VARUS was used)
+├── varus_runlist.tsv           # SRA runs VARUS could sample from (only if VARUS sampled SRA runs; absent with local-only sampling)
+├── varus_run_statistics.csv    # batches VARUS took per SRA run or local FASTQ library (only if VARUS was used)
+├── varus_stats.txt             # VARUS run summary (only if VARUS was used)
 ├── software_versions.tsv       # Versions of all software tools used
 ├── braker_report.html          # Self-contained HTML report with embedded figures
 ├── braker_citations.bib        # BibTeX citations for all tools used

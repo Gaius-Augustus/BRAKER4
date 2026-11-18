@@ -255,6 +255,8 @@ Any value in `[SLURM_ARGS]` or `[PARAMS]` can be overridden via a `BRAKER4_<KEY_
 | `BRAKER4_RUN_OMARK` | `[PARAMS] run_omark` |
 | `BRAKER4_RUN_NCRNA` | `[PARAMS] run_ncrna` |
 | `BRAKER4_USE_VARUS` | `[PARAMS] use_varus` (currently has no effect: VARUS runs when `varus_genus` and `varus_species` are filled in `samples.csv`) |
+| `BRAKER4_VARUS_FASTQ` | `[PARAMS] varus_fastq` (1: pyVARUS samples reads from the local FASTQ libraries) |
+| `BRAKER4_VARUS_MAX_BATCHES` | `[PARAMS] varus_max_batches` (default 1000) |
 | `BRAKER4_SKIP_OPTIMIZE_AUGUSTUS` | `[PARAMS] skip_optimize_augustus` |
 | `BRAKER4_NO_CLEANUP` | `[PARAMS] no_cleanup` |
 | `BRAKER4_SKIP_BUSCO` | `[PARAMS] skip_busco` |

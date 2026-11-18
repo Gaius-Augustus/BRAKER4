@@ -299,6 +299,10 @@ rule collect_results:
                     cp "$f" "$RESULTS/"
                 fi
             done
+            # per run or library: batches taken, unique mapping, rejected or not
+            if [ -f "$OUTDIR/varus/RunStatistics.csv" ]; then
+                cp "$OUTDIR/varus/RunStatistics.csv" "$RESULTS/varus_run_statistics.csv"
+            fi
         fi
 
         # --- Software versions ---

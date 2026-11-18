@@ -42,12 +42,21 @@ def detect_data_types(sample):
     """
     row = samples_df[samples_df["sample_name"] == sample].iloc[0]
 
+    # [PARAMS] varus_fastq = 1 sends the local FASTQ libraries through pyVARUS
+    # (sampling) instead of HISAT2 (all reads). has_fastq then is False, so
+    # that everything keyed on it (HISAT2 rules, hint IDs) leaves them alone.
+    fastq = pd.notna(row.get("fastq_r1")) and pd.notna(row.get("fastq_r2"))
+    varus_sra = pd.notna(row.get("varus_genus")) and pd.notna(row.get("varus_species"))
+    varus_fastq = fastq and bool(config.get("varus_fastq", False))
+
     return {
         "has_proteins": pd.notna(row.get("protein_fasta")),
         "has_bam": pd.notna(row.get("bam_files")),
-        "has_fastq": pd.notna(row.get("fastq_r1")) and pd.notna(row.get("fastq_r2")),
+        "has_fastq": fastq and not varus_fastq,
         "has_sra": pd.notna(row.get("sra_ids")),
-        "has_varus": pd.notna(row.get("varus_genus")) and pd.notna(row.get("varus_species")),
+        "has_varus": varus_sra or varus_fastq,
+        "has_varus_sra": varus_sra,
+        "has_varus_fastq": varus_fastq,
         "has_isoseq": pd.notna(row.get("isoseq_bam")) or pd.notna(row.get("isoseq_fastq")),
         "has_isoseq_fastq": pd.notna(row.get("isoseq_fastq")),
         "has_masked_genome": pd.notna(row.get("genome_masked")),
@@ -167,7 +176,11 @@ def mode_fallback_active(sample):
 
 # Settings that change what GeneMark can do with the evidence of a sample
 _MODE_FINGERPRINT_KEYS = ("fallback_min_introns", "fungus", "min_contig",
-                          "gm_max_intergenic", "translation_table")
+                          "gm_max_intergenic", "translation_table",
+                          "varus_fastq", "varus_max_batches")
+# Settings added after the fingerprint existed: left out of it at their
+# default, so that the fingerprint of an older finished run stays the same.
+_MODE_FINGERPRINT_DEFAULTS = {"varus_fastq": False, "varus_max_batches": 1000}
 _MODE_MARKER_FILES = ("etp_insufficient.txt", "et_insufficient.txt", "ep_insufficient.txt")
 # samples whose decisions were complete at least once in this process
 _MODE_CHAIN_SETTLED = set()
@@ -189,6 +202,9 @@ def mode_evidence_fingerprint(sample):
                 st = os.stat(token)
                 lines.append(f"file\t{token}\t{st.st_size}\t{st.st_mtime_ns}")
     for key in _MODE_FINGERPRINT_KEYS:
+        if key in _MODE_FINGERPRINT_DEFAULTS and \
+                config.get(key, _MODE_FINGERPRINT_DEFAULTS[key]) == _MODE_FINGERPRINT_DEFAULTS[key]:
+            continue
         lines.append(f"config\t{key}\t{config.get(key, '')}")
     return "\n".join(lines) + "\n"
 
@@ -437,6 +453,15 @@ def validate_samples():
         if pd.notna(row.get("varus_genus")) != pd.notna(row.get("varus_species")):
             raise ValueError(f"{sample}: VARUS requires both genus and species")
 
+        # Rule 6b: pyVARUS samples from gzip-compressed FASTQ only
+        if config.get("varus_fastq", False) and pd.notna(row.get("fastq_r1")) and pd.notna(row.get("fastq_r2")):
+            for fq in str(row["fastq_r1"]).split(":") + str(row["fastq_r2"]).split(":"):
+                if not fq.endswith((".fastq.gz", ".fq.gz")):
+                    raise ValueError(
+                        f"{sample}: varus_fastq = 1 needs gzip-compressed FASTQ files "
+                        f"named *.fastq.gz or *.fq.gz, got {fq}. Compress the file "
+                        f"with gzip or set varus_fastq = 0.")
+
         # Rule 7: busco_lineage is required
         if pd.isna(row.get("busco_lineage")) or not str(row.get("busco_lineage")).strip():
             raise ValueError(f"{sample}: busco_lineage column is required in samples.csv")
@@ -566,7 +591,14 @@ def get_fastq_ids(sample):
 
     Strips extensions and _R1/_1 suffixes to produce a clean ID.
     E.g. reads_R1.fastq.gz -> reads
+
+    These are the libraries that HISAT2 aligns in full. With
+    [PARAMS] varus_fastq = 1 the list is empty: the libraries are sampled by
+    pyVARUS and arrive as the one VARUS BAM (get_varus_ids,
+    get_varus_fastq_pairs).
     """
+    if detect_data_types(sample)["has_varus_fastq"]:
+        return []
     pairs = get_fastq_pairs(sample)
     ids = []
     for r1, _ in pairs:
@@ -678,11 +710,20 @@ def get_isoseq_bam_for_etp(sample):
         return sorted_bams[0]
     return None
 
+def get_varus_fastq_pairs(sample):
+    """(r1, r2) tuples of the local FASTQ libraries that pyVARUS samples
+    from ([PARAMS] varus_fastq = 1); empty list otherwise."""
+    if detect_data_types(sample)["has_varus_fastq"]:
+        return get_fastq_pairs(sample)
+    return []
+
 def get_varus_ids(sample):
     """
     Get VARUS RNA-seq ID for a sample.
 
-    Returns ["varus"] if VARUS is configured, empty list otherwise.
+    Returns ["varus"] if pyVARUS runs for the sample (SRA sampling with
+    varus_genus and varus_species, and/or sampling of the local FASTQ
+    libraries with varus_fastq = 1), empty list otherwise.
     """
     types = detect_data_types(sample)
     if types["has_varus"]:
@@ -930,7 +971,7 @@ BARRNAP_CONTAINER = config.get("pybarrnap_image", "docker://quay.io/biocontainer
 BUSCO_CONTAINER = config.get("busco_image", "docker://ezlabgva/busco:v6.1.0_cv2")
 OMARK_CONTAINER = config.get("omark_image", "docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0")
 TETOOLS_CONTAINER = config.get("tetools_image", "docker://dfam/tetools:latest")
-VARUS_CONTAINER = config.get("varus_image", "docker://gaiusaugustus/pyvarus:v2.0.0a0")
+VARUS_CONTAINER = config.get("varus_image", "docker://gaiusaugustus/pyvarus:v2.1.3")
 TRNASCAN_CONTAINER = config.get("trnascan_image", "docker://quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0")
 FEELNC_CONTAINER = config.get("feelnc_image", "docker://quay.io/biocontainers/feelnc:0.2--pl526_0")
 INFERNAL_CONTAINER = config.get("infernal_image", "docker://quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2")
@@ -967,7 +1008,9 @@ def print_workflow_summary():
         if types["has_sra"]:
             evidence.append("SRA")
         if types["has_varus"]:
-            evidence.append("VARUS")
+            sources = [name for name, used in (("SRA", types["has_varus_sra"]),
+                                               ("local FASTQ", types["has_varus_fastq"])) if used]
+            evidence.append(f"VARUS ({' + '.join(sources)})")
         if types["has_isoseq"]:
             if types.get("has_isoseq_fastq"):
                 evidence.append("IsoSeq (FASTQ/FASTA, needs alignment)")

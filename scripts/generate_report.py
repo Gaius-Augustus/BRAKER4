@@ -414,12 +414,29 @@ def generate_methods_text(workdir, mode, mode_note=""):
     varus_stats = os.path.join(d, "varus", "varus_stats.txt")
     varus_runlist = os.path.join(d, "varus", "varus_runlist.tsv")
     if os.path.isdir(os.path.join(d, "varus")):
-        varus_text = (
-            "RNA-Seq data was automatically selected and downloaded from the NCBI "
-            "Sequence Read Archive using VARUS (Stanke et al., 2019)"
-        )
-        if os.path.exists(varus_stats):
-            stats_text = read_file(varus_stats)
+        stats_text = read_file(varus_stats) if os.path.exists(varus_stats) else ""
+        # varus_fastq = 1: pyVARUS sampled from the sample's own FASTQ
+        # libraries, alone or together with SRA runs (run_varus_wrapper.sh)
+        m_local = re.search(r"Local FASTQ libraries:\s*(\d+)", stats_text)
+        n_local = int(m_local.group(1)) if m_local else 0
+        local_text = (f"**{n_local} local FASTQ "
+                      f"{'library' if n_local == 1 else 'libraries'}**")
+        if n_local and "SRA runs in runlist:" not in stats_text:
+            varus_text = (
+                f"RNA-Seq reads were sampled from {local_text} using VARUS "
+                "(Stanke et al., 2019) and aligned with HISAT2"
+            )
+        elif n_local:
+            varus_text = (
+                "RNA-Seq reads were sampled using VARUS (Stanke et al., 2019) "
+                f"from runs of the NCBI Sequence Read Archive and from {local_text}"
+            )
+        else:
+            varus_text = (
+                "RNA-Seq data was automatically selected and downloaded from the NCBI "
+                "Sequence Read Archive using VARUS (Stanke et al., 2019)"
+            )
+        if stats_text:
             m = re.search(r"SRA experiments downloaded:\s*(\d+)", stats_text)
             if m:
                 varus_text += f", which selected **{int(m.group(1)):,} SRA experiments**"
@@ -918,6 +935,115 @@ def read_qc_summary(path, reformat_compleasm=False):
     return f"<pre>{text}</pre>"
 
 
+def varus_sampling_html(outdir):
+    """Report section on a pyVARUS run: which SRA runs and local FASTQ
+    libraries the reads were sampled from.
+
+    Source is RunStatistics.csv of pyVARUS (one line per run or library:
+    number of batches taken, average percentage of uniquely mapped reads,
+    rejected by the quality gate or not), as results/varus_run_statistics.csv
+    or output/<sample>/varus/RunStatistics.csv. Names that are in the SRA run
+    list (varus_runlist.tsv) are SRA runs, the others local libraries. The
+    run list alone is every run pyVARUS could choose from, not what it used;
+    it is only shown when there are no statistics (results of an older run).
+    """
+    def first_existing(*names):
+        for search_dir in (outdir, os.path.join(outdir, ".."),
+                           os.path.join(outdir, "..", "varus")):
+            for name in names:
+                p = os.path.join(search_dir, name)
+                if os.path.exists(p):
+                    return p
+        return None
+
+    stats_csv = first_existing("varus_run_statistics.csv", "RunStatistics.csv")
+    runlist_path = first_existing("varus_runlist.tsv")
+    summary_path = first_existing("varus_stats.txt")
+    if not (stats_csv or runlist_path or summary_path):
+        return ""
+
+    sra_runs = {}
+    if runlist_path:
+        with open(runlist_path) as f:
+            f.readline()
+            for line in f:
+                cols = line.rstrip("\n").split("\t")
+                if cols and cols[0]:
+                    sra_runs[cols[0]] = cols
+
+    rows = []
+    if stats_csv:
+        with open(stats_csv) as f:
+            f.readline()
+            for line in f:
+                cols = line.strip().split(";")
+                if len(cols) < 4:
+                    continue
+                try:
+                    batches = int(cols[1])
+                except ValueError:
+                    continue
+                available = cols[4] if len(cols) > 4 else ""
+                rows.append((cols[0], batches, cols[2], cols[3] == "True", available))
+
+    html = ""
+    if rows:
+        used = [r for r in rows if r[1] > 0]
+        rejected = [r for r in rows if r[3]]
+        n_local = sum(1 for r in rows if r[0] not in sra_runs)
+        n_sra = len(rows) - n_local
+        sources = []
+        if n_sra:
+            sources.append(f"{n_sra:,} SRA run{'s' if n_sra != 1 else ''}")
+        if n_local:
+            sources.append(f"{n_local:,} local FASTQ librar{'ies' if n_local != 1 else 'y'}")
+        html += "\n<h2>VARUS: Sampled RNA-Seq Runs and Libraries</h2>\n"
+        n_batches = sum(r[1] for r in used)
+        html += (f"<p>VARUS could sample from {' and '.join(sources)}. It took "
+                 f"{n_batches:,} batch{'es' if n_batches != 1 else ''} of reads "
+                 f"from {len(used):,} of them")
+        if rejected:
+            html += (f"; {len(rejected):,} were rejected because too few of their "
+                     "reads mapped uniquely to the genome")
+        html += ".</p>\n"
+        html += "<details open>\n<summary>Runs and libraries with sampled reads</summary>\n"
+        html += ("<table>\n<tr><th>Run or library</th><th>Source</th><th>Batches taken</th>"
+                 "<th>Batches available</th><th>Uniquely mapped reads (average)</th></tr>\n")
+        for name, batches, uniq, _bad, available in sorted(used, key=lambda r: (-r[1], r[0])):
+            if name in sra_runs:
+                label = (f'<a href="https://www.ncbi.nlm.nih.gov/sra/{name}" '
+                         f'target="_blank">{name}</a>')
+                source = "SRA"
+            else:
+                label = name
+                source = "local FASTQ"
+            html += (f"<tr><td>{label}</td><td>{source}</td><td>{batches:,}</td>"
+                     f"<td>{available}</td><td>{uniq}</td></tr>\n")
+        html += "</table>\n</details>\n"
+    elif runlist_path:
+        html += "\n<h2>VARUS: SRA Runs Available for Sampling</h2>\n"
+        html += ("<p>VARUS sampled reads from among the following SRA runs "
+                 "(the run list; which of them it used is not recorded here):</p>\n")
+        html += "<details>\n<summary>SRA run list</summary>\n"
+        html += "<table>\n<tr><th>SRA Accession</th><th>Spots in run</th></tr>\n"
+        for accession, cols in sra_runs.items():
+            link = (f'<a href="https://www.ncbi.nlm.nih.gov/sra/{accession}" '
+                    f'target="_blank">{accession}</a>')
+            spots = cols[1] if len(cols) > 1 else ""
+            try:
+                spots = f"{int(spots):,}"
+            except ValueError:
+                pass
+            html += f"<tr><td>{link}</td><td>{spots}</td></tr>\n"
+        html += "</table>\n</details>\n"
+    else:
+        html += "\n<h2>VARUS: Sampled RNA-Seq Runs and Libraries</h2>\n"
+
+    if summary_path:
+        html += read_qc_summary(summary_path)
+    return html
+
+
 def collect_benchmarks(workdir):
     """Collect Snakemake benchmark files from benchmarks/{sample}/.
 
@@ -1228,7 +1354,8 @@ def generate_html(sample_name, mode, methods_text, citations, images, qc_data, b
         ("genome.fa", "Repeat-masked genome assembly (pipeline-generated)"),
         ("hintsfile.gff", "All extrinsic evidence hints"),
         ("gene_support.tsv", "Per-gene evidence support statistics"),
-        ("varus_runlist.tsv", "VARUS: SRA experiments selected and downloaded"),
+        ("varus_runlist.tsv", "VARUS: SRA runs that were available for sampling"),
+        ("varus_run_statistics.csv", "VARUS: batches taken per SRA run or local FASTQ library, unique mapping, rejected runs"),
         ("varus_stats.txt", "VARUS: Run summary statistics"),
         ("braker_report.html", "This report"),
         ("braker_citations.bib", "BibTeX citations for all tools used"),
@@ -1326,35 +1453,8 @@ def generate_html(sample_name, mode, methods_text, citations, images, qc_data, b
         methods_html = re.sub(r"\*(.+?)\*", r"<em>\1</em>", methods_html)
         html += f"\n<h2>Methods</h2>\n<p>{methods_html}</p>\n"
 
-    # VARUS run list (if available) — collapsible table of SRA experiments
-    varus_runlist_path = None
-    for search_dir in [outdir, os.path.join(outdir, "..")]:
-        p = os.path.join(search_dir, "varus_runlist.tsv")
-        if os.path.exists(p):
-            varus_runlist_path = p
-            break
-    if varus_runlist_path:
-        html += "\n<h2>VARUS: Selected SRA Experiments</h2>\n"
-        html += "<p>The following SRA experiments were automatically selected by VARUS:</p>\n"
-        html += "<details open>\n<summary>SRA run list</summary>\n"
-        html += "<table>\n<tr><th>SRA Accession</th><th>Reads Downloaded</th><th>Status</th></tr>\n"
-        with open(varus_runlist_path) as f:
-            header = f.readline()  # skip header
-            for line in f:
-                cols = line.strip().split("\t")
-                if len(cols) >= 3:
-                    accession = cols[0]
-                    reads = cols[1]
-                    status = cols[2]
-                    # Make accession a link to NCBI
-                    link = f'<a href="https://www.ncbi.nlm.nih.gov/sra/{accession}" target="_blank">{accession}</a>'
-                    html += f"<tr><td>{link}</td><td>{int(reads):,}</td><td>{status}</td></tr>\n"
-        html += "</table>\n</details>\n"
-
-        # VARUS stats summary
-        varus_stats_path = os.path.join(os.path.dirname(varus_runlist_path), "varus_stats.txt")
-        if os.path.exists(varus_stats_path):
-            html += read_qc_summary(varus_stats_path)
+    # VARUS: the runs and local libraries the reads were sampled from
+    html += varus_sampling_html(outdir)
 
     # Gene set statistics section
     gene_stats_path = None

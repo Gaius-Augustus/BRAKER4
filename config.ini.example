@@ -49,7 +49,7 @@ augustus_config_path = augustus_config
 ;busco_image = docker://ezlabgva/busco:v6.1.0_cv2
 ;omark_image = docker://quay.io/biocontainers/omark:0.4.1--pyh7e72e81_0
 ;tetools_image = docker://dfam/tetools:latest
-;varus_image = docker://gaiusaugustus/pyvarus:v2.0.0a0
+;varus_image = docker://gaiusaugustus/pyvarus:v2.1.3
 ;trnascan_image = docker://quay.io/biocontainers/trnascan-se:2.0.12--pl5321h031d066_0
 ;feelnc_image = docker://quay.io/biocontainers/feelnc:0.2--pl526_0
 ;infernal_image = docker://quay.io/biocontainers/infernal:1.1.5--pl5321h031d066_2
@@ -69,6 +69,14 @@ use_varus = 0
 ; Set to 1 to let pyVARUS run its Logan pre-screen before sampling (default 0:
 ; plain online sampling, as used for the benchmark BAMs).
 varus_logan = 0
+; Set to 1 to let pyVARUS (>= 2.1.0) sample batches of reads from the local FASTQ
+; libraries (fastq_r1, fastq_r2) instead of aligning them in full with HISAT2.
+; Files must be gzip-compressed (*.fastq.gz or *.fq.gz). For very large local
+; RNA-Seq data sets. Default 0.
+varus_fastq = 0
+; Upper bound on the number of batches (50,000 read pairs each) of one pyVARUS
+; run, for SRA and local sampling (default 1000, at most 50 million read pairs).
+varus_max_batches = 1000
 ; Set to 1 to skip AUGUSTUS parameter optimization (saves time on large genomes).
 skip_optimize_augustus = 0
 ; Set to 1 to disable single-exon training-gene downsampling.
