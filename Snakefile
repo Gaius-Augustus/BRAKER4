@@ -12,11 +12,11 @@ rules/common.smk):
   GeneMark-ETP run)
 
 Authors: Henning Krall, Katharina J. Hoff
-Version: 0.7.0-beta
+Version: 0.8.0-beta
 """
 
 __author__ = "Henning Krall,Katharina J. Hoff"
-__version__ = "0.7.0-beta"
+__version__ = "0.8.0-beta"
 
 import pandas as pd
 import configparser
