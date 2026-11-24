@@ -13,6 +13,10 @@ import re
 import sys
 from enum import Enum
 
+# TRF writes the full repeat sequence into its .dat output; long satellites
+# exceed the default csv field limit (131072) and crash the parser.
+csv.field_size_limit(sys.maxsize)
+
 
 class State(Enum):
     START = 1
