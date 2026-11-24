@@ -4,6 +4,7 @@ Tests for the ID safety net in scripts/normalize_gtf.py.
 - Transcripts with an identical CDS chain are collapsed to one (#71), both
   within a gene and across genes.
 - A gene ID used on several loci is split into one gene per locus (#97).
+- Only stop codons of the chosen genetic code are trimmed (-t).
 
 Input mimics TSEBRA output: bare IDs in column 9 of gene and transcript
 lines. The genome is poly-C, so no stop codon is trimmed and CDS
@@ -34,14 +35,16 @@ def _tx(chrom, strand, gid, tid, cds, frames=None):
     return "".join(lines)
 
 
-def _run(tmp_path, gtf):
+def _run(tmp_path, gtf, x1=None, table=None):
     genome = tmp_path / "genome.fa"
-    genome.write_text(">X1\n" + "C" * 5000 + "\n>X2\n" + "C" * 5000 + "\n")
+    genome.write_text(">X1\n" + (x1 or "C" * 5000) + "\n>X2\n" + "C" * 5000 + "\n")
     inp, out, log = tmp_path / "in.gtf", tmp_path / "out.gtf", tmp_path / "norm.log"
     inp.write_text(gtf)
-    subprocess.run([sys.executable, SCRIPT, "-g", str(genome), "-f", str(inp),
-                    "-o", str(out), "-l", str(log)],
-                   capture_output=True, text=True, check=True)
+    cmd = [sys.executable, SCRIPT, "-g", str(genome), "-f", str(inp),
+           "-o", str(out), "-l", str(log)]
+    if table is not None:
+        cmd += ["-t", str(table)]
+    subprocess.run(cmd, capture_output=True, text=True, check=True)
     rows = [line.split("\t") for line in out.read_text().splitlines() if line]
     return rows, log.read_text()
 
@@ -131,3 +134,36 @@ def test_overlapping_isoforms_stay_one_gene(tmp_path):
     rows, log = _run(tmp_path, gtf)
     assert _tx_by_gene(rows) == {"g1": {"g1.t1", "g1.t2"}}
     assert "Gene IDs split (several loci): 0" in log
+
+
+def _cds_end(rows):
+    return [int(r[4]) for r in rows if r[2] == "CDS"]
+
+
+def _genome_ending_in(codon):
+    """X1 with an ATG at 101 and the given codon at 299-301."""
+    return "C" * 100 + "ATG" + "C" * 195 + codon + "C" * 4699
+
+
+def test_standard_code_trims_taa(tmp_path):
+    gtf = _gene("X1", 101, 301, "+", "g1") + _tx("X1", "+", "g1", "g1.t1", [(101, 301)])
+    rows, log = _run(tmp_path, gtf, x1=_genome_ending_in("TAA"))
+    assert _cds_end(rows) == [298]
+    assert "TRIMMED g1.t1: removed stop codon (TAA)" in log
+
+
+def test_ciliate_code_keeps_taa_and_tag(tmp_path):
+    # Tables 6 and 29: TAA and TAG code for Gln / Tyr, TGA is the only stop
+    for table in (6, 29):
+        for codon in ("TAA", "TAG"):
+            gtf = _gene("X1", 101, 301, "+", "g1") + _tx("X1", "+", "g1", "g1.t1", [(101, 301)])
+            rows, log = _run(tmp_path, gtf, x1=_genome_ending_in(codon), table=table)
+            assert _cds_end(rows) == [301], (table, codon)
+            assert "TRIMMED" not in log
+
+
+def test_ciliate_code_trims_tga(tmp_path):
+    gtf = _gene("X1", 101, 301, "+", "g1") + _tx("X1", "+", "g1", "g1.t1", [(101, 301)])
+    rows, log = _run(tmp_path, gtf, x1=_genome_ending_in("TGA"), table=6)
+    assert _cds_end(rows) == [298]
+    assert "TRIMMED g1.t1: removed stop codon (TGA)" in log

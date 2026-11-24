@@ -21,6 +21,7 @@ import argparse
 import sys
 from collections import defaultdict
 from Bio import SeqIO
+from Bio.Data import CodonTable
 
 
 def parse_gtf(gtf_file):
@@ -134,9 +135,11 @@ def codon_lines(template, feature, parts):
     return lines
 
 
-def normalize_transcript(features, genome, log_messages):
+def normalize_transcript(features, genome, log_messages, stop_codons=None):
     """
     Normalize CDS boundaries for a transcript.
+
+    stop_codons: stop codons of the genetic code (default: standard code).
 
     Returns (normalized_features, is_valid, messages).
     """
@@ -155,7 +158,8 @@ def normalize_transcript(features, genome, log_messages):
     stop_parts = codon_parts(cds_features, strand, at_end=True)
     stop_seq = codon_seq(genome, chrom, strand, stop_parts) if stop_parts else None
 
-    stop_codons = {'TAA', 'TAG', 'TGA'}
+    if stop_codons is None:
+        stop_codons = {'TAA', 'TAG', 'TGA'}
 
     if stop_seq and stop_seq in stop_codons:
         drop = set()
@@ -439,7 +443,10 @@ def main():
                         help="Output normalized GTF file")
     parser.add_argument("-l", "--log", required=True,
                         help="Log file for normalization report")
+    parser.add_argument("-t", "--table", type=int, default=1,
+                        help="NCBI genetic code table (default: 1)")
     args = parser.parse_args()
+    stop_codons = set(CodonTable.unambiguous_dna_by_id[args.table].stop_codons)
 
     # Load genome
     print(f"Loading genome: {args.genome}", file=sys.stderr)
@@ -463,7 +470,7 @@ def main():
         gene_valid = True
         for tx_id, features in list(transcripts.items()):
             features, is_valid, messages = normalize_transcript(
-                features, genome, all_messages)
+                features, genome, all_messages, stop_codons)
             all_messages.extend(messages)
 
             for msg in messages:

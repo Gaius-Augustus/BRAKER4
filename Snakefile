@@ -336,15 +336,22 @@ config['translation_table'] = config_parser.getint(
 # invocation would crash for any of 10/12/25/26/27/28/30/31 — so braker.pl's
 # broader acceptance list is effectively a braker.pl bug we deliberately do
 # not replicate here. See BRAKER_PARITY_AUDIT.md finding #15.
-_SUPPORTED_GCODES = {1, 6, 29}
+#
+# Table 29 (Mesodinium) is accepted by gmes_petap.pl but not implemented in
+# AUGUSTUS: NUM_TRANSTABS is 24 and GeneticCode::chooseTranslationTable falls
+# back to table 1 without an error for any higher number, so TAA and TAG
+# would be stop codons in etraining and prediction. It is therefore rejected.
+_SUPPORTED_GCODES = {1, 6}
 if config['translation_table'] not in _SUPPORTED_GCODES:
     raise ValueError(
         f"Invalid translation_table={config['translation_table']}. "
         f"BRAKER4 only supports {sorted(_SUPPORTED_GCODES)} because "
         "GeneMark-ES (gmes_petap.pl) inside the teambraker/braker3 "
-        "container does not accept any other genetic code. "
-        "Table 1 is the standard code; tables 6 and 29 are the "
-        "ciliate/Mesodinium nuclear codes where TGA codes for Trp. "
+        "container accepts only 1, 6 and 29, and AUGUSTUS does not "
+        "implement table 29 (it falls back to table 1). "
+        "Table 1 is the standard code; table 6 is the ciliate nuclear "
+        "code where TAA and TAG code for Gln and TGA is the only stop "
+        "codon. "
         "See https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi"
     )
 

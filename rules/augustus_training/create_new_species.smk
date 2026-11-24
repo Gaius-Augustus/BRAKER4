@@ -34,7 +34,8 @@ rule create_new_species:
         "benchmarks/{sample}/create_new_species/create_new_species.txt"
     params:
         aug_config = augustus_config_path,
-        species_name = lambda w: get_species_name(w)
+        species_name = lambda w: get_species_name(w),
+        translation_table = config.get("translation_table", 1)
     container:
         BRAKER3_CONTAINER
     threads: 1
@@ -80,6 +81,26 @@ rule create_new_species:
             fi
 
             echo "[INFO] Successfully created species {params.species_name}"
+        fi
+
+        # Non-standard genetic code: etraining (filter_genes_etraining, train_augustus)
+        # reads translation_table from the parameter file and otherwise rejects
+        # genes with TAA/TAG codons (Gln in code 6) as in-frame stops.
+        # Code 6 has TGA as its only stop codon (as braker.pl does).
+        if [ "{params.translation_table}" != "1" ]; then
+            SPECIES_PARAMS="$AUGUSTUS_CONFIG_PATH/species/{params.species_name}/{params.species_name}_parameters.cfg"
+            if grep -q "^translation_table" "$SPECIES_PARAMS"; then
+                sed -i "s#^translation_table\s\+\S\+#translation_table {params.translation_table}#" "$SPECIES_PARAMS"
+            else
+                echo "translation_table {params.translation_table}" >> "$SPECIES_PARAMS"
+            fi
+            if [ "{params.translation_table}" = "6" ]; then
+                sed -i "s#^\(/Constant/amberprob\s\+\)\S\+#\10#" "$SPECIES_PARAMS"
+                sed -i "s#^\(/Constant/ochreprob\s\+\)\S\+#\10#" "$SPECIES_PARAMS"
+                sed -i "s#^\(/Constant/opalprob\s\+\)\S\+#\11#" "$SPECIES_PARAMS"
+            fi
+            echo "[INFO] Set translation_table {params.translation_table} and stop codon probabilities:"
+            grep -E "^(translation_table|/Constant/(amber|ochre|opal)prob)" "$SPECIES_PARAMS"
         fi
 
         # Create marker file

@@ -38,7 +38,8 @@ rule normalize_cds:
         "benchmarks/{sample}/normalize_cds/normalize.txt"
     params:
         script=os.path.join(script_dir, "normalize_gtf.py"),
-        check=os.path.join(script_dir, "check_gtf_loci.py")
+        check=os.path.join(script_dir, "check_gtf_loci.py"),
+        translation_table=config.get("translation_table", 1)
     threads: 1
     resources:
         mem_mb=mem_single_thread,
@@ -55,6 +56,7 @@ rule normalize_cds:
             -f {input.gtf} \
             -o {output.gtf} \
             -l {output.log_file} \
+            -t {params.translation_table} \
             2> {log}
 
         # Every gene and transcript on one sequence and strand, spans consistent (#62)

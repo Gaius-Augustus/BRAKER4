@@ -57,7 +57,7 @@ from collections import Counter, defaultdict
 
 # ---------------------------------------------------------------------------
 # Genetic codes as gff3tools defines them (TranslationTableDescriptor):
-# amino acids and start codons in TCAG order. BRAKER4 supports 1, 6 and 29.
+# amino acids and start codons in TCAG order. BRAKER4 supports 1 and 6.
 # ---------------------------------------------------------------------------
 GENETIC_CODES = {
     1: ("FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",

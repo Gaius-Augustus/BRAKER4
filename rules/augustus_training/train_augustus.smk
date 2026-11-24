@@ -120,15 +120,15 @@ rule train_augustus:
         echo "[INFO] Setting stop codon frequencies in species parameters..." | tee -a {output.training_log}
 
         # For alternative genetic codes, override stop codon probabilities:
-        # Code 6/29 (ciliate): TGA codes for Trp, not a stop codon → opalprob=0
+        # Code 6 (ciliate: TAA, TAG = Gln) has TGA as its only stop codon
+        # -> amberprob=0, ochreprob=0, opalprob=1 (as braker.pl does)
         if [ "{params.translation_table}" != "1" ]; then
             echo "[INFO] Alternative translation table {params.translation_table} detected" | tee -a {output.training_log}
-            if [ "{params.translation_table}" = "6" ] || [ "{params.translation_table}" = "29" ]; then
-                echo "[INFO] Code 6/29: TGA encodes Trp, setting opalprob to 0" | tee -a {output.training_log}
-                FREQ_TGA="0"
-                # Renormalize TAG and TAA to sum to 1
-                FREQ_TAG=$(awk "BEGIN {{printf \"%.4f\", $FREQ_TAG / ($FREQ_TAG + $FREQ_TAA)}}")
-                FREQ_TAA=$(awk "BEGIN {{printf \"%.4f\", $FREQ_TAA / ($FREQ_TAG + $FREQ_TAA)}}")
+            if [ "{params.translation_table}" = "6" ]; then
+                echo "[INFO] Code {params.translation_table}: TGA is the only stop codon, setting amberprob and ochreprob to 0 and opalprob to 1" | tee -a {output.training_log}
+                FREQ_TAG="0"
+                FREQ_TAA="0"
+                FREQ_TGA="1"
             fi
         fi
 
@@ -136,7 +136,9 @@ rule train_augustus:
         sed -i "s#^\(/Constant/ochreprob\s\+\)\S\+#\1$FREQ_TAA#" {params.species_params}
         sed -i "s#^\(/Constant/opalprob\s\+\)\S\+#\1$FREQ_TGA#" {params.species_params}
 
-        # Set translation_table in AUGUSTUS parameters (needed for non-standard genetic codes)
+        # Set translation_table in AUGUSTUS parameters (needed for non-standard genetic codes).
+        # create_new_species already sets it before the first etraining run;
+        # this repeats it for species created before that rule set it.
         if [ "{params.translation_table}" != "1" ]; then
             if grep -q "^translation_table" {params.species_params}; then
                 sed -i "s#^translation_table\s\+\S\+#translation_table {params.translation_table}#" {params.species_params}

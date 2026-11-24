@@ -548,7 +548,7 @@ use_dev_shm = 0                     # set to 1 to use /dev/shm as scratch for ma
 use_compleasm_hints = 1             # 0 to keep BUSCO CDSpart hints out of AUGUSTUS hintsfile (compleasm still runs)
 skip_busco = 0                      # set to 1 to skip the (slow) full BUSCO pipeline
 run_omark = 0                       # set to 1 to run OMArk (requires LUCA.h5 database, ~8.8 GB)
-translation_table = 1               # genetic code table (1=standard, 6=ciliate, 29=Mesodinium); only ES/ET/EP modes
+translation_table = 1               # genetic code table (1=standard, 6=ciliate); only ES/ET/EP modes
 gc_donor = 0.001                    # GC donor splice site probability for GeneMark (ES/EP modes)
 allow_hinted_splicesites = gcag,atac # non-canonical splice sites for AUGUSTUS and for the ET intron hints (comma-separated)
 augustus_chunksize = 3000000        # genome chunk size (bp) for parallel AUGUSTUS prediction
@@ -1091,12 +1091,11 @@ Default is `0`: the automatic mode fallback only reacts to a GeneMark run that r
 NCBI genetic code table number for organisms with non-standard translation. Default is `1` (standard genetic code). Currently supported values:
 
 -   `1` — Standard genetic code (default)
--   `6` — Ciliate nuclear code (TGA = Trp instead of stop)
--   `29` — Mesodinium nuclear code (same as 6)
+-   `6` — Ciliate nuclear code (TAA and TAG = Gln; TGA is the only stop codon)
 
-This option is passed to GeneMark (`--gcode`) and AUGUSTUS (stop codon probabilities). For translation table 6/29, TGA is not treated as a stop codon: AUGUSTUS `opalprob` is set to 0, and protein sequences are translated with the corresponding BioPython table.
+This option is passed to GeneMark (`--gcode`) and AUGUSTUS (`translation_table` and stop codon probabilities in the species parameter file, set when the species is created so that etraining already uses the right code). For translation table 6, only TGA is treated as a stop codon: AUGUSTUS `amberprob` and `ochreprob` are set to 0 and `opalprob` to 1, CDS stop codon trimming only trims TGA, and protein sequences are translated with the corresponding BioPython table.
 
-**Only 1, 6, and 29 are accepted.** The underlying `gmes_petap.pl` inside the BRAKER container hard-rejects any other genetic code. Passing a different value (10, 12, 25, 26, 27, 28, 30, 31, or anything else) will cause BRAKER4 to exit at config-parse time with a clear explanation. This is more restrictive than braker.pl's nominal acceptance list, but it matches what `gmes_petap.pl` can actually run.
+**Only 1 and 6 are accepted.** The underlying `gmes_petap.pl` inside the BRAKER container hard-rejects any genetic code other than 1, 6 and 29. Table 29 (Mesodinium nuclear code) is not accepted either, because AUGUSTUS does not implement it: it implements tables up to 24 and uses table 1 for any higher number without an error. Passing a different value (10, 12, 25, 26, 27, 28, 29, 30, 31, or anything else) will cause BRAKER4 to exit at config-parse time with a clear explanation. This is more restrictive than braker.pl's nominal acceptance list, but it matches what `gmes_petap.pl` and AUGUSTUS can actually run.
 
 **Important:** Alternative translation tables are only supported in **ES**, **ET**, and **EP** modes. GeneMark-ETP does not support `--gcode`, so the pipeline will exit with an error if `translation_table` is set to a non-standard value with ETP, IsoSeq, or dual mode input data.
 
