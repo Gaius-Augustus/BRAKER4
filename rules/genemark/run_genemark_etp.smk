@@ -124,6 +124,11 @@ rule run_genemark_etp:
         outdir=lambda wildcards: f"output/{wildcards.sample}/GeneMark-ETP",
         species_name=lambda wildcards: get_species_name(wildcards),
         fungus="--fungus" if config.get("fungus", False) else "",
+        # Written to etp_config.yaml as translation_table/gcode, but GeneMark-ETP
+        # (gmetp.pl) reads neither key: it and the GeneMarkS-T it calls
+        # (gmst.pl, codes 1, 4 and 11 only) always use code 1. The value here is
+        # always 1 because validate_samples refuses other tables in ETP, IsoSeq
+        # and dual mode.
         translation_table=config.get("translation_table", 1),
         tmp_root=TMP_ROOT,
         # 1: when GeneMark-ETP stops for lack of training data, write the

@@ -98,7 +98,7 @@ use_compleasm_hints = 1
 skip_busco = 0
 ; Set to 1 to run OMArk (requires LUCA.h5 database, ~8.8 GB; see [OMARK] below).
 run_omark = 0
-; Genetic code table (1 = standard, 6 = ciliate, 29 = Mesodinium). Applies to ES/ET/EP modes only.
+; Genetic code table: 1 = standard, 6 = ciliate (TGA is the only stop codon). Other tables are refused; 6 works in ES/ET/EP mode only.
 translation_table = 1
 ; GC donor splice site probability for GeneMark (ES/EP modes).
 gc_donor = 0.001

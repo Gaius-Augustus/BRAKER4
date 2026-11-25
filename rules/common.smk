@@ -491,7 +491,8 @@ def validate_samples():
             if mode in ('etp', 'isoseq', 'dual'):
                 raise ValueError(
                     f"{sample}: translation_table={tt} is not supported in {mode.upper()} mode. "
-                    f"GeneMark-ETP does not support alternative genetic codes. "
+                    f"GeneMark-ETP and the GeneMarkS-T it runs on the assembled transcripts "
+                    f"always use the standard code (gmst.pl supports codes 1, 4 and 11 only). "
                     f"Use ES, ET, or EP mode instead, or set translation_table = 1."
                 )
 

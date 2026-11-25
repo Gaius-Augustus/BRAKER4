@@ -1097,7 +1097,7 @@ This option is passed to GeneMark (`--gcode`) and AUGUSTUS (`translation_table` 
 
 **Only 1 and 6 are accepted.** The underlying `gmes_petap.pl` inside the BRAKER container hard-rejects any genetic code other than 1, 6 and 29. Table 29 (Mesodinium nuclear code) is not accepted either, because AUGUSTUS does not implement it: it implements tables up to 24 and uses table 1 for any higher number without an error. Passing a different value (10, 12, 25, 26, 27, 28, 29, 30, 31, or anything else) will cause BRAKER4 to exit at config-parse time with a clear explanation. This is more restrictive than braker.pl's nominal acceptance list, but it matches what `gmes_petap.pl` and AUGUSTUS can actually run.
 
-**Important:** Alternative translation tables are only supported in **ES**, **ET**, and **EP** modes. GeneMark-ETP does not support `--gcode`, so the pipeline will exit with an error if `translation_table` is set to a non-standard value with ETP, IsoSeq, or dual mode input data.
+**Important:** Alternative translation tables are only supported in **ES**, **ET**, and **EP** modes. GeneMark-ETP has no genetic code option, and the GeneMarkS-T it runs on the assembled transcripts (`gmst.pl`) supports codes 1, 4 and 11 only; both always use the standard code. The pipeline therefore exits with an error if `translation_table` is set to a non-standard value with ETP, IsoSeq, or dual mode input data.
 
 ### gc_donor
 
