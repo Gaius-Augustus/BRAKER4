@@ -96,6 +96,12 @@ rule run_masking:
 
         # Split masked genome into chunks (min 25 Mb each)
         perl {script_dir}/splitMfasta.pl --minsize=25000000 genome.fa.masked >> "$LOG_ABS" 2>&1
+        # splitMfasta.pl only strips .fa/.fna/.fasta from the end of the input
+        # name, so genome.fa.masked gives genome.fa.masked.split.N.fa. Rename
+        # to the genome.split.N.fa names used below.
+        for f in genome.fa.masked.split.*.fa; do
+            [ -f "$f" ] && mv "$f" "genome.split.${{f#genome.fa.masked.split.}}"
+        done
 
         # If no split files were produced (genome smaller than minsize), use whole genome as single chunk
         if ! ls genome.split.*.fa 1>/dev/null 2>&1; then
@@ -103,13 +109,10 @@ rule run_masking:
             cp genome.fa.masked genome.split.0.fa
         fi
 
-        # Run TRF on each chunk (sequential — trf is single-threaded per file)
-        for chunk in genome.split.*.fa; do
-            if [ -f "$chunk" ]; then
-                echo "[INFO] TRF: $chunk" >> "$LOG_ABS"
-                trf "$chunk" 2 7 7 80 10 50 500 -d -m -h >> "$LOG_ABS" 2>&1 || true
-            fi
-        done
+        # Run TRF on the chunks in parallel (trf is single-threaded per file)
+        echo "[INFO] TRF on $(ls genome.split.*.fa | wc -l) chunks, {threads} in parallel" >> "$LOG_ABS"
+        ls genome.split.*.fa | xargs -P {threads} -I{{}} \
+            sh -c 'trf "$1" 2 7 7 80 10 50 500 -d -m -h >> "$2" 2>&1 || true' _ {{}} "$LOG_ABS"
 
         # Parse TRF output
         for dat in genome.split.*.fa.2.7.7.80.10.50.500.dat; do
